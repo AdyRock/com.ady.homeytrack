@@ -1,0 +1,10 @@
+{
+	"type": "string",
+	"title": {
+		"en": "Last seen"
+	},
+	"getable": true,
+	"setable": false,
+	"uiComponent": "sensor",
+	"icon": "/assets/last_seen.svg"
+}

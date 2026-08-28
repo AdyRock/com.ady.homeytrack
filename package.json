@@ -1,0 +1,13 @@
+{
+  "name": "com.ady.homeytrack",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {},
+  "dependencies": {
+    "mqtt": "^5.15.2",
+    "nodemailer": "^9.0.6"
+  },
+  "devDependencies": {
+    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12"
+  }
+}

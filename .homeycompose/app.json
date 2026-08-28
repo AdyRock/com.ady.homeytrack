@@ -1,0 +1,80 @@
+{
+	"id": "com.ady.homeytrack",
+	"version": "1.0.0",
+	"compatibility": ">=12.4.0",
+	"sdk": 3,
+	"runtime": "nodejs",
+	"platforms": [
+		"local"
+	],
+	"name": {
+		"en": "Homey Tracks"
+	},
+	"description": {
+		"en": "Keep track of the family with the OwnTrack app"
+	},
+	"category": [
+		"tools"
+	],
+	"permissions": [],
+	"images": {
+		"small": "/assets/images/small.png",
+		"large": "/assets/images/large.png"
+	},
+	"author": {
+		"name": "RockSoft Solutions",
+		"email": "ady@rockalls.uk"
+	},
+	"api": {
+		"events": {
+			"method": "POST",
+			"path": "/events/:userId",
+			"public": true
+		},
+		"getUsers": {
+			"method": "GET",
+			"path": "/users",
+			"public": false
+		},
+		"setAvatar": {
+			"method": "POST",
+			"path": "/avatar",
+			"public": false
+		},
+		"getWaypoints": {
+			"method": "GET",
+			"path": "/waypoints",
+			"public": false
+		},
+		"addWaypoint": {
+			"method": "POST",
+			"path": "/waypoints",
+			"public": false
+		},
+		"deleteWaypoint": {
+			"method": "DELETE",
+			"path": "/waypoints/:desc",
+			"public": false
+		},
+		"getConnectionStatus": {
+			"method": "GET",
+			"path": "/connection-status",
+			"public": false
+		},
+		"getLogs": {
+			"method": "GET",
+			"path": "/logs",
+			"public": false
+		},
+		"clearLogs": {
+			"method": "DELETE",
+			"path": "/logs",
+			"public": false
+		},
+		"emailLogs": {
+			"method": "POST",
+			"path": "/logs/email",
+			"public": false
+		}
+	}
+}

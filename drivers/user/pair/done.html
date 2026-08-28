@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>User added</title>
+	<style>
+		.endpoint-row {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+	</style>
+</head>
+
+<body>
+
+	<header class="homey-header">
+		<h1 class="homey-title" data-i18n="pair.done.title">User added</h1>
+		<p class="homey-subtitle" data-i18n="pair.done.subtitle">Now set up the OwnTracks app for this user</p>
+	</header>
+
+	<fieldset class="homey-form-fieldset">
+		<legend class="homey-form-legend" data-i18n="pair.done.mqttLegend">MQTT</legend>
+		<p data-i18n="pair.done.mqttNote">Set the connection mode to MQTT (Private), point it at the broker configured in the app settings, and set the Username to:</p>
+		<div class="endpoint-row">
+			<code id="mqttUsernameValue"></code>
+			<button type="button" id="copyUsername" class="homey-button-secondary-shadow-small" data-i18n="pair.done.copy">Copy</button>
+		</div>
+	</fieldset>
+
+	<fieldset class="homey-form-fieldset">
+		<legend class="homey-form-legend" data-i18n="pair.done.httpLegend">HTTP</legend>
+		<p data-i18n="pair.done.httpNote">Set the connection mode to HTTP and use this endpoint URL:</p>
+		<div class="endpoint-row">
+			<code id="httpEndpointValue" data-i18n="pair.done.loading">Loading…</code>
+			<button type="button" id="copyEndpoint" class="homey-button-secondary-shadow-small" data-i18n="pair.done.copy">Copy</button>
+		</div>
+	</fieldset>
+
+	<button type="button" id="closeButton" class="homey-button-primary-full" data-i18n="pair.done.close">Done</button>
+
+	<script type="text/javascript">
+		// This page runs in an iframe without clipboard-write permission, so
+		// the async Clipboard API is tried first but always falls back to execCommand.
+		function copyTextViaExecCommand(text)
+		{
+			return new Promise((resolve, reject) =>
+			{
+				const textArea = document.createElement('textarea');
+				textArea.value = text;
+				textArea.style.position = 'fixed';
+				textArea.style.opacity = '0';
+				document.body.appendChild(textArea);
+				textArea.focus();
+				textArea.select();
+
+				try
+				{
+					const succeeded = document.execCommand('copy');
+					succeeded ? resolve() : reject(new Error('execCommand copy failed'));
+				} catch (err)
+				{
+					reject(err);
+				} finally
+				{
+					document.body.removeChild(textArea);
+				}
+			});
+		}
+
+		function copyText(text)
+		{
+			if (navigator.clipboard && window.isSecureContext)
+			{
+				return navigator.clipboard.writeText(text).catch(() => copyTextViaExecCommand(text));
+			}
+
+			return copyTextViaExecCommand(text);
+		}
+
+		// Homey is available as a global directly here (no onHomeyReady wrapper needed for pair views)
+		Homey.ready();
+		Homey.setNavigationClose();
+
+		const mqttUsernameValue = document.getElementById('mqttUsernameValue');
+		const httpEndpointValue = document.getElementById('httpEndpointValue');
+		const copyUsernameButton = document.getElementById('copyUsername');
+		const copyEndpointButton = document.getElementById('copyEndpoint');
+		const closeButton = document.getElementById('closeButton');
+
+		Homey.getViewStoreValue('done', 'userId').then((userId) =>
+		{
+			mqttUsernameValue.textContent = userId;
+
+			Homey.emit('getHomeyId', null, (err, homeyId) =>
+			{
+				httpEndpointValue.textContent = err
+					? Homey.__('pair.done.couldNotLoadEndpoint')
+					: `https://homey-${homeyId}.connect.athom.com/api/app/com.ady.homeytrack/events/${userId}`;
+			});
+		});
+
+		copyUsernameButton.addEventListener('click', () =>
+		{
+			copyText(mqttUsernameValue.textContent).catch(() => Homey.alert(Homey.__('pair.done.copyFailed')));
+		});
+
+		copyEndpointButton.addEventListener('click', () =>
+		{
+			copyText(httpEndpointValue.textContent).catch(() => Homey.alert(Homey.__('pair.done.copyFailed')));
+		});
+
+		closeButton.addEventListener('click', () => Homey.done());
+	</script>
+</body>
+
+</html>

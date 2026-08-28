@@ -1,0 +1,10 @@
+{
+	"type": "string",
+	"title": {
+		"en": "Zone"
+	},
+	"getable": true,
+	"setable": false,
+	"uiComponent": "sensor",
+	"icon": "/assets/zone.svg"
+}

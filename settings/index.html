@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Homey Tracks settings</title>
+	<!-- The '/homey.js' script must be included in your settings view to work -->
+	<script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+	<script type="text/javascript" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<style>
+		#mqttFields.hidden {
+			display: none;
+		}
+
+		.connection-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 13px;
+			padding: 6px 12px;
+			border-radius: 6px;
+			margin-bottom: 12px;
+			background: #eee;
+			color: #666;
+		}
+
+		.connection-status.connected {
+			background: #e5f7ea;
+			color: #1a7a34;
+		}
+
+		.connection-status.error {
+			background: #fdeaea;
+			color: #b3261e;
+		}
+
+		.connection-status::before {
+			content: "";
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: currentColor;
+			flex-shrink: 0;
+		}
+
+		body {
+			padding-bottom: 16px;
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+			box-sizing: border-box;
+		}
+
+		.tab-panel.hidden {
+			display: none !important;
+		}
+
+		#tabPanelLogs {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+		}
+
+		.tab-scroll-area {
+			max-height: calc(100vh - 160px);
+			overflow-y: auto;
+			margin-bottom: 12px;
+		}
+
+		.logs-view {
+			flex: 1;
+			min-height: 120px;
+			overflow-y: auto;
+			background: #1e1e1e;
+			color: #ddd;
+			font-family: monospace;
+			font-size: 12px;
+			padding: 10px;
+			border-radius: 6px;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		.logs-actions {
+			display: flex;
+			gap: 8px;
+			margin: 12px 0;
+			flex-wrap: wrap;
+		}
+
+		#openAddZone {
+			width: 100%;
+			box-sizing: border-box;
+		}
+
+
+		.zone-row {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 10px 0;
+			border-bottom: 1px solid #eee;
+		}
+
+		.zone-info {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.zone-name {
+			font-weight: bold;
+		}
+
+		.zone-details {
+			color: #666;
+			font-size: 13px;
+		}
+
+		button.zone-delete-button {
+			background: none !important;
+			border: none !important;
+			box-shadow: none !important;
+			border-radius: 0 !important;
+			cursor: pointer;
+			padding: 0 !important;
+			width: 48px !important;
+			height: 48px !important;
+			color: #0091ff !important;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+		}
+
+		.zone-delete-button svg {
+			width: 32px;
+			height: 32px;
+			fill: #0091ff !important;
+		}
+
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 20;
+		}
+
+		.modal-overlay.hidden {
+			display: none;
+		}
+
+		.modal-content {
+			background: #fff;
+			border-radius: 8px;
+			padding: 20px;
+			width: calc(100% - 32px);
+			max-width: none;
+			box-sizing: border-box;
+			max-height: calc(100vh - 32px);
+			overflow-y: auto;
+		}
+
+		#zoneMap {
+			height: 320px;
+			border-radius: 6px;
+			margin-bottom: 12px;
+		}
+
+		.modal-actions {
+			display: flex;
+			gap: 8px;
+			margin-top: 16px;
+		}
+
+		.modal-actions #addZone {
+			flex: 1;
+		}
+
+		.tab-nav {
+			display: flex;
+			gap: 8px;
+			padding: 4px;
+			background: #eee;
+			border-radius: 8px;
+			margin-bottom: 16px;
+			width: fit-content;
+		}
+
+		button.tab-nav-button {
+			background: transparent !important;
+			border: none !important;
+			border-radius: 6px !important;
+			padding: 8px 18px !important;
+			cursor: pointer;
+			font-size: 14px !important;
+			color: #333 !important;
+			box-shadow: none !important;
+		}
+
+		button.tab-nav-button.active {
+			background: #0091ff !important;
+			color: #fff !important;
+			font-weight: bold;
+		}
+
+		.tab-panel.hidden {
+			display: none;
+		}
+
+		.avatar-row {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-bottom: 12px;
+		}
+
+		.avatar-preview {
+			width: 48px;
+			height: 48px;
+			border-radius: 50%;
+			object-fit: cover;
+			background: #ddd;
+		}
+
+		.avatar-name {
+			flex: 1;
+		}
+
+		.avatar-file-input {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+		}
+	</style>
+</head>
+
+<body>
+
+	<nav class="tab-nav">
+		<button type="button" class="tab-nav-button active" id="tabButtonSettings" data-tab="settings" data-i18n="settings.tabs.settings">Settings</button>
+		<button type="button" class="tab-nav-button" id="tabButtonAvatars" data-tab="avatars" data-i18n="settings.tabs.avatars">Avatars</button>
+		<button type="button" class="tab-nav-button" id="tabButtonZones" data-tab="zones" data-i18n="settings.tabs.zones">Zones</button>
+		<button type="button" class="tab-nav-button" id="tabButtonLogs" data-tab="logs" data-i18n="settings.tabs.logs">Logs</button>
+	</nav>
+
+	<div class="tab-panel" id="tabPanelSettings">
+	<div class="tab-scroll-area">
+	<p class="homey-subtitle" data-i18n="settings.subtitle">Configure how OwnTracks reports locations to Homey</p>
+	<div id="connectionStatus" class="connection-status" data-i18n="settings.status.checking">Checking connection…</div>
+	<form class="homey-form">
+		<fieldset class="homey-form-radio-set">
+			<legend class="homey-form-radio-set-title" data-i18n="settings.connectionMethod.legend">Connection method</legend>
+
+			<label class="homey-form-radio">
+				<input class="homey-form-radio-input" type="radio" id="methodMqtt" name="connectionMethod" value="mqtt">
+				<span class="homey-form-radio-checkmark"></span>
+				<span class="homey-form-radio-text" data-i18n="settings.connectionMethod.mqtt">MQTT</span>
+			</label>
+
+			<label class="homey-form-radio">
+				<input class="homey-form-radio-input" type="radio" id="methodHttp" name="connectionMethod" value="http">
+				<span class="homey-form-radio-checkmark"></span>
+				<span class="homey-form-radio-text" data-i18n="settings.connectionMethod.http">HTTP</span>
+			</label>
+		</fieldset>
+
+		<fieldset class="homey-form-fieldset" id="mqttFields">
+			<legend class="homey-form-legend" data-i18n="settings.mqtt.legend">MQTT settings</legend>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="mqttBrokerUrl" data-i18n="settings.mqtt.brokerUrl">Broker URL</label>
+				<input class="homey-form-input" type="text" id="mqttBrokerUrl" placeholder="mqtt://192.168.1.10">
+			</div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-checkbox">
+					<input class="homey-form-checkbox-input" type="checkbox" id="mqttUseTls">
+					<span class="homey-form-checkbox-checkmark"></span>
+					<span class="homey-form-checkbox-text" data-i18n="settings.mqtt.useTls">Use TLS (mqtts://) - required by most cloud brokers, typically on port 8883</span>
+				</label>
+			</div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="mqttPort" data-i18n="settings.mqtt.port">Port</label>
+				<input class="homey-form-input" type="number" id="mqttPort" placeholder="1883">
+			</div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="mqttUsername" data-i18n="settings.mqtt.username">Username</label>
+				<input class="homey-form-input" type="text" id="mqttUsername">
+			</div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="mqttPassword" data-i18n="settings.mqtt.password">Password</label>
+				<input class="homey-form-input" type="password" id="mqttPassword">
+			</div>
+		</fieldset>
+
+		<p data-i18n="settings.footerNote">Each paired "User" device has its own OwnTracks username / HTTP endpoint URL, shown on that device's Advanced Settings page.</p>
+	</form>
+	</div>
+
+	<button type="button" id="save" class="homey-button-primary-full" data-i18n="settings.save">Save changes</button>
+	</div>
+
+	<div class="tab-panel hidden" id="tabPanelAvatars">
+	<fieldset class="homey-form-fieldset" id="avatarFields">
+		<p data-i18n="settings.avatars.intro">Upload a photo for each paired user, shown as their marker on the OwnTracks map.</p>
+		<div id="avatarList"></div>
+	</fieldset>
+	</div>
+
+	<div class="tab-panel hidden" id="tabPanelZones">
+	<div class="tab-scroll-area">
+	<fieldset class="homey-form-fieldset" id="zoneFields">
+		<p data-i18n="settings.zones.intro">Zones/waypoints are synced to and from every user's OwnTracks app, so everyone shares the same regions (e.g. for the Presence alarm).</p>
+		<div id="zoneList"></div>
+	</fieldset>
+	</div>
+
+	<button type="button" id="openAddZone" class="homey-button-primary-full" data-i18n="settings.zones.addZone">Add zone</button>
+	</div>
+
+	<div class="tab-panel hidden" id="tabPanelLogs">
+	<p data-i18n="settings.logs.intro">The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.</p>
+
+	<label class="homey-form-checkbox">
+		<input class="homey-form-checkbox-input" type="checkbox" id="logsEnabled">
+		<span class="homey-form-checkbox-checkmark"></span>
+		<span class="homey-form-checkbox-text" data-i18n="settings.logs.enable">Enable log messages (in addition to errors)</span>
+	</label>
+
+	<div class="logs-actions">
+		<button type="button" id="clearLogs" class="homey-button-secondary-shadow-small" data-i18n="settings.logs.clear">Clear log</button>
+		<button type="button" id="copyLogs" class="homey-button-secondary-shadow-small" data-i18n="settings.logs.copy">Copy log</button>
+		<button type="button" id="emailLogs" class="homey-button-secondary-shadow-small" data-i18n="settings.logs.email">Email log to me</button>
+	</div>
+
+	<pre id="logsView" class="logs-view" data-i18n="settings.logs.loading">Loading…</pre>
+	</div>
+
+	<div class="modal-overlay hidden" id="addZoneModal">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.zones.modalTitle">Add a zone</h2>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="zoneName" data-i18n="settings.zones.name">Name</label>
+				<input class="homey-form-input" type="text" id="zoneName">
+			</div>
+
+			<p data-i18n="settings.zones.mapHint">Click the map to set the zone's location:</p>
+			<div id="zoneMap"></div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="zoneLat" data-i18n="settings.zones.latitude">Latitude</label>
+				<input class="homey-form-input" type="number" step="any" id="zoneLat">
+			</div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="zoneLon" data-i18n="settings.zones.longitude">Longitude</label>
+				<input class="homey-form-input" type="number" step="any" id="zoneLon">
+			</div>
+
+			<div class="homey-form-group">
+				<label class="homey-form-label" for="zoneRadius" data-i18n="settings.zones.radius">Radius (meters)</label>
+				<input class="homey-form-input" type="number" id="zoneRadius" placeholder="100">
+			</div>
+
+			<div class="modal-actions">
+				<button type="button" id="cancelAddZone" class="homey-button-secondary-shadow-small" data-i18n="settings.zones.cancel">Cancel</button>
+				<button type="button" id="addZone" class="homey-button-primary-full" data-i18n="settings.zones.addZone">Add zone</button>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		// The settings page runs in an iframe without clipboard-write permission, so
+		// the async Clipboard API is tried first but always falls back to execCommand.
+		function copyTextViaExecCommand(text)
+		{
+			return new Promise((resolve, reject) =>
+			{
+				const textArea = document.createElement('textarea');
+				textArea.value = text;
+				textArea.style.position = 'fixed';
+				textArea.style.opacity = '0';
+				document.body.appendChild(textArea);
+				textArea.focus();
+				textArea.select();
+
+				try
+				{
+					const succeeded = document.execCommand('copy');
+					succeeded ? resolve() : reject(new Error('execCommand copy failed'));
+				} catch (err)
+				{
+					reject(err);
+				} finally
+				{
+					document.body.removeChild(textArea);
+				}
+			});
+		}
+
+		function copyText(text)
+		{
+			if (navigator.clipboard && window.isSecureContext)
+			{
+				return navigator.clipboard.writeText(text).catch(() => copyTextViaExecCommand(text));
+			}
+
+			return copyTextViaExecCommand(text);
+		}
+
+		// Resizes/crops the image to a small square JPEG client-side, so the base64 payload
+		// stored on the device (and sent to OwnTracks as a "card" face) stays small.
+		function resizeImageToBase64(file, size)
+		{
+			return new Promise((resolve, reject) =>
+			{
+				const reader = new FileReader();
+				reader.onerror = () => reject(reader.error);
+				reader.onload = () =>
+				{
+					const img = new Image();
+					img.onerror = () => reject(new Error('Could not read image'));
+					img.onload = () =>
+					{
+						const canvas = document.createElement('canvas');
+						canvas.width = size;
+						canvas.height = size;
+						const ctx = canvas.getContext('2d');
+
+						const scale = Math.max(size / img.width, size / img.height);
+						const drawWidth = img.width * scale;
+						const drawHeight = img.height * scale;
+						ctx.drawImage(img, (size - drawWidth) / 2, (size - drawHeight) / 2, drawWidth, drawHeight);
+
+						const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+						resolve(dataUrl.split(',')[1]);
+					};
+					img.src = reader.result;
+				};
+				reader.readAsDataURL(file);
+			});
+		}
+
+		function onHomeyReady(Homey)
+		{
+			document.getElementById('zoneName').placeholder = Homey.__('settings.zones.namePlaceholder');
+
+			const tabButtons = document.querySelectorAll('.tab-nav-button');
+			const tabPanels = {
+				settings: document.getElementById('tabPanelSettings'),
+				avatars: document.getElementById('tabPanelAvatars'),
+				zones: document.getElementById('tabPanelZones'),
+				logs: document.getElementById('tabPanelLogs'),
+			};
+
+			tabButtons.forEach((button) =>
+			{
+				button.addEventListener('click', () =>
+				{
+					tabButtons.forEach((other) => other.classList.toggle('active', other === button));
+					Object.entries(tabPanels).forEach(([tab, panel]) =>
+					{
+						panel.classList.toggle('hidden', tab !== button.dataset.tab);
+					});
+				});
+			});
+
+			const methodMqtt = document.getElementById('methodMqtt');
+			const methodHttp = document.getElementById('methodHttp');
+			const mqttFields = document.getElementById('mqttFields');
+			const mqttBrokerUrl = document.getElementById('mqttBrokerUrl');
+			const mqttUseTls = document.getElementById('mqttUseTls');
+			const mqttPort = document.getElementById('mqttPort');
+			const mqttUsername = document.getElementById('mqttUsername');
+			const mqttPassword = document.getElementById('mqttPassword');
+			const saveButton = document.getElementById('save');
+
+			function updateVisibility()
+			{
+				mqttFields.classList.toggle('hidden', !methodMqtt.checked);
+			}
+
+			methodMqtt.addEventListener('change', updateVisibility);
+			methodHttp.addEventListener('change', updateVisibility);
+
+			mqttUseTls.addEventListener('change', () =>
+			{
+				mqttPort.value = mqttUseTls.checked ? 8883 : 1883;
+			});
+
+			Homey.get('connectionMethod', (err, value) =>
+			{
+				if (err) return Homey.alert(err);
+				if (value === 'mqtt')
+				{
+					methodMqtt.checked = true;
+				} else
+				{
+					methodHttp.checked = true;
+				}
+				updateVisibility();
+			});
+
+			Homey.get('mqttBrokerUrl', (err, value) => { if (!err && value) mqttBrokerUrl.value = value; });
+			Homey.get('mqttUseTls', (err, value) => { if (!err) mqttUseTls.checked = Boolean(value); });
+			Homey.get('mqttPort', (err, value) => { if (!err && value) mqttPort.value = value; });
+			Homey.get('mqttUsername', (err, value) => { if (!err && value) mqttUsername.value = value; });
+			Homey.get('mqttPassword', (err, value) => { if (!err && value) mqttPassword.value = value; });
+
+			function renderConnectionStatus(status)
+			{
+				const el = document.getElementById('connectionStatus');
+				if (!status)
+				{
+					el.textContent = Homey.__('settings.status.unknown');
+					el.className = 'connection-status';
+					return;
+				}
+
+				if (status.connecting)
+				{
+					el.textContent = Homey.__('settings.status.connecting', { method: status.method });
+					el.className = 'connection-status';
+				} else if (status.connected)
+				{
+					el.textContent = Homey.__('settings.status.connected', { method: status.method });
+					el.className = 'connection-status connected';
+				} else
+				{
+					el.textContent = status.error
+						? Homey.__('settings.status.notConnectedWithError', { method: status.method, error: status.error })
+						: Homey.__('settings.status.notConnected', { method: status.method });
+					el.className = 'connection-status error';
+				}
+			}
+
+			// Right after an app (re)install/restart, Homey's own API gateway can take up to
+			// ~30s to recognize newly registered routes - retry for up to ~60s instead of
+			// flashing a confusing transient "endpoint not found" style error.
+			function fetchConnectionStatus(attemptsLeft)
+			{
+				Homey.api('GET', '/connection-status', null, (err, status) =>
+				{
+					if (err)
+					{
+						if (attemptsLeft > 0)
+						{
+							setTimeout(() => fetchConnectionStatus(attemptsLeft - 1), 1500);
+							return;
+						}
+						renderConnectionStatus({ connected: false, connecting: false, method: '?', error: String(err.message || err) });
+						return;
+					}
+					renderConnectionStatus(status);
+				});
+			}
+
+			fetchConnectionStatus(40);
+
+			// The app pushes this event whenever the connector (re)connects, disconnects, or errors.
+			Homey.on('connection_status_changed', (status) => renderConnectionStatus(status));
+
+			function renderLogs(text)
+			{
+				const logsView = document.getElementById('logsView');
+				logsView.textContent = text || Homey.__('settings.logs.noMessages');
+				logsView.scrollTop = logsView.scrollHeight;
+			}
+
+			Homey.api('GET', '/logs', null, (err, result) =>
+			{
+				if (err) return renderLogs(String(err.message || err));
+				renderLogs(result.text);
+			});
+
+			// The app pushes this event whenever a new message is logged.
+			Homey.on('log_updated', (text) => renderLogs(text));
+
+			const logsEnabled = document.getElementById('logsEnabled');
+			Homey.get('logsEnabled', (err, value) => { if (!err) logsEnabled.checked = Boolean(value); });
+			logsEnabled.addEventListener('change', () =>
+			{
+				Homey.set('logsEnabled', logsEnabled.checked, (err) => { if (err) Homey.alert(err); });
+			});
+
+			document.getElementById('clearLogs').addEventListener('click', () =>
+			{
+				Homey.api('DELETE', '/logs', null, (err) => { if (err) Homey.alert(err); });
+			});
+
+			document.getElementById('copyLogs').addEventListener('click', (event) =>
+			{
+				const button = event.currentTarget;
+				const text = document.getElementById('logsView').textContent;
+
+				copyText(text).then(() =>
+				{
+					const originalText = button.textContent;
+					button.textContent = Homey.__('settings.logs.copied');
+					setTimeout(() => { button.textContent = originalText; }, 2000);
+				}).catch(() => Homey.alert(Homey.__('settings.logs.copyFailed')));
+			});
+
+			document.getElementById('emailLogs').addEventListener('click', (event) =>
+			{
+				const button = event.currentTarget;
+				button.disabled = true;
+				button.textContent = Homey.__('settings.logs.emailSending');
+
+				Homey.api('POST', '/logs/email', null, (err) =>
+				{
+					button.disabled = false;
+					button.textContent = Homey.__('settings.logs.email');
+					if (err) return Homey.alert(err);
+					Homey.alert(Homey.__('settings.logs.emailSent'));
+				});
+			});
+
+			function loadAvatarList()
+			{
+				const avatarList = document.getElementById('avatarList');
+
+				Homey.api('GET', '/users', null, (err, users) =>
+				{
+					if (err || !Array.isArray(users)) return;
+
+					avatarList.innerHTML = '';
+
+					if (!users.length)
+					{
+						avatarList.textContent = Homey.__('settings.avatars.noUsers');
+						return;
+					}
+
+					users.forEach((user) =>
+					{
+						const row = document.createElement('div');
+						row.className = 'avatar-row';
+
+						const preview = document.createElement('img');
+						preview.className = 'avatar-preview';
+						preview.alt = user.name;
+						if (user.avatarBase64) preview.src = 'data:image/jpeg;base64,' + user.avatarBase64;
+						row.appendChild(preview);
+
+						const name = document.createElement('span');
+						name.className = 'avatar-name';
+						name.textContent = user.name + (user.hasAvatar ? '' : Homey.__('settings.avatars.noAvatarYet'));
+						row.appendChild(name);
+
+						const fileInput = document.createElement('input');
+						fileInput.type = 'file';
+						fileInput.accept = 'image/*';
+						fileInput.className = 'avatar-file-input';
+						fileInput.id = 'avatarFile_' + user.id;
+						fileInput.addEventListener('change', () =>
+						{
+							const file = fileInput.files[0];
+							if (!file) return;
+
+							resizeImageToBase64(file, 128).then((base64) =>
+							{
+								preview.src = 'data:image/jpeg;base64,' + base64;
+
+								Homey.api('POST', '/avatar', { userId: user.id, imageBase64: base64 }, (uploadErr) =>
+								{
+									if (uploadErr) return Homey.alert(uploadErr);
+									name.textContent = user.name;
+								});
+							}).catch((resizeErr) => Homey.alert(resizeErr));
+						});
+						row.appendChild(fileInput);
+
+						const fileLabel = document.createElement('label');
+						fileLabel.className = 'homey-button-secondary-shadow-small';
+						fileLabel.setAttribute('for', fileInput.id);
+						fileLabel.textContent = Homey.__('settings.avatars.chooseFile');
+						row.appendChild(fileLabel);
+
+						avatarList.appendChild(row);
+					});
+				});
+			}
+
+			loadAvatarList();
+
+			function renderZoneList(waypoints)
+			{
+				const zoneList = document.getElementById('zoneList');
+				zoneList.innerHTML = '';
+
+				if (!Array.isArray(waypoints) || !waypoints.length)
+				{
+					zoneList.textContent = Homey.__('settings.zones.noZonesYet');
+					return;
+				}
+
+				waypoints.forEach((waypoint) =>
+				{
+					const row = document.createElement('div');
+					row.className = 'zone-row';
+
+					const info = document.createElement('div');
+					info.className = 'zone-info';
+
+					const name = document.createElement('div');
+					name.className = 'zone-name';
+					name.textContent = waypoint.desc;
+					info.appendChild(name);
+
+					const details = document.createElement('div');
+					details.className = 'zone-details';
+					details.textContent = `${waypoint.lat}, ${waypoint.lon} - ${waypoint.rad}m`;
+					info.appendChild(details);
+
+					row.appendChild(info);
+
+					const deleteButton = document.createElement('button');
+					deleteButton.type = 'button';
+					deleteButton.className = 'zone-delete-button';
+					deleteButton.setAttribute('aria-label', Homey.__('settings.zones.deleteAria'));
+					deleteButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3a1 1 0 0 0-1 1v1H4v2h16V5h-4V4a1 1 0 0 0-1-1H9zM5 8l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12H5zm4 3h2v8H9v-8zm4 0h2v8h-2v-8z"/></svg>';
+					deleteButton.addEventListener('click', () =>
+					{
+						Homey.api('DELETE', `/waypoints/${encodeURIComponent(waypoint.desc)}`, null, (deleteErr) =>
+						{
+							if (deleteErr) return Homey.alert(deleteErr);
+						});
+					});
+					row.appendChild(deleteButton);
+
+					zoneList.appendChild(row);
+				});
+			}
+
+			function loadZoneList()
+			{
+				Homey.api('GET', '/waypoints', null, (err, waypoints) =>
+				{
+					if (err || !Array.isArray(waypoints)) return;
+					renderZoneList(waypoints);
+				});
+			}
+
+			loadZoneList();
+
+			// The app pushes this event whenever a zone is added, removed, or synced from
+			// OwnTracks, so the list refreshes live without needing to reopen the page.
+			Homey.on('waypoints_updated', (waypoints) => renderZoneList(waypoints));
+
+			const addZoneModal = document.getElementById('addZoneModal');
+			const zoneLatInput = document.getElementById('zoneLat');
+			const zoneLonInput = document.getElementById('zoneLon');
+			const zoneRadiusInput = document.getElementById('zoneRadius');
+
+			let zoneMap = null;
+			let zoneMarker = null;
+			let zoneCircle = null;
+
+			function placeZoneMarker(lat, lon)
+			{
+				const radius = Number(zoneRadiusInput.value) || 100;
+
+				if (zoneMarker)
+				{
+					zoneMarker.setLatLng([lat, lon]);
+					zoneCircle.setLatLng([lat, lon]).setRadius(radius);
+				} else
+				{
+					zoneMarker = L.marker([lat, lon]).addTo(zoneMap);
+					zoneCircle = L.circle([lat, lon], { radius }).addTo(zoneMap);
+				}
+			}
+
+			function ensureZoneMap()
+			{
+				if (zoneMap) return;
+
+				zoneMap = L.map('zoneMap').setView([51.5074, -0.1278], 13);
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					attribution: '&copy; OpenStreetMap contributors',
+					maxZoom: 19,
+				}).addTo(zoneMap);
+
+				zoneMap.on('click', (e) =>
+				{
+					zoneLatInput.value = e.latlng.lat.toFixed(6);
+					zoneLonInput.value = e.latlng.lng.toFixed(6);
+					placeZoneMarker(e.latlng.lat, e.latlng.lng);
+				});
+			}
+
+			zoneRadiusInput.addEventListener('input', () =>
+			{
+				if (zoneCircle)
+				{
+					zoneCircle.setRadius(Number(zoneRadiusInput.value) || 100);
+				}
+			});
+
+			document.getElementById('openAddZone').addEventListener('click', () =>
+			{
+				addZoneModal.classList.remove('hidden');
+				ensureZoneMap();
+				// The map was hidden (display: none) when created, so it needs a resize nudge.
+				setTimeout(() => zoneMap.invalidateSize(), 100);
+			});
+
+			document.getElementById('cancelAddZone').addEventListener('click', () =>
+			{
+				addZoneModal.classList.add('hidden');
+			});
+
+			document.getElementById('addZone').addEventListener('click', () =>
+			{
+				const zoneName = document.getElementById('zoneName');
+				const zoneLat = document.getElementById('zoneLat');
+				const zoneLon = document.getElementById('zoneLon');
+				const zoneRadius = document.getElementById('zoneRadius');
+
+				const waypoint = {
+					desc: zoneName.value.trim(),
+					lat: Number(zoneLat.value),
+					lon: Number(zoneLon.value),
+					rad: zoneRadius.value ? Number(zoneRadius.value) : 100,
+				};
+
+				if (!waypoint.desc || Number.isNaN(waypoint.lat) || Number.isNaN(waypoint.lon))
+				{
+					Homey.alert(Homey.__('settings.zones.fillInRequired'));
+					return;
+				}
+
+				Homey.api('POST', '/waypoints', waypoint, (err) =>
+				{
+					if (err) return Homey.alert(err);
+					zoneName.value = '';
+					zoneLat.value = '';
+					zoneLon.value = '';
+					zoneRadius.value = '';
+					if (zoneMarker)
+					{
+						zoneMap.removeLayer(zoneMarker);
+						zoneMap.removeLayer(zoneCircle);
+						zoneMarker = null;
+						zoneCircle = null;
+					}
+					addZoneModal.classList.add('hidden');
+					loadZoneList();
+				});
+			});
+
+			saveButton.addEventListener('click', () =>
+			{
+				const connectionMethod = methodMqtt.checked ? 'mqtt' : 'http';
+
+				Homey.set('connectionMethod', connectionMethod, (err) => { if (err) return Homey.alert(err); });
+				Homey.set('mqttBrokerUrl', mqttBrokerUrl.value, (err) => { if (err) return Homey.alert(err); });
+				Homey.set('mqttUseTls', mqttUseTls.checked, (err) => { if (err) return Homey.alert(err); });
+				Homey.set('mqttPort', mqttPort.value ? Number(mqttPort.value) : null, (err) => { if (err) return Homey.alert(err); });
+				Homey.set('mqttUsername', mqttUsername.value, (err) => { if (err) return Homey.alert(err); });
+				Homey.set('mqttPassword', mqttPassword.value, (err) =>
+				{
+					if (err) return Homey.alert(err);
+					Homey.alert(Homey.__('settings.saved'));
+				});
+			});
+
+			Homey.ready();
+		}
+	</script>
+</body>
+
+</html>

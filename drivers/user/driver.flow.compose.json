@@ -1,0 +1,25 @@
+{
+	"triggers": [
+		{
+			"id": "zone_changed",
+			"title": {
+				"en": "Zone changed"
+			},
+			"titleFormatted": {
+				"en": "Zone changed to [[zone]]"
+			},
+			"tokens": [
+				{
+					"name": "zone",
+					"type": "string",
+					"title": {
+						"en": "zone"
+					},
+					"example": {
+						"en": "Home"
+					}
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,72 @@
+{
+	"name": {
+		"en": "User"
+	},
+	"class": "sensor",
+	"platforms": [
+		"local"
+	],
+	"connectivity": [
+		"cloud"
+	],
+	"capabilities": [
+		"alarm_presence",
+		"zone",
+		"measure_battery",
+		"last_seen"
+	],
+	"capabilitiesOptions": {
+		"zone": {
+			"title": {
+				"en": "Zone"
+			}
+		}
+	},
+	"settings": [
+		{
+			"id": "userId",
+			"type": "text",
+			"label": {
+				"en": "OwnTracks / MQTT username (User ID)"
+			},
+			"hint": {
+				"en": "For HTTP mode, this is used in the endpoint URL below. For MQTT mode, it must match either the phone's OwnTracks broker Username, or (if all phones share one broker login) its 'Device ID' instead - whichever is unique per person. Changing this also updates the HTTP endpoint URL below."
+			},
+			"value": ""
+		},
+		{
+			"id": "httpEndpoint",
+			"type": "label",
+			"label": {
+				"en": "HTTP endpoint URL"
+			},
+			"hint": {
+				"en": "If using HTTP mode, configure the OwnTracks app to post location updates to this URL."
+			},
+			"value": ""
+		},
+		{
+			"id": "presenceZones",
+			"type": "text",
+			"label": {
+				"en": "Presence zones"
+			},
+			"hint": {
+				"en": "Comma-separated list of OwnTracks region/waypoint names that count as 'present' for the Presence alarm (case-insensitive). Defaults to 'Home' if left blank."
+			},
+			"value": ""
+		}
+	],
+	"pair": [
+		{
+			"id": "add_user",
+			"navigation": {
+				"next": "done"
+			}
+		},
+		{
+			"id": "done"
+		}
+	]
+}
+

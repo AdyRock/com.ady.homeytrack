@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 100 100"
+     width="512"
+     height="512"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="3.6"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+
+  <!-- Location pin -->
+  <path d="
+    M50 10
+    C36.8 10 26 20.8 26 34
+    C26 51.5 39.5 68.5 50 78
+    C60.5 68.5 74 51.5 74 34
+    C74 20.8 63.2 10 50 10
+    Z
+  "/>
+
+  <!-- Centre of location pin -->
+  <circle cx="50" cy="33" r="9"/>
+
+  <!-- Ground / position ellipse -->
+  <path d="
+    M29 64
+    C17 66.5 10 70.5 10 76
+    C10 84 28 90 50 90
+    C54.5 90 58.5 89.7 62 89
+  "/>
+
+  <!-- Larger solid user icon -->
+  <g id="userBadge" fill="currentColor" stroke="none">
+
+    <!-- Head -->
+    <circle cx="82.5" cy="70.5" r="11.8"/>
+
+    <!-- Body -->
+    <path d="
+      M62.5 95.5
+      C64.5 81.5 73.5 75 82.5 75
+      C91.5 75 98 82 99.5 95.5
+      Z
+    "/>
+
+  </g>
+
+</svg>

@@ -1,0 +1,96 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Settings",
+			"avatars": "Avatars",
+			"zones": "Zones",
+			"logs": "Logs"
+		},
+		"subtitle": "Configure how OwnTracks reports locations to Homey. The configuration here needs to match the settings in the OwnTracks app.",
+		"status": {
+			"checking": "Checking connection\u2026",
+			"unknown": "Unknown connection status",
+			"connecting": "Connecting ([[method]])\u2026",
+			"connected": "Connected ([[method]])",
+			"notConnectedWithError": "Not connected ([[method]]): [[error]]",
+			"notConnected": "Not connected ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Connection method",
+			"mqtt": "MQTT",
+			"http": "HTTP"
+		},
+		"mqtt": {
+			"legend": "MQTT settings",
+			"brokerUrl": "Broker URL. The broker needs to be accessible from Homey and on the internet for the phone to connect.",
+			"useTls": "Use TLS (mqtts://) - required by most cloud brokers, typically on port 8883",
+			"port": "Port",
+			"username": "Username",
+			"password": "Password"
+		},
+		"footerNote": "Each paired \"User\" device has its own OwnTracks username / HTTP endpoint URL, shown on that device's Advanced Settings page.",
+		"save": "Save changes",
+		"saved": "Settings saved",
+		"avatars": {
+			"intro": "Add user to Homey using the normal Add device flow. Then upload a photo for each paired user, shown as their marker on the OwnTracks map.",
+			"noUsers": "No users paired yet. Add a \"User\" device to upload an avatar for them.",
+			"noAvatarYet": " (no avatar yet)",
+			"chooseFile": "Choose file",
+			"copyFailed": "Could not copy to clipboard"
+		},
+		"zones": {
+			"intro": "Zones/waypoints are synced to and from every user's OwnTracks app, so everyone shares the same regions (e.g. for the Presence alarm).",
+			"noZonesYet": "No zones yet.",
+			"addZone": "Add zone",
+			"modalTitle": "Add a zone",
+			"name": "Name",
+			"namePlaceholder": "e.g. Home",
+			"mapHint": "Click the map to set the zone's location:",
+			"latitude": "Latitude",
+			"longitude": "Longitude",
+			"radius": "Radius (meters)",
+			"cancel": "Cancel",
+			"deleteAria": "Delete zone",
+			"fillInRequired": "Please fill in a name, latitude and longitude"
+		},
+		"logs": {
+			"intro": "The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.",
+			"enable": "Enable log messages (in addition to errors)",
+			"clear": "Clear log",
+			"email": "Send Log (to developer)",
+			"emailSending": "Sending\u2026",
+			"emailSent": "Log emailed",
+			"noMessages": "(no log messages yet)",
+			"loading": "Loading\u2026",
+			"copy": "Copy log",
+			"copied": "Copied!",
+			"copyFailed": "Could not copy to clipboard"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Add a user",
+			"subtitle": "Create a device to track a family member's location",
+			"name": "Name",
+			"namePlaceholder": "e.g. Ady",
+			"userId": "User ID",
+			"userIdPlaceholder": "e.g. ady",
+			"note": "Use this User ID as the OwnTracks username (MQTT), or in the HTTP endpoint URL configured in the app settings.",
+			"submit": "Add user",
+			"fillInRequired": "Please fill in a name and a user ID"
+		},
+		"done": {
+			"title": "User added",
+			"subtitle": "Now set up the OwnTracks app for this user",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Set the connection mode to MQTT (Private), point it at the broker configured in the app settings, and set the Username to:",
+			"httpLegend": "HTTP",
+			"httpNote": "Set the connection mode to HTTP and use this endpoint URL:",
+			"copy": "Copy",
+			"loading": "Loading\u2026",
+			"couldNotLoadEndpoint": "Could not load endpoint, see app settings",
+			"close": "Done",
+			"copyFailed": "Could not copy to clipboard"
+		}
+	}
+}
