@@ -7,7 +7,6 @@ module.exports = class UserDriver extends Homey.Driver
 
 	async onInit()
 	{
-		const zoneChangedCard = this.homey.flow.getDeviceTriggerCard('zone_changed');
 		const autocompleteZones = async (query) =>
 		{
 			const search = String(query || '').toLowerCase();
@@ -15,7 +14,11 @@ module.exports = class UserDriver extends Homey.Driver
 				.filter((waypoint) => waypoint.desc.toLowerCase().includes(search))
 				.map((waypoint) => ({ name: waypoint.desc, id: waypoint.desc }));
 		};
-		zoneChangedCard.registerArgumentAutocompleteListener('zone', autocompleteZones);
+		for (const cardId of ['entered_zone', 'left_zone', 'zone_changed'])
+		{
+			const triggerCard = this.homey.flow.getDeviceTriggerCard(cardId);
+			triggerCard.registerArgumentAutocompleteListener('zone', autocompleteZones);
+		}
 
 		const conditionCard = this.homey.flow.getConditionCard('zone_is');
 		conditionCard.registerArgumentAutocompleteListener('zone', autocompleteZones);

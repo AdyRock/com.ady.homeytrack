@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.ady.homeytrack",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -91,12 +91,74 @@
   "flow": {
     "triggers": [
       {
-        "id": "zone_changed",
+        "id": "person_entered_zone",
         "title": {
-          "en": "Zone changed"
+          "en": "A person entered a zone (waypoint)"
         },
         "titleFormatted": {
-          "en": "Zone changed to [[zone]]"
+          "en": "A person entered a zone (waypoint)"
+        },
+        "tokens": [
+          {
+            "name": "user",
+            "type": "string",
+            "title": {
+              "en": "user"
+            },
+            "example": {
+              "en": "Adrian"
+            }
+          },
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "zone (waypoint)"
+            },
+            "example": {
+              "en": "Home"
+            }
+          }
+        ]
+      },
+      {
+        "id": "person_left_zone",
+        "title": {
+          "en": "A person left a zone (waypoint)"
+        },
+        "titleFormatted": {
+          "en": "A person left a zone (waypoint)"
+        },
+        "tokens": [
+          {
+            "name": "user",
+            "type": "string",
+            "title": {
+              "en": "user"
+            },
+            "example": {
+              "en": "Adrian"
+            }
+          },
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "zone (waypoint)"
+            },
+            "example": {
+              "en": "Home"
+            }
+          }
+        ]
+      },
+      {
+        "id": "entered_zone",
+        "title": {
+          "en": "Entered [[zone]] zone (waypoint)"
+        },
+        "titleFormatted": {
+          "en": "Entered [[zone]] zone (waypoint)"
         },
         "args": [
           {
@@ -108,7 +170,7 @@
             "name": "zone",
             "type": "autocomplete",
             "title": {
-              "en": "Zone"
+              "en": "Zone (waypoint)"
             }
           }
         ],
@@ -117,7 +179,78 @@
             "name": "zone",
             "type": "string",
             "title": {
-              "en": "zone"
+              "en": "zone (waypoint)"
+            },
+            "example": {
+              "en": "Home"
+            }
+          }
+        ]
+      },
+      {
+        "id": "left_zone",
+        "title": {
+          "en": "Left [[zone]] zone (waypoint)"
+        },
+        "titleFormatted": {
+          "en": "Left [[zone]] zone (waypoint)"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=user"
+          },
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "title": {
+              "en": "Zone (waypoint)"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "zone (waypoint)"
+            },
+            "example": {
+              "en": "Home"
+            }
+          }
+        ]
+      },
+      {
+        "id": "zone_changed",
+        "title": {
+          "en": "Zone (waypoint) changed"
+        },
+        "titleFormatted": {
+          "en": "Zone (waypoint) changed to [[zone]]"
+        },
+        "deprecated": true,
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=user"
+          },
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "title": {
+              "en": "Zone (waypoint)"
+            }
+          }
+        ],
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "zone (waypoint)"
             },
             "example": {
               "en": "Home"
@@ -130,10 +263,10 @@
       {
         "id": "zone_is",
         "title": {
-          "en": "The zone !{{is|isn't}} [[zone]]"
+          "en": "The zone (waypoint) !{{is|isn't}} [[zone]]"
         },
         "titleFormatted": {
-          "en": "The zone !{{is|isn't}} [[zone]]"
+          "en": "The zone (waypoint) !{{is|isn't}} [[zone]]"
         },
         "args": [
           {
@@ -145,7 +278,7 @@
             "name": "zone",
             "type": "autocomplete",
             "title": {
-              "en": "Zone"
+              "en": "Zone (waypoint)"
             }
           }
         ]
@@ -174,7 +307,7 @@
       "capabilitiesOptions": {
         "zone": {
           "title": {
-            "en": "Zone"
+            "en": "Zone (waypoint)"
           }
         }
       },
@@ -205,7 +338,7 @@
           "id": "presenceZones",
           "type": "text",
           "label": {
-            "en": "Presence zones"
+            "en": "Presence zones (waypoints)"
           },
           "hint": {
             "en": "Comma-separated list of OwnTracks region/waypoint names that count as 'present' for the Presence alarm (case-insensitive). Defaults to 'Home' if left blank."

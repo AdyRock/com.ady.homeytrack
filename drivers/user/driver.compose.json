@@ -19,7 +19,7 @@
 	"capabilitiesOptions": {
 		"zone": {
 			"title": {
-				"en": "Zone"
+				"en": "Zone (waypoint)"
 			}
 		}
 	},
@@ -50,7 +50,7 @@
 			"id": "presenceZones",
 			"type": "text",
 			"label": {
-				"en": "Presence zones"
+				"en": "Presence zones (waypoints)"
 			},
 			"hint": {
 				"en": "Comma-separated list of OwnTracks region/waypoint names that count as 'present' for the Presence alarm (case-insensitive). Defaults to 'Home' if left blank."

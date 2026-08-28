@@ -1,0 +1,31 @@
+{
+	"id": "person_left_zone",
+	"title": {
+		"en": "A person left a zone (waypoint)"
+	},
+	"titleFormatted": {
+		"en": "A person left a zone (waypoint)"
+	},
+	"tokens": [
+		{
+			"name": "user",
+			"type": "string",
+			"title": {
+				"en": "user"
+			},
+			"example": {
+				"en": "Adrian"
+			}
+		},
+		{
+			"name": "zone",
+			"type": "string",
+			"title": {
+				"en": "zone (waypoint)"
+			},
+			"example": {
+				"en": "Home"
+			}
+		}
+	]
+}

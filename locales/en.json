@@ -3,7 +3,7 @@
 		"tabs": {
 			"settings": "Settings",
 			"avatars": "Avatars",
-			"zones": "Zones",
+			"zones": "Zones (waypoints)",
 			"map": "Map",
 			"logs": "Logs"
 		},
@@ -63,21 +63,21 @@
 			"copyFailed": "Could not copy to clipboard"
 		},
 		"zones": {
-			"intro": "Zones/waypoints are synced to and from every user's OwnTracks app, so everyone shares the same regions (e.g. for the Presence alarm).",
-			"noZonesYet": "No zones yet.",
-			"addZone": "Add zone",
-			"updateZone": "Update zone",
-			"modalTitle": "Add a zone",
-			"editModalTitle": "Edit zone",
+			"intro": "Zones (waypoints) are synced to and from every user's OwnTracks app, so everyone shares the same regions (e.g. for the Presence alarm).",
+			"noZonesYet": "No zones (waypoints) yet.",
+			"addZone": "Add zone (waypoint)",
+			"updateZone": "Update zone (waypoint)",
+			"modalTitle": "Add a zone (waypoint)",
+			"editModalTitle": "Edit zone (waypoint)",
 			"name": "Name",
 			"namePlaceholder": "e.g. Home",
-			"mapHint": "Click the map to set the zone's location:",
+			"mapHint": "Click the map to set the zone (waypoint)'s location:",
 			"latitude": "Latitude",
 			"longitude": "Longitude",
 			"radius": "Radius (meters)",
 			"cancel": "Cancel",
-			"editAria": "Edit zone",
-			"deleteAria": "Delete zone",
+			"editAria": "Edit zone (waypoint)",
+			"deleteAria": "Delete zone (waypoint)",
 			"fillInRequired": "Please fill in a name, latitude and longitude"
 		},
 		"map": {

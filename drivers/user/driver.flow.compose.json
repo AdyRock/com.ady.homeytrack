@@ -1,19 +1,19 @@
 {
 	"triggers": [
 		{
-			"id": "zone_changed",
+			"id": "entered_zone",
 			"title": {
-				"en": "Zone changed"
+				"en": "Entered [[zone]] zone (waypoint)"
 			},
 			"titleFormatted": {
-				"en": "Zone changed to [[zone]]"
+				"en": "Entered [[zone]] zone (waypoint)"
 			},
 			"args": [
 				{
 					"name": "zone",
 					"type": "autocomplete",
 					"title": {
-						"en": "Zone"
+						"en": "Zone (waypoint)"
 					}
 				}
 			],
@@ -22,30 +22,91 @@
 					"name": "zone",
 					"type": "string",
 					"title": {
-						"en": "zone"
+						"en": "zone (waypoint)"
 					},
 					"example": {
 						"en": "Home"
 					}
 				}
 			]
+		},
+		{
+				"id": "left_zone",
+				"title": {
+					"en": "Left [[zone]] zone (waypoint)"
+				},
+				"titleFormatted": {
+					"en": "Left [[zone]] zone (waypoint)"
+				},
+				"args": [
+					{
+						"name": "zone",
+						"type": "autocomplete",
+						"title": {
+							"en": "Zone (waypoint)"
+						}
+					}
+				],
+				"tokens": [
+					{
+						"name": "zone",
+						"type": "string",
+						"title": {
+							"en": "zone (waypoint)"
+						},
+						"example": {
+							"en": "Home"
+						}
+					}
+				]
+			},
+			{
+				"id": "zone_changed",
+				"title": {
+					"en": "Zone (waypoint) changed"
+				},
+				"titleFormatted": {
+					"en": "Zone (waypoint) changed to [[zone]]"
+				},
+				"deprecated": true,
+				"args": [
+					{
+						"name": "zone",
+						"type": "autocomplete",
+						"title": {
+							"en": "Zone (waypoint)"
+						}
+					}
+				],
+				"tokens": [
+					{
+						"name": "zone",
+						"type": "string",
+						"title": {
+							"en": "zone (waypoint)"
+						},
+						"example": {
+							"en": "Home"
+						}
+					}
+				]
 		}
 	],
 	"conditions": [
 		{
 			"id": "zone_is",
 			"title": {
-				"en": "The zone !{{is|isn't}} [[zone]]"
+				"en": "The zone (waypoint) !{{is|isn't}} [[zone]]"
 			},
 			"titleFormatted": {
-				"en": "The zone !{{is|isn't}} [[zone]]"
+				"en": "The zone (waypoint) !{{is|isn't}} [[zone]]"
 			},
 			"args": [
 				{
 					"name": "zone",
 					"type": "autocomplete",
 					"title": {
-						"en": "Zone"
+						"en": "Zone (waypoint)"
 					}
 				}
 			]

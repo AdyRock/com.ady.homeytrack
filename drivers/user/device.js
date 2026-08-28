@@ -103,7 +103,10 @@ module.exports = class UserDevice extends Homey.Device
 		const regions = Array.isArray(location.regions) ? location.regions : [];
 		const zone = regions.length ? regions.join(', ') : 'Unknown';
 		const isHome = regions.some((region) => this._getPresenceZones().includes(region.toLowerCase()));
-		const previousZone = this.getCapabilityValue('zone');
+		const previousZones = String(this.getCapabilityValue('zone') || '')
+			.split(',')
+			.map((previous) => previous.trim())
+			.filter((previous) => previous && previous !== 'Unknown');
 
 		await this.setCapabilityValue('zone', zone).catch(this.error);
 		await this.setCapabilityValue('alarm_presence', isHome).catch(this.error);
@@ -113,10 +116,21 @@ module.exports = class UserDevice extends Homey.Device
 			await this.setCapabilityValue('last_coordinates', `${location.lat}, ${location.lon}`).catch(this.error);
 		}
 
-		if (zone !== previousZone && regions.length)
+		const currentZones = new Set(regions);
+		const previousZoneSet = new Set(previousZones.map((previous) => previous.toLowerCase()));
+		const enteredZones = regions.filter((current) => !previousZoneSet.has(current.toLowerCase()));
+		const leftZones = previousZones.filter((previous) => !currentZones.has(previous));
+		for (const enteredZone of enteredZones)
 		{
-			const triggerCard = this.homey.flow.getDeviceTriggerCard('zone_changed');
-			await triggerCard.trigger(this, { zone }, { zone });
+			const triggerCard = this.homey.flow.getDeviceTriggerCard('entered_zone');
+			await triggerCard.trigger(this, { zone: enteredZone }, { zone: enteredZone });
+			await this.homey.app.triggerPersonZoneEvent('entered', this.getName(), enteredZone);
+		}
+		for (const leftZone of leftZones)
+		{
+			const triggerCard = this.homey.flow.getDeviceTriggerCard('left_zone');
+			await triggerCard.trigger(this, { zone: leftZone }, { zone: leftZone });
+			await this.homey.app.triggerPersonZoneEvent('left', this.getName(), leftZone);
 		}
 
 		if (typeof location.battery === 'number')

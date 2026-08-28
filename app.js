@@ -24,6 +24,8 @@ module.exports = class MyApp extends Homey.App
 	async onInit()
 	{
 		this.connector = null;
+		this.personEnteredZoneCard = this.homey.flow.getTriggerCard('person_entered_zone');
+		this.personLeftZoneCard = this.homey.flow.getTriggerCard('person_left_zone');
 		this.lastLocations = new Map();
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
 		this.logBuffer = [];
@@ -359,6 +361,12 @@ module.exports = class MyApp extends Homey.App
 		this.lastLocations.set(`${location.user}/${location.device}`, location);
 		this._log(`Location update from ${location.user}/${location.device}: ${location.lat}, ${location.lon} at ${new Date(location.timestamp || Date.now()).toISOString()} (tid=${location.trackerId || 'none'}, topic=${location.topic || 'none'})`);
 		this._updateUserDevice(location).catch((err) => this._logError('Failed to update user device', err));
+	}
+
+	async triggerPersonZoneEvent(type, deviceName, zone)
+	{
+		const card = type === 'entered' ? this.personEnteredZoneCard : this.personLeftZoneCard;
+		await card.trigger({ user: deviceName, zone }, {});
 	}
 
 	/**
