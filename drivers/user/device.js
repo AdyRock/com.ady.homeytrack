@@ -1,13 +1,20 @@
 'use strict';
 
 const Homey = require('homey');
+const { distanceMeters } = require('../../lib/geo');
 
-module.exports = class UserDevice extends Homey.Device {
+const TRACK_MIN_DISTANCE_METERS = 50;
+const TRACK_MAX_POINTS = 500;
 
-	async onInit() {
+module.exports = class UserDevice extends Homey.Device
+{
+
+	async onInit()
+	{
 		this.log(`User device initialized: ${this.getName()} (${this.getData().id})`);
 
-		if (!this.getSetting('userId')) {
+		if (!this.getSetting('userId'))
+		{
 			// First run after pairing: seed the editable userId from the immutable device id.
 			await this.setSettings({ userId: this.getData().id }).catch(this.error);
 		}
@@ -20,14 +27,34 @@ module.exports = class UserDevice extends Homey.Device {
 	 * endpoint URL. Editable via the "userId" setting, independent of the immutable device id.
 	 * @returns {string}
 	 */
-	getUserId() {
+	getUserId()
+	{
 		return this.getSetting('userId') || this.getData().id;
+	}
+
+	async _getLocalTimestamp()
+	{
+		try
+		{
+			const timezone = this.homey.clock && typeof this.homey.clock.getTimezone === 'function'
+				? await this.homey.clock.getTimezone()
+				: undefined;
+			return new Intl.DateTimeFormat('en-GB', {
+				dateStyle: 'short',
+				timeStyle: 'medium',
+				timeZone: timezone || undefined,
+			}).format(new Date());
+		} catch (err)
+		{
+			return new Date().toLocaleString();
+		}
 	}
 
 	/**
 	 * Recomputes the read-only "HTTP endpoint URL" field from the current userId setting.
 	 */
-	async _refreshHttpEndpoint() {
+	async _refreshHttpEndpoint()
+	{
 		const homeyId = await this.homey.cloud.getHomeyId();
 
 		await this.setSettings({
@@ -42,19 +69,23 @@ module.exports = class UserDevice extends Homey.Device {
 	 * deferred until just after this handler returns.
 	 * @param {{ oldSettings: object, newSettings: object, changedKeys: string[] }} event
 	 */
-	async onSettings({ newSettings, changedKeys }) {
-		if (!changedKeys.includes('userId')) {
+	async onSettings({ newSettings, changedKeys })
+	{
+		if (!changedKeys.includes('userId'))
+		{
 			return;
 		}
 
 		const newUserId = (newSettings.userId || '').trim();
-		if (!newUserId) {
+		if (!newUserId)
+		{
 			throw new Error('User ID cannot be empty');
 		}
 
 		const conflict = this.homey.drivers.getDriver('user').getDevices()
 			.some((candidate) => candidate.getData().id !== this.getData().id && candidate.getUserId() === newUserId);
-		if (conflict) {
+		if (conflict)
+		{
 			throw new Error(`User ID "${newUserId}" is already in use by another user`);
 		}
 
@@ -67,16 +98,29 @@ module.exports = class UserDevice extends Homey.Device {
 	 * treated as the user being present.
 	 * @param {{ regions?: string[], battery?: number, lat?: number, lon?: number, accuracy?: number, timestamp?: number }} location
 	 */
-	async updateFromLocation(location) {
+	async updateFromLocation(location)
+	{
 		const regions = Array.isArray(location.regions) ? location.regions : [];
 		const zone = regions.length ? regions.join(', ') : 'Unknown';
 		const isHome = regions.some((region) => this._getPresenceZones().includes(region.toLowerCase()));
+		const previousZone = this.getCapabilityValue('zone');
 
 		await this.setCapabilityValue('zone', zone).catch(this.error);
 		await this.setCapabilityValue('alarm_presence', isHome).catch(this.error);
-		await this.setCapabilityValue('last_seen', new Date().toLocaleString()).catch(this.error);
+		await this.setCapabilityValue('last_seen', await this._getLocalTimestamp()).catch(this.error);
+		if (typeof location.lat === 'number' && typeof location.lon === 'number')
+		{
+			await this.setCapabilityValue('last_coordinates', `${location.lat}, ${location.lon}`).catch(this.error);
+		}
 
-		if (typeof location.battery === 'number') {
+		if (zone !== previousZone && regions.length)
+		{
+			const triggerCard = this.homey.flow.getDeviceTriggerCard('zone_changed');
+			await triggerCard.trigger(this, { zone }, { zone });
+		}
+
+		if (typeof location.battery === 'number')
+		{
 			await this.setCapabilityValue('measure_battery', location.battery).catch(this.error);
 		}
 
@@ -87,16 +131,57 @@ module.exports = class UserDevice extends Homey.Device {
 			timestamp: location.timestamp,
 		}).catch(this.error);
 
-		if (location.topic) {
+		if (location.topic)
+		{
 			await this.setStoreValue('lastTopic', location.topic).catch(this.error);
 		}
+
+		if (location.trackerId)
+		{
+			await this.setStoreValue('lastTrackerId', location.trackerId).catch(this.error);
+		}
+
+		await this._recordTrackPoint(location).catch(this.error);
+		this.homey.api.realtime('tracks_updated', null);
+	}
+
+	/**
+	 * Appends a track point when the user has moved significantly (>= TRACK_MIN_DISTANCE_METERS)
+	 * since the last recorded point, capping the stored history to TRACK_MAX_POINTS, and pushes
+	 * a realtime update for the settings page's Map tab.
+	 * @param {{ lat?: number, lon?: number, timestamp?: number }} location
+	 */
+	async _recordTrackPoint(location)
+	{
+		if (typeof location.lat !== 'number' || typeof location.lon !== 'number')
+		{
+			return;
+		}
+
+		const track = this.getStoreValue('track') || [];
+		const last = track[track.length - 1];
+		const moved = !last || distanceMeters(last.lat, last.lon, location.lat, location.lon) >= TRACK_MIN_DISTANCE_METERS;
+
+		if (!moved)
+		{
+			return;
+		}
+
+		track.push({ lat: location.lat, lon: location.lon, timestamp: location.timestamp || Date.now() });
+		while (track.length > TRACK_MAX_POINTS)
+		{
+			track.shift();
+		}
+
+		await this.setStoreValue('track', track);
 	}
 
 	/**
 	 * Reads the "Presence zones" setting into a lowercased list, defaulting to ["home"].
 	 * @returns {string[]}
 	 */
-	_getPresenceZones() {
+	_getPresenceZones()
+	{
 		const raw = this.getSetting('presenceZones');
 		const zones = (raw || '')
 			.split(',')
@@ -111,17 +196,22 @@ module.exports = class UserDevice extends Homey.Device {
 	 * used to populate every location report's response so all users see each other on the map.
 	 * @returns {Promise<object[]>}
 	 */
-	async getFriendPayload() {
-		const tid = this.getUserId().slice(0, 2).toUpperCase();
+	async getFriendPayload()
+	{
+		const topic = this.getStoreValue('lastTopic');
+		const topicDevice = topic && topic.split('/').filter(Boolean).pop();
+		const tid = this.getStoreValue('lastTrackerId') || (topicDevice && topicDevice.slice(-2).toUpperCase()) || this.getUserId().slice(-2).toUpperCase();
 		const entries = [];
 
 		const face = await this.getAvatarBase64();
-		if (face) {
+		if (face)
+		{
 			entries.push({ _type: 'card', name: this.getName(), tid, face });
 		}
 
 		const lastLocation = this.getStoreValue('lastLocation');
-		if (lastLocation && typeof lastLocation.lat === 'number') {
+		if (lastLocation && typeof lastLocation.lat === 'number')
+		{
 			entries.push({
 				_type: 'location',
 				tid,
@@ -139,7 +229,8 @@ module.exports = class UserDevice extends Homey.Device {
 	 * Returns this user's uploaded avatar as base64 (set via the app settings page), or null.
 	 * @returns {Promise<string|null>}
 	 */
-	async getAvatarBase64() {
+	async getAvatarBase64()
+	{
 		return this.getStoreValue('avatarBase64') || null;
 	}
 
@@ -147,7 +238,8 @@ module.exports = class UserDevice extends Homey.Device {
 	 * Stores an uploaded avatar image (base64, no data-URI prefix) directly on the device.
 	 * @param {string} base64
 	 */
-	async setUploadedAvatar(base64) {
+	async setUploadedAvatar(base64)
+	{
 		await this.setStoreValue('avatarBase64', base64);
 	}
 

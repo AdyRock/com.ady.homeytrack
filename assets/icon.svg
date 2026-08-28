@@ -1,33 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 100 100"
-     width="512"
-     height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
 
-  <!-- Location pin -->
-  <path d="
+	<!-- Location pin -->
+	<path d="
     M33.2 2.96
     C19.536 2.96 8.56 13.936 8.56 27.6
     C8.56 44.624 22.112 59.296 33.2 69.04
     C44.288 59.296 57.84 44.624 57.84 27.6
     C57.84 13.936 46.864 2.96 33.2 2.96
     Z
-  "
-    fill="none"
-    stroke="#000000"
-    stroke-width="4.7"
-    stroke-linecap="round"
-    stroke-linejoin="round"/>
+  " fill="none" stroke="#000000" stroke-width="4.7" stroke-linecap="round" stroke-linejoin="round" />
 
-  <!-- Pin centre -->
-  <circle cx="33.2"
-          cy="26.48"
-          r="8.96"
-          fill="none"
-          stroke="#000000"
-          stroke-width="4.7"/>
+	<!-- Pin centre -->
+	<circle cx="33.2" cy="26.48" r="8.96" fill="none" stroke="#000000" stroke-width="4.7" />
 
-  <!-- Tracked route -->
-  <path d="
+	<!-- Tracked route -->
+	<path d="
     M28.72 67.92
     C14.16 66.8 7.44 72.4 9.68 79.12
     C11.92 85.84 23.12 86.96 33.2 83.6
@@ -35,32 +22,17 @@
     C58.96 82.48 58.96 86.96 54.48 90.32
     C50 93.68 44.4 93.68 41.04 93.68
     C47.76 95.92 55.6 95.92 62.32 93.68
-  "
-    fill="none"
-    stroke="#000000"
-    stroke-width="5.4"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    stroke-dasharray="7.8 6.7"/>
+  " fill="none" stroke="#000000" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"
+		stroke-dasharray="7.8 6.7" />
 
-  <!-- Person head -->
-  <circle cx="79.12"
-          cy="70.16"
-          r="8.4"
-          fill="none"
-          stroke="#000000"
-          stroke-width="4.9"/>
+	<!-- Person head -->
+	<circle cx="79.12" cy="70.16" r="8.4" fill="none" stroke="#000000" stroke-width="4.9" />
 
-  <!-- Person body -->
-  <path d="
+	<!-- Person body -->
+	<path d="
     M61.2 97.04
     C62.88 86.4 69.6 80.24 79.12 80.24
     C88.64 80.24 95.36 86.4 97.04 97.04
-  "
-    fill="none"
-    stroke="#000000"
-    stroke-width="4.9"
-    stroke-linecap="round"
-    stroke-linejoin="round"/>
+  " fill="none" stroke="#000000" stroke-width="4.9" stroke-linecap="round" stroke-linejoin="round" />
 
 </svg>

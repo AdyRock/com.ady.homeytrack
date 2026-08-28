@@ -57,11 +57,118 @@
 			display: none !important;
 		}
 
+		.tab-panel {
+			font-family: inherit;
+			font-size: 14px;
+			line-height: 1.4;
+		}
+
+		.tab-panel p {
+			margin: 0 0 12px;
+			font-size: 14px;
+			line-height: 1.4;
+			color: #666;
+		}
+
+		.tab-panel button {
+			font-family: inherit;
+		}
+
+		.method-comparison-label {
+			font-weight: 700 !important;
+		}
+
 		#tabPanelLogs {
 			display: flex;
 			flex-direction: column;
 			flex: 1;
 			min-height: 0;
+		}
+
+		#tabPanelMap {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+		}
+
+		.track-map {
+			flex: 1;
+			min-height: 200px;
+			border-radius: 6px;
+		}
+
+		.track-map-actions {
+			display: flex;
+			flex-shrink: 0;
+			gap: 8px;
+		}
+
+		.track-map-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 8px;
+		}
+
+		.track-map-header p {
+			margin: 0;
+		}
+
+		.track-filter-list {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.track-history {
+			display: none;
+			flex: 1;
+			min-height: 0;
+			flex-direction: column;
+			margin-bottom: 8px;
+		}
+
+		.track-history-title {
+			margin: 0 0 6px !important;
+			font-weight: bold;
+			color: inherit !important;
+		}
+
+		.track-history-list {
+			flex: 1;
+			min-height: 0;
+			overflow-y: auto;
+			border: 1px solid #eee;
+			border-radius: 6px;
+		}
+
+		.track-history-row {
+			padding: 8px 10px;
+			border-bottom: 1px solid #eee;
+		}
+
+		.track-history-row:last-child {
+			border-bottom: none;
+		}
+
+		.track-history-user {
+			font-weight: bold;
+		}
+
+		.track-history-details {
+			color: #666;
+			font-size: 12px;
+		}
+
+		#tabPanelMap.history-expanded .track-history {
+			display: flex;
+		}
+
+		#tabPanelMap.history-expanded .track-map {
+			flex: 1;
+			min-height: 120px;
 		}
 
 		.tab-scroll-area {
@@ -135,6 +242,23 @@
 			flex-shrink: 0;
 		}
 
+		button.zone-edit-button {
+			background: none !important;
+			border: none !important;
+			box-shadow: none !important;
+			border-radius: 0 !important;
+			cursor: pointer;
+			padding: 0 !important;
+			width: 48px !important;
+			height: 48px !important;
+			color: #0091ff !important;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+		}
+
+		.zone-edit-button svg,
 		.zone-delete-button svg {
 			width: 32px;
 			height: 32px;
@@ -151,7 +275,7 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			z-index: 20;
+			z-index: 1000;
 		}
 
 		.modal-overlay.hidden {
@@ -169,10 +293,80 @@
 			overflow-y: auto;
 		}
 
+		.help-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 28px !important;
+			height: 28px !important;
+			min-width: 28px !important;
+			border: none !important;
+			background: transparent !important;
+			color: #0091ff !important;
+			cursor: pointer;
+			padding: 0 !important;
+			flex-shrink: 0;
+		}
+
+		.help-button svg {
+			display: block !important;
+			visibility: visible !important;
+			opacity: 1 !important;
+			width: 28px !important;
+			height: 28px !important;
+			fill: currentColor !important;
+		}
+
+		.help-button svg path {
+			fill: currentColor !important;
+		}
+
+		.radio-with-help {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 28px;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.connection-method-options {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 28px 28px;
+			align-items: center;
+			column-gap: 8px;
+			row-gap: 0;
+		}
+
+		.connection-method-options .radio-with-help {
+			grid-column: 1 / span 2;
+		}
+
+		.method-comparison-button {
+			grid-column: 3;
+			grid-row: 1 / span 2;
+			align-self: center;
+			position: relative;
+			left: 12px;
+		}
+
+		.help-body {
+			white-space: pre-line;
+			margin-bottom: 16px;
+		}
+
 		#zoneMap {
 			height: 320px;
 			border-radius: 6px;
 			margin-bottom: 12px;
+		}
+
+		.track-avatar-icon img,
+		.track-avatar-fallback {
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			border: 3px solid #999;
+			object-fit: cover;
+			box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 		}
 
 		.modal-actions {
@@ -248,106 +442,239 @@
 <body>
 
 	<nav class="tab-nav">
-		<button type="button" class="tab-nav-button active" id="tabButtonSettings" data-tab="settings" data-i18n="settings.tabs.settings">Settings</button>
-		<button type="button" class="tab-nav-button" id="tabButtonAvatars" data-tab="avatars" data-i18n="settings.tabs.avatars">Avatars</button>
-		<button type="button" class="tab-nav-button" id="tabButtonZones" data-tab="zones" data-i18n="settings.tabs.zones">Zones</button>
-		<button type="button" class="tab-nav-button" id="tabButtonLogs" data-tab="logs" data-i18n="settings.tabs.logs">Logs</button>
+		<button type="button" class="tab-nav-button active" id="tabButtonSettings" data-tab="settings"
+			data-i18n="settings.tabs.settings">Settings</button>
+		<button type="button" class="tab-nav-button" id="tabButtonAvatars" data-tab="avatars"
+			data-i18n="settings.tabs.avatars">Avatars</button>
+		<button type="button" class="tab-nav-button" id="tabButtonZones" data-tab="zones"
+			data-i18n="settings.tabs.zones">Zones</button>
+		<button type="button" class="tab-nav-button" id="tabButtonMap" data-tab="map"
+			data-i18n="settings.tabs.map">Map</button>
+		<button type="button" class="tab-nav-button" id="tabButtonLogs" data-tab="logs"
+			data-i18n="settings.tabs.logs">Logs</button>
 	</nav>
 
 	<div class="tab-panel" id="tabPanelSettings">
-	<div class="tab-scroll-area">
-	<p class="homey-subtitle" data-i18n="settings.subtitle">Configure how OwnTracks reports locations to Homey</p>
-	<div id="connectionStatus" class="connection-status" data-i18n="settings.status.checking">Checking connection…</div>
-	<form class="homey-form">
-		<fieldset class="homey-form-radio-set">
-			<legend class="homey-form-radio-set-title" data-i18n="settings.connectionMethod.legend">Connection method</legend>
+		<div class="tab-scroll-area">
+			<p class="homey-subtitle" data-i18n="settings.subtitle">Configure how OwnTracks reports locations to Homey
+			</p>
+			<div id="connectionStatus" class="connection-status" data-i18n="settings.status.checking">Checking
+				connection…</div>
+			<form class="homey-form">
+				<fieldset class="homey-form-radio-set">
+					<legend class="homey-form-radio-set-title" data-i18n="settings.connectionMethod.legend">Connection
+						method</legend>
 
-			<label class="homey-form-radio">
-				<input class="homey-form-radio-input" type="radio" id="methodMqtt" name="connectionMethod" value="mqtt">
-				<span class="homey-form-radio-checkmark"></span>
-				<span class="homey-form-radio-text" data-i18n="settings.connectionMethod.mqtt">MQTT</span>
-			</label>
+					<div class="connection-method-options">
+						<div class="radio-with-help">
+							<label class="homey-form-radio">
+								<input class="homey-form-radio-input" type="radio" id="methodMqtt"
+									name="connectionMethod" value="mqtt">
+								<span class="homey-form-radio-checkmark"></span>
+								<span class="homey-form-radio-text"
+									data-i18n="settings.connectionMethod.mqtt">MQTT</span>
+							</label>
+							<button type="button" id="helpMqtt" class="help-button" aria-label="Help">
+								<svg viewBox="0 0 512 512" aria-hidden="true">
+									<path
+										d="m462.5 501.6c-.4 0-.9 0-1.3-.1l-167.2-18.9-12 14.8c-2.2 2.7-5.4 4.2-8.8 4.2h-72.7c-3.4 0-6.7-1.5-8.8-4.2l-12-14.8-167.1 19c-3.2.4-6.4-.7-8.9-2.8-2.4-2.2-3.8-5.2-3.8-8.5v-293.2c0-6.3 5.1-11.4 11.4-11.4h9.8c6.3 0 11.4 5.1 11.4 11.4 0 5.7-4.3 10.5-9.8 11.3v269.2l160.7-18.2c3.9-.4 7.7 1.1 10.1 4.1l12.5 15.4h61.8l12.5-15.4c2.4-3 6.3-4.6 10.1-4.1l160.7 18.2v-213.8c0-6.3 5.1-11.4 11.4-11.4s11.4 5.1 11.4 11.4v226.4c0 3.2-1.4 6.3-3.8 8.5-2.1 1.9-4.8 2.9-7.6 2.9z" />
+									<path
+										d="m236.9 456.1c-.5 0-1 0-1.5-.1-2.1-.3-4.2-1.2-5.9-2.7-.2-.2-.4-.4-.7-.6-27.6-27.5-63.6-18.7-105.3-8.4-23.5 5.8-47.9 11.8-72.9 11.8-6.3 0-11.4-5.1-11.4-11.4v-270.9c0-6.3 5.1-11.4 11.4-11.4 20.7 0 42-3.8 62.5-7.6 46.3-8.4 94.1-17 131.8 20.7 2.1 2.1 3.3 5 3.3 8v238.3c32.8-18.1 70.7-8.8 107.5.3 18.5 4.5 37.4 9.2 56.1 10.7v-153.3c0-6.3 5.1-11.4 11.4-11.4s11.4 5.1 11.4 11.4v165.2c0 6.3-5.1 11.4-11.4 11.4-25 0-49.4-6-72.9-11.8-41.7-10.3-77.8-19.2-105.4 8.5-2 2-4.6 3.1-7.2 3.3-.2-.1-.5 0-.8 0zm-174.9-271.2v248c18.7-1.5 37.6-6.1 56.1-10.7 36.8-9.1 74.7-18.4 107.5-.3v-233.4c-28.8-25.6-65.8-19-108.4-11.3-18 3.3-36.4 6.6-55.2 7.7z" />
+									<path
+										d="m190.4 265.2h-93.2c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h93.2c6.3 0 11.4 5.1 11.4 11.4s-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m143.8 303.3h-46.6c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h46.6c6.3 0 11.4 5.1 11.4 11.4-.1 6.3-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m190.4 341.4h-93.2c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h93.2c6.3 0 11.4 5.1 11.4 11.4s-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m387.8 258.7c-21.6 0-42.7-5.6-61.3-16.2l-40.7 6.8c-3.6.6-7.3-.6-9.9-3.2s-3.8-6.3-3.2-9.9l6.8-41c-10.4-18.5-15.8-39.4-15.8-60.7 0-68.5 55.7-124.2 124.2-124.2s124.1 55.8 124.1 124.2-55.7 124.2-124.2 124.2zm-59.1-39.5c2.1 0 4.2.6 6 1.7 15.9 9.8 34.3 15 53.1 15 55.9 0 101.4-45.5 101.4-101.4s-45.5-101.4-101.4-101.4-101.4 45.5-101.4 101.4c0 18.6 5.1 36.8 14.7 52.6 1.4 2.3 1.9 5.1 1.5 7.8l-4.9 29.3 29.1-4.9c.7 0 1.3-.1 1.9-.1z" />
+									<path
+										d="m387.9 101c-6.3 0-11.4-5.1-11.4-11.4v-9.7c0-6.3 5.1-11.4 11.4-11.4s11.4 5.1 11.4 11.4v9.7c0 6.3-5.1 11.4-11.4 11.4z" />
+									<path
+										d="m409.9 200.5h-44c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h44c6.3 0 11.4 5.1 11.4 11.4-.1 6.3-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m387.8 200.5c-6.3 0-11.4-5.1-11.4-11.4v-56.6h-10.6c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h22c3 0 5.9 1.2 8 3.3s3.3 5 3.3 8v68c.1 6.4-5 11.5-11.3 11.5z" />
+								</svg>
+							</button>
+						</div>
 
-			<label class="homey-form-radio">
-				<input class="homey-form-radio-input" type="radio" id="methodHttp" name="connectionMethod" value="http">
-				<span class="homey-form-radio-checkmark"></span>
-				<span class="homey-form-radio-text" data-i18n="settings.connectionMethod.http">HTTP</span>
-			</label>
-		</fieldset>
+						<div class="radio-with-help">
+							<label class="homey-form-radio">
+								<input class="homey-form-radio-input" type="radio" id="methodHttp"
+									name="connectionMethod" value="http">
+								<span class="homey-form-radio-checkmark"></span>
+								<span class="homey-form-radio-text"
+									data-i18n="settings.connectionMethod.http">HTTP</span>
+							</label>
+							<button type="button" id="helpHttp" class="help-button" aria-label="Help">
+								<svg viewBox="0 0 512 512" aria-hidden="true">
+									<path
+										d="m462.5 501.6c-.4 0-.9 0-1.3-.1l-167.2-18.9-12 14.8c-2.2 2.7-5.4 4.2-8.8 4.2h-72.7c-3.4 0-6.7-1.5-8.8-4.2l-12-14.8-167.1 19c-3.2.4-6.4-.7-8.9-2.8-2.4-2.2-3.8-5.2-3.8-8.5v-293.2c0-6.3 5.1-11.4 11.4-11.4h9.8c6.3 0 11.4 5.1 11.4 11.4 0 5.7-4.3 10.5-9.8 11.3v269.2l160.7-18.2c3.9-.4 7.7 1.1 10.1 4.1l12.5 15.4h61.8l12.5-15.4c2.4-3 6.3-4.6 10.1-4.1l160.7 18.2v-213.8c0-6.3 5.1-11.4 11.4-11.4s11.4 5.1 11.4 11.4v226.4c0 3.2-1.4 6.3-3.8 8.5-2.1 1.9-4.8 2.9-7.6 2.9z" />
+									<path
+										d="m236.9 456.1c-.5 0-1 0-1.5-.1-2.1-.3-4.2-1.2-5.9-2.7-.2-.2-.4-.4-.7-.6-27.6-27.5-63.6-18.7-105.3-8.4-23.5 5.8-47.9 11.8-72.9 11.8-6.3 0-11.4-5.1-11.4-11.4v-270.9c0-6.3 5.1-11.4 11.4-11.4 20.7 0 42-3.8 62.5-7.6 46.3-8.4 94.1-17 131.8 20.7 2.1 2.1 3.3 5 3.3 8v238.3c32.8-18.1 70.7-8.8 107.5.3 18.5 4.5 37.4 9.2 56.1 10.7v-153.3c0-6.3 5.1-11.4 11.4-11.4s11.4 5.1 11.4 11.4v165.2c0 6.3-5.1 11.4-11.4 11.4-25 0-49.4-6-72.9-11.8-41.7-10.3-77.8-19.2-105.4 8.5-2 2-4.6 3.1-7.2 3.3-.2-.1-.5 0-.8 0zm-174.9-271.2v248c18.7-1.5 37.6-6.1 56.1-10.7 36.8-9.1 74.7-18.4 107.5-.3v-233.4c-28.8-25.6-65.8-19-108.4-11.3-18 3.3-36.4 6.6-55.2 7.7z" />
+									<path
+										d="m190.4 265.2h-93.2c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h93.2c6.3 0 11.4 5.1 11.4 11.4s-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m143.8 303.3h-46.6c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h46.6c6.3 0 11.4 5.1 11.4 11.4-.1 6.3-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m190.4 341.4h-93.2c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h93.2c6.3 0 11.4 5.1 11.4 11.4s-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m387.8 258.7c-21.6 0-42.7-5.6-61.3-16.2l-40.7 6.8c-3.6.6-7.3-.6-9.9-3.2s-3.8-6.3-3.2-9.9l6.8-41c-10.4-18.5-15.8-39.4-15.8-60.7 0-68.5 55.7-124.2 124.2-124.2s124.1 55.8 124.1 124.2-55.7 124.2-124.2 124.2zm-59.1-39.5c2.1 0 4.2.6 6 1.7 15.9 9.8 34.3 15 53.1 15 55.9 0 101.4-45.5 101.4-101.4s-45.5-101.4-101.4-101.4-101.4 45.5-101.4 101.4c0 18.6 5.1 36.8 14.7 52.6 1.4 2.3 1.9 5.1 1.5 7.8l-4.9 29.3 29.1-4.9c.7 0 1.3-.1 1.9-.1z" />
+									<path
+										d="m387.9 101c-6.3 0-11.4-5.1-11.4-11.4v-9.7c0-6.3 5.1-11.4 11.4-11.4s11.4 5.1 11.4 11.4v9.7c0 6.3-5.1 11.4-11.4 11.4z" />
+									<path
+										d="m409.9 200.5h-44c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h44c6.3 0 11.4 5.1 11.4 11.4-.1 6.3-5.2 11.4-11.4 11.4z" />
+									<path
+										d="m387.8 200.5c-6.3 0-11.4-5.1-11.4-11.4v-56.6h-10.6c-6.3 0-11.4-5.1-11.4-11.4s5.1-11.4 11.4-11.4h22c3 0 5.9 1.2 8 3.3s3.3 5 3.3 8v68c.1 6.4-5 11.5-11.3 11.5z" />
+								</svg>
+							</button>
+						</div>
+						<button type="button" id="helpMethodComparison" class="help-button method-comparison-button"
+							aria-label="Compare connection methods"></button>
+					</div>
+				</fieldset>
 
-		<fieldset class="homey-form-fieldset" id="mqttFields">
-			<legend class="homey-form-legend" data-i18n="settings.mqtt.legend">MQTT settings</legend>
+				<fieldset class="homey-form-fieldset" id="mqttFields">
+					<legend class="homey-form-legend" data-i18n="settings.mqtt.legend">MQTT settings</legend>
 
-			<div class="homey-form-group">
-				<label class="homey-form-label" for="mqttBrokerUrl" data-i18n="settings.mqtt.brokerUrl">Broker URL</label>
-				<input class="homey-form-input" type="text" id="mqttBrokerUrl" placeholder="mqtt://192.168.1.10">
-			</div>
+					<div class="homey-form-group">
+						<label class="homey-form-label" for="mqttBrokerUrl" data-i18n="settings.mqtt.brokerUrl">Broker
+							URL</label>
+						<input class="homey-form-input" type="text" id="mqttBrokerUrl"
+							placeholder="mqtt://192.168.1.10">
+					</div>
 
-			<div class="homey-form-group">
-				<label class="homey-form-checkbox">
-					<input class="homey-form-checkbox-input" type="checkbox" id="mqttUseTls">
-					<span class="homey-form-checkbox-checkmark"></span>
-					<span class="homey-form-checkbox-text" data-i18n="settings.mqtt.useTls">Use TLS (mqtts://) - required by most cloud brokers, typically on port 8883</span>
-				</label>
-			</div>
+					<div class="homey-form-group">
+						<label class="homey-form-checkbox">
+							<input class="homey-form-checkbox-input" type="checkbox" id="mqttUseTls">
+							<span class="homey-form-checkbox-checkmark"></span>
+							<span class="homey-form-checkbox-text" data-i18n="settings.mqtt.useTls">Use TLS (mqtts://) -
+								required by most cloud brokers, typically on port 8883</span>
+						</label>
+					</div>
 
-			<div class="homey-form-group">
-				<label class="homey-form-label" for="mqttPort" data-i18n="settings.mqtt.port">Port</label>
-				<input class="homey-form-input" type="number" id="mqttPort" placeholder="1883">
-			</div>
+					<div class="homey-form-group">
+						<label class="homey-form-label" for="mqttPort" data-i18n="settings.mqtt.port">Port</label>
+						<input class="homey-form-input" type="number" id="mqttPort" placeholder="1883">
+					</div>
 
-			<div class="homey-form-group">
-				<label class="homey-form-label" for="mqttUsername" data-i18n="settings.mqtt.username">Username</label>
-				<input class="homey-form-input" type="text" id="mqttUsername">
-			</div>
+					<div class="homey-form-group">
+						<label class="homey-form-label" for="mqttUsername"
+							data-i18n="settings.mqtt.username">Username</label>
+						<input class="homey-form-input" type="text" id="mqttUsername">
+					</div>
 
-			<div class="homey-form-group">
-				<label class="homey-form-label" for="mqttPassword" data-i18n="settings.mqtt.password">Password</label>
-				<input class="homey-form-input" type="password" id="mqttPassword">
-			</div>
-		</fieldset>
+					<div class="homey-form-group">
+						<label class="homey-form-label" for="mqttPassword"
+							data-i18n="settings.mqtt.password">Password</label>
+						<input class="homey-form-input" type="password" id="mqttPassword">
+					</div>
+				</fieldset>
 
-		<p data-i18n="settings.footerNote">Each paired "User" device has its own OwnTracks username / HTTP endpoint URL, shown on that device's Advanced Settings page.</p>
-	</form>
-	</div>
+				<p data-i18n="settings.footerNote">Each paired "User" device has its own OwnTracks username / HTTP
+					endpoint URL, shown on that device's Advanced Settings page.</p>
+			</form>
+		</div>
 
-	<button type="button" id="save" class="homey-button-primary-full" data-i18n="settings.save">Save changes</button>
+		<button type="button" id="save" class="homey-button-primary-full" data-i18n="settings.save">Save
+			changes</button>
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelAvatars">
-	<fieldset class="homey-form-fieldset" id="avatarFields">
-		<p data-i18n="settings.avatars.intro">Upload a photo for each paired user, shown as their marker on the OwnTracks map.</p>
-		<div id="avatarList"></div>
-	</fieldset>
+		<fieldset class="homey-form-fieldset" id="avatarFields">
+			<p data-i18n="settings.avatars.intro">Upload a photo for each paired user, shown as their marker on the
+				OwnTracks map.</p>
+			<div id="avatarList"></div>
+		</fieldset>
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelZones">
-	<div class="tab-scroll-area">
-	<fieldset class="homey-form-fieldset" id="zoneFields">
-		<p data-i18n="settings.zones.intro">Zones/waypoints are synced to and from every user's OwnTracks app, so everyone shares the same regions (e.g. for the Presence alarm).</p>
-		<div id="zoneList"></div>
-	</fieldset>
+		<div class="tab-scroll-area">
+			<fieldset class="homey-form-fieldset" id="zoneFields">
+				<p data-i18n="settings.zones.intro">Zones/waypoints are synced to and from every user's OwnTracks app,
+					so everyone shares the same regions (e.g. for the Presence alarm).</p>
+				<div id="zoneList"></div>
+			</fieldset>
+		</div>
+
+		<button type="button" id="openAddZone" class="homey-button-primary-full" data-i18n="settings.zones.addZone">Add
+			zone</button>
 	</div>
 
-	<button type="button" id="openAddZone" class="homey-button-primary-full" data-i18n="settings.zones.addZone">Add zone</button>
+	<div class="tab-panel hidden" id="tabPanelMap">
+		<div class="track-map-header">
+			<p data-i18n="settings.map.intro">Live positions and recent tracks</p>
+			<div class="track-map-actions">
+				<button type="button" id="toggleTrackHistory" class="homey-button-secondary-shadow-small"
+					data-i18n="settings.map.showHistory">Show coordinates</button>
+				<button type="button" id="openTrackFilter" class="homey-button-secondary-shadow-small"
+					data-i18n="settings.map.filter">Filter users</button>
+			</div>
+		</div>
+		<div class="track-history">
+			<p class="track-history-title" data-i18n="settings.map.historyTitle">Logged coordinates</p>
+			<div id="trackHistoryList" class="track-history-list"></div>
+		</div>
+		<div id="trackMap" class="track-map"></div>
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelLogs">
-	<p data-i18n="settings.logs.intro">The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.</p>
+		<p data-i18n="settings.logs.intro">The last ~20KB of logged messages, newest at the bottom (not persisted across
+			app restarts). Errors are always captured.</p>
 
-	<label class="homey-form-checkbox">
-		<input class="homey-form-checkbox-input" type="checkbox" id="logsEnabled">
-		<span class="homey-form-checkbox-checkmark"></span>
-		<span class="homey-form-checkbox-text" data-i18n="settings.logs.enable">Enable log messages (in addition to errors)</span>
-	</label>
+		<label class="homey-form-checkbox">
+			<input class="homey-form-checkbox-input" type="checkbox" id="logsEnabled">
+			<span class="homey-form-checkbox-checkmark"></span>
+			<span class="homey-form-checkbox-text" data-i18n="settings.logs.enable">Enable log messages (in addition to
+				errors)</span>
+		</label>
 
-	<div class="logs-actions">
-		<button type="button" id="clearLogs" class="homey-button-secondary-shadow-small" data-i18n="settings.logs.clear">Clear log</button>
-		<button type="button" id="copyLogs" class="homey-button-secondary-shadow-small" data-i18n="settings.logs.copy">Copy log</button>
-		<button type="button" id="emailLogs" class="homey-button-secondary-shadow-small" data-i18n="settings.logs.email">Email log to me</button>
+		<div class="logs-actions">
+			<button type="button" id="clearLogs" class="homey-button-secondary-shadow-small"
+				data-i18n="settings.logs.clear">Clear log</button>
+			<button type="button" id="copyLogs" class="homey-button-secondary-shadow-small"
+				data-i18n="settings.logs.copy">Copy log</button>
+			<button type="button" id="emailLogs" class="homey-button-secondary-shadow-small"
+				data-i18n="settings.logs.email">Email log to me</button>
+		</div>
+
+		<pre id="logsView" class="logs-view" data-i18n="settings.logs.loading">Loading…</pre>
 	</div>
 
-	<pre id="logsView" class="logs-view" data-i18n="settings.logs.loading">Loading…</pre>
+	<div class="modal-overlay hidden" id="helpModalMqtt">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.help.mqtt.title">Setting up MQTT mode</h2>
+			<p class="help-body" data-i18n="settings.help.mqtt.body"></p>
+			<button type="button" id="closeHelpMqtt" class="homey-button-primary-full"
+				data-i18n="settings.help.close">Close</button>
+		</div>
+	</div>
+
+	<div class="modal-overlay hidden" id="helpModalHttp">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.help.http.title">Setting up HTTP mode</h2>
+			<p class="help-body" data-i18n="settings.help.http.body"></p>
+			<button type="button" id="closeHelpHttp" class="homey-button-primary-full"
+				data-i18n="settings.help.close">Close</button>
+		</div>
+	</div>
+
+	<div class="modal-overlay hidden" id="helpModalMethodComparison">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.help.comparison.title">Choosing MQTT or HTTP</h2>
+			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.mqtt">MQTT</strong></p>
+			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.pros">Pros</strong>: <span
+					data-i18n="settings.help.comparison.mqttPros"></span></p>
+			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.cons">Cons</strong>: <span
+					data-i18n="settings.help.comparison.mqttCons"></span></p>
+			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.http">HTTP</strong></p>
+			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.pros">Pros</strong>: <span
+					data-i18n="settings.help.comparison.httpPros"></span></p>
+			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.cons">Cons</strong>: <span
+					data-i18n="settings.help.comparison.httpCons"></span></p>
+			<button type="button" id="closeHelpMethodComparison" class="homey-button-primary-full"
+				data-i18n="settings.help.close">Close</button>
+		</div>
 	</div>
 
 	<div class="modal-overlay hidden" id="addZoneModal">
@@ -373,14 +700,27 @@
 			</div>
 
 			<div class="homey-form-group">
-				<label class="homey-form-label" for="zoneRadius" data-i18n="settings.zones.radius">Radius (meters)</label>
+				<label class="homey-form-label" for="zoneRadius" data-i18n="settings.zones.radius">Radius
+					(meters)</label>
 				<input class="homey-form-input" type="number" id="zoneRadius" placeholder="100">
 			</div>
 
 			<div class="modal-actions">
-				<button type="button" id="cancelAddZone" class="homey-button-secondary-shadow-small" data-i18n="settings.zones.cancel">Cancel</button>
-				<button type="button" id="addZone" class="homey-button-primary-full" data-i18n="settings.zones.addZone">Add zone</button>
+				<button type="button" id="cancelAddZone" class="homey-button-secondary-shadow-small"
+					data-i18n="settings.zones.cancel">Cancel</button>
+				<button type="button" id="addZone" class="homey-button-primary-full"
+					data-i18n="settings.zones.addZone">Add zone</button>
 			</div>
+		</div>
+	</div>
+
+	<div class="modal-overlay hidden" id="trackFilterModal">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.map.filterTitle">Users on map</h2>
+			<p data-i18n="settings.map.filterHint">Select the users to show on the map.</p>
+			<div id="trackFilterList" class="track-filter-list"></div>
+			<button type="button" id="closeTrackFilter" class="homey-button-primary-full"
+				data-i18n="settings.map.close">Done</button>
 		</div>
 	</div>
 
@@ -465,6 +805,7 @@
 				settings: document.getElementById('tabPanelSettings'),
 				avatars: document.getElementById('tabPanelAvatars'),
 				zones: document.getElementById('tabPanelZones'),
+				map: document.getElementById('tabPanelMap'),
 				logs: document.getElementById('tabPanelLogs'),
 			};
 
@@ -477,8 +818,27 @@
 					{
 						panel.classList.toggle('hidden', tab !== button.dataset.tab);
 					});
+					if (button.dataset.tab === 'map')
+					{
+						ensureTrackMap();
+						setTimeout(() => trackMap.invalidateSize(), 100);
+						loadTracks();
+						loadTrackWaypoints();
+					}
 				});
 			});
+
+			function wireHelpModal(buttonId, modalId, closeButtonId)
+			{
+				const modal = document.getElementById(modalId);
+				document.getElementById(buttonId).addEventListener('click', () => modal.classList.remove('hidden'));
+				document.getElementById(closeButtonId).addEventListener('click', () => modal.classList.add('hidden'));
+			}
+
+			wireHelpModal('helpMqtt', 'helpModalMqtt', 'closeHelpMqtt');
+			wireHelpModal('helpHttp', 'helpModalHttp', 'closeHelpHttp');
+			document.getElementById('helpMethodComparison').appendChild(document.querySelector('#helpMqtt svg').cloneNode(true));
+			wireHelpModal('helpMethodComparison', 'helpModalMethodComparison', 'closeHelpMethodComparison');
 
 			const methodMqtt = document.getElementById('methodMqtt');
 			const methodHttp = document.getElementById('methodHttp');
@@ -522,6 +882,13 @@
 			Homey.get('mqttUsername', (err, value) => { if (!err && value) mqttUsername.value = value; });
 			Homey.get('mqttPassword', (err, value) => { if (!err && value) mqttPassword.value = value; });
 
+			function translateStatus(key, status)
+			{
+				return Homey.__(`settings.status.${key}`)
+					.replaceAll('[[method]]', String(status.method || '?'))
+					.replaceAll('[[error]]', String(status.error || ''));
+			}
+
 			function renderConnectionStatus(status)
 			{
 				const el = document.getElementById('connectionStatus');
@@ -534,17 +901,17 @@
 
 				if (status.connecting)
 				{
-					el.textContent = Homey.__('settings.status.connecting', { method: status.method });
+					el.textContent = translateStatus('connecting', status);
 					el.className = 'connection-status';
 				} else if (status.connected)
 				{
-					el.textContent = Homey.__('settings.status.connected', { method: status.method });
+					el.textContent = translateStatus('connected', status);
 					el.className = 'connection-status connected';
 				} else
 				{
 					el.textContent = status.error
-						? Homey.__('settings.status.notConnectedWithError', { method: status.method, error: status.error })
-						: Homey.__('settings.status.notConnected', { method: status.method });
+						? translateStatus('notConnectedWithError', status)
+						: translateStatus('notConnected', status);
 					el.className = 'connection-status error';
 				}
 			}
@@ -730,6 +1097,17 @@
 
 					row.appendChild(info);
 
+					const editButton = document.createElement('button');
+					editButton.type = 'button';
+					editButton.className = 'zone-edit-button';
+					editButton.setAttribute('aria-label', Homey.__('settings.zones.editAria'));
+					editButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.03 0-1.42l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.82z"/></svg>';
+					editButton.addEventListener('click', () =>
+					{
+						openZoneEditor(waypoint);
+					});
+					row.appendChild(editButton);
+
 					const deleteButton = document.createElement('button');
 					deleteButton.type = 'button';
 					deleteButton.className = 'zone-delete-button';
@@ -767,6 +1145,10 @@
 			const zoneLatInput = document.getElementById('zoneLat');
 			const zoneLonInput = document.getElementById('zoneLon');
 			const zoneRadiusInput = document.getElementById('zoneRadius');
+			const zoneNameInput = document.getElementById('zoneName');
+			const zoneModalTitle = document.querySelector('#addZoneModal h2');
+			const saveZoneButton = document.getElementById('addZone');
+			let editingZoneName = null;
 
 			let zoneMap = null;
 			let zoneMarker = null;
@@ -815,14 +1197,302 @@
 
 			document.getElementById('openAddZone').addEventListener('click', () =>
 			{
+				editingZoneName = null;
+				zoneModalTitle.textContent = Homey.__('settings.zones.modalTitle');
+				saveZoneButton.textContent = Homey.__('settings.zones.addZone');
+				zoneNameInput.value = '';
+				zoneLatInput.value = '';
+				zoneLonInput.value = '';
+				zoneRadiusInput.value = '';
+				if (zoneMarker)
+				{
+					zoneMap.removeLayer(zoneMarker);
+					zoneMap.removeLayer(zoneCircle);
+					zoneMarker = null;
+					zoneCircle = null;
+				}
 				addZoneModal.classList.remove('hidden');
 				ensureZoneMap();
 				// The map was hidden (display: none) when created, so it needs a resize nudge.
 				setTimeout(() => zoneMap.invalidateSize(), 100);
 			});
 
+			function openZoneEditor(waypoint)
+			{
+				editingZoneName = waypoint.desc;
+				zoneModalTitle.textContent = Homey.__('settings.zones.editModalTitle');
+				saveZoneButton.textContent = Homey.__('settings.zones.updateZone');
+				zoneNameInput.value = waypoint.desc || '';
+				zoneLatInput.value = waypoint.lat ?? '';
+				zoneLonInput.value = waypoint.lon ?? '';
+				zoneRadiusInput.value = waypoint.rad ?? '';
+				addZoneModal.classList.remove('hidden');
+				ensureZoneMap();
+				zoneMap.setView([Number(waypoint.lat), Number(waypoint.lon)], 15);
+				placeZoneMarker(Number(waypoint.lat), Number(waypoint.lon));
+				setTimeout(() => zoneMap.invalidateSize(), 100);
+			}
+
+			// --- Map tab: live positions and track history for every user ---
+			let trackMap = null;
+			const trackLayers = []; // markers + polylines, cleared and redrawn on every refresh
+			const trackZoneLayers = [];
+			const TRACK_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c'];
+			let trackUsers = [];
+			let trackWaypoints = [];
+			let selectedTrackUserIds = null;
+
+			function ensureTrackMap()
+			{
+				if (trackMap) return;
+
+				trackMap = L.map('trackMap').setView([51.5074, -0.1278], 13);
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					attribution: '&copy; OpenStreetMap contributors',
+					maxZoom: 19,
+				}).addTo(trackMap);
+			}
+
+			function renderTrackZones()
+			{
+				trackZoneLayers.forEach((layer) => trackMap.removeLayer(layer));
+				trackZoneLayers.length = 0;
+
+				trackWaypoints.forEach((waypoint) =>
+				{
+					if (typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number') return;
+					const circle = L.circle([waypoint.lat, waypoint.lon], {
+						color: '#666',
+						fillColor: '#999',
+						fillOpacity: 0.15,
+						radius: Number(waypoint.rad) || 100,
+					}).addTo(trackMap);
+					circle.bindPopup(`${waypoint.desc}<br>${waypoint.lat}, ${waypoint.lon}<br>Radius: ${waypoint.rad || 100}m`);
+					trackZoneLayers.push(circle);
+				});
+			}
+
+			function renderTrackFilter(users)
+			{
+				const filterList = document.getElementById('trackFilterList');
+				filterList.textContent = '';
+
+				if (!users.length)
+				{
+					const emptyMessage = document.createElement('p');
+					emptyMessage.textContent = Homey.__('settings.map.noUsersToFilter');
+					filterList.appendChild(emptyMessage);
+					return;
+				}
+
+				users.forEach((user) =>
+				{
+					const label = document.createElement('label');
+					label.className = 'homey-form-checkbox';
+					const checkbox = document.createElement('input');
+					checkbox.type = 'checkbox';
+					checkbox.className = 'homey-form-checkbox-input';
+					checkbox.checked = selectedTrackUserIds === null || selectedTrackUserIds.has(user.id);
+					checkbox.addEventListener('change', () =>
+					{
+						if (selectedTrackUserIds === null)
+						{
+							selectedTrackUserIds = new Set(users.map((item) => item.id));
+						}
+						if (checkbox.checked) selectedTrackUserIds.add(user.id);
+						else selectedTrackUserIds.delete(user.id);
+						renderTracks(trackUsers);
+					});
+
+					const checkmark = document.createElement('span');
+					checkmark.className = 'homey-form-checkbox-checkmark';
+					const text = document.createElement('span');
+					text.className = 'homey-form-checkbox-text';
+					text.textContent = user.name;
+					label.append(checkbox, checkmark, text);
+					filterList.appendChild(label);
+				});
+			}
+
+			function renderTracks(users)
+			{
+				ensureTrackMap();
+
+				trackLayers.forEach((layer) => trackMap.removeLayer(layer));
+				trackLayers.length = 0;
+
+				const bounds = [];
+
+				users
+					.filter((user) => selectedTrackUserIds === null || selectedTrackUserIds.has(user.id))
+					.forEach((user, index) =>
+					{
+						const color = TRACK_COLORS[index % TRACK_COLORS.length];
+						const track = Array.isArray(user.track) ? user.track : [];
+
+						if (track.length > 1)
+						{
+							const line = L.polyline(track.map((point) => [point.lat, point.lon]), { color }).addTo(trackMap);
+							trackLayers.push(line);
+						}
+
+						track.forEach((point) =>
+						{
+							if (typeof point.lat !== 'number' || typeof point.lon !== 'number') return;
+							const pointMarker = L.circleMarker([point.lat, point.lon], {
+								radius: 5,
+								color,
+								fillColor: color,
+								fillOpacity: 0.8,
+							});
+							pointMarker.bindPopup(`${user.name}<br>${point.lat}, ${point.lon}<br>${new Date(point.timestamp || Date.now()).toLocaleString()}`);
+							pointMarker.addTo(trackMap);
+							trackLayers.push(pointMarker);
+						});
+
+						const last = user.lastLocation;
+						if (last && typeof last.lat === 'number' && typeof last.lon === 'number')
+						{
+							const icon = user.avatarBase64
+								? L.divIcon({
+									className: 'track-avatar-icon',
+									html: `<img src="data:image/jpeg;base64,${user.avatarBase64}" style="border-color: ${color};">`,
+									iconSize: [36, 36],
+								})
+								: L.divIcon({
+									className: 'track-avatar-icon',
+									html: `<div class="track-avatar-fallback" style="background: ${color};"></div>`,
+									iconSize: [36, 36],
+								});
+
+							const marker = L.marker([last.lat, last.lon], { icon }).addTo(trackMap).bindTooltip(user.name);
+							trackLayers.push(marker);
+							bounds.push([last.lat, last.lon]);
+						}
+					});
+
+				if (bounds.length)
+				{
+					trackMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+				}
+			}
+
+			function renderTrackHistory(users)
+			{
+				const historyList = document.getElementById('trackHistoryList');
+				historyList.textContent = '';
+				const points = [];
+
+				users
+					.filter((user) => selectedTrackUserIds === null || selectedTrackUserIds.has(user.id))
+					.forEach((user) =>
+					{
+						(Array.isArray(user.track) ? user.track : []).forEach((point) =>
+						{
+							if (typeof point.lat === 'number' && typeof point.lon === 'number')
+							{
+								points.push({ ...point, userName: user.name });
+							}
+						});
+					});
+
+				points.sort((first, second) => (second.timestamp || 0) - (first.timestamp || 0));
+				if (!points.length)
+				{
+					historyList.textContent = Homey.__('settings.map.noHistory');
+					return;
+				}
+
+				points.forEach((point) =>
+				{
+					const row = document.createElement('div');
+					row.className = 'track-history-row';
+					const user = document.createElement('div');
+					user.className = 'track-history-user';
+					user.textContent = point.userName;
+					const details = document.createElement('div');
+					details.className = 'track-history-details';
+					details.textContent = `${point.lat}, ${point.lon} - ${new Date(point.timestamp || Date.now()).toLocaleString()}`;
+					row.append(user, details);
+					historyList.appendChild(row);
+				});
+			}
+
+			function loadTracks()
+			{
+				Homey.api('GET', '/tracks', null, (err, users) =>
+				{
+					if (err || !Array.isArray(users)) return;
+					const previousUserIds = new Set(trackUsers.map((user) => user.id));
+					trackUsers = users;
+					if (selectedTrackUserIds === null) selectedTrackUserIds = new Set(users.map((user) => user.id));
+					else
+					{
+						const currentUserIds = new Set(users.map((user) => user.id));
+						users.forEach((user) =>
+						{
+							if (!previousUserIds.has(user.id)) selectedTrackUserIds.add(user.id);
+						});
+						selectedTrackUserIds.forEach((userId) =>
+						{
+							if (!currentUserIds.has(userId)) selectedTrackUserIds.delete(userId);
+						});
+					}
+					renderTrackFilter(users);
+					renderTracks(users);
+					renderTrackHistory(users);
+				});
+			}
+
+			function loadTrackWaypoints()
+			{
+				Homey.api('GET', '/waypoints', null, (err, waypoints) =>
+				{
+					if (err || !Array.isArray(waypoints)) return;
+					trackWaypoints = waypoints;
+					if (trackMap) renderTrackZones();
+				});
+			}
+
+			document.getElementById('toggleTrackHistory').addEventListener('click', (event) =>
+			{
+				const mapPanel = document.getElementById('tabPanelMap');
+				const expanded = mapPanel.classList.toggle('history-expanded');
+				event.currentTarget.textContent = Homey.__(expanded ? 'settings.map.hideHistory' : 'settings.map.showHistory');
+				if (trackMap) setTimeout(() => trackMap.invalidateSize(), 100);
+			});
+
+			Homey.on('waypoints_updated', (waypoints) =>
+			{
+				trackWaypoints = Array.isArray(waypoints) ? waypoints : [];
+				if (trackMap) renderTrackZones();
+			});
+
+			document.getElementById('openTrackFilter').addEventListener('click', () =>
+			{
+				document.getElementById('trackFilterModal').classList.remove('hidden');
+				loadTracks();
+			});
+
+			document.getElementById('closeTrackFilter').addEventListener('click', () =>
+			{
+				document.getElementById('trackFilterModal').classList.add('hidden');
+			});
+
+			// The app pushes this event whenever a user's position is recorded, so the map
+			// refreshes live while this tab is open.
+			Homey.on('tracks_updated', () =>
+			{
+				if (!document.getElementById('tabPanelMap').classList.contains('hidden'))
+				{
+					loadTracks();
+				}
+			});
+
+
 			document.getElementById('cancelAddZone').addEventListener('click', () =>
 			{
+				editingZoneName = null;
 				addZoneModal.classList.add('hidden');
 			});
 
@@ -846,9 +1516,15 @@
 					return;
 				}
 
-				Homey.api('POST', '/waypoints', waypoint, (err) =>
+				const request = editingZoneName
+					? { originalDesc: editingZoneName, waypoint }
+					: waypoint;
+				const path = editingZoneName ? '/waypoints/update' : '/waypoints';
+
+				Homey.api('POST', path, request, (err) =>
 				{
 					if (err) return Homey.alert(err);
+					editingZoneName = null;
 					zoneName.value = '';
 					zoneLat.value = '';
 					zoneLon.value = '';

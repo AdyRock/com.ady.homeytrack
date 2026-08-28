@@ -25,6 +25,14 @@ module.exports = {
 	},
 
 	/**
+	 * Used by the settings page's Map tab to show every user's last location and track history.
+	 */
+	async getTracks({ homey })
+	{
+		return homey.app.listTracks();
+	},
+
+	/**
 	 * Used by the settings page to upload an avatar image (base64, no data-URI prefix) for a paired user.
 	 */
 	async setAvatar({ homey, body })
@@ -47,6 +55,12 @@ module.exports = {
 	async addWaypoint({ homey, body })
 	{
 		homey.app.addWaypoint(body);
+		return { ok: true };
+	},
+
+	async updateWaypoint({ homey, body })
+	{
+		homey.app.updateWaypoint(body.originalDesc, body.waypoint);
 		return { ok: true };
 	},
 

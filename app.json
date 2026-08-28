@@ -37,6 +37,11 @@
       "path": "/users",
       "public": false
     },
+    "getTracks": {
+      "method": "GET",
+      "path": "/tracks",
+      "public": false
+    },
     "setAvatar": {
       "method": "POST",
       "path": "/avatar",
@@ -50,6 +55,11 @@
     "addWaypoint": {
       "method": "POST",
       "path": "/waypoints",
+      "public": false
+    },
+    "updateWaypoint": {
+      "method": "POST",
+      "path": "/waypoints/update",
       "public": false
     },
     "deleteWaypoint": {
@@ -88,6 +98,20 @@
         "titleFormatted": {
           "en": "Zone changed to [[zone]]"
         },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=user"
+          },
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "title": {
+              "en": "Zone"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "zone",
@@ -99,12 +123,30 @@
               "en": "Home"
             }
           }
-        ],
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "zone_is",
+        "title": {
+          "en": "The zone !{{is|isn't}} [[zone]]"
+        },
+        "titleFormatted": {
+          "en": "The zone !{{is|isn't}} [[zone]]"
+        },
         "args": [
           {
             "type": "device",
             "name": "device",
             "filter": "driver_id=user"
+          },
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "title": {
+              "en": "Zone"
+            }
           }
         ]
       }
@@ -126,7 +168,8 @@
         "alarm_presence",
         "zone",
         "measure_battery",
-        "last_seen"
+        "last_seen",
+        "last_coordinates"
       ],
       "capabilitiesOptions": {
         "zone": {
@@ -185,6 +228,16 @@
     }
   ],
   "capabilities": {
+    "last_coordinates": {
+      "type": "string",
+      "title": {
+        "en": "Last coordinates"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/coordinate.svg"
+    },
     "last_seen": {
       "type": "string",
       "title": {

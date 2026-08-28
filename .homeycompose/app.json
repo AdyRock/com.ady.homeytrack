@@ -36,6 +36,11 @@
 			"path": "/users",
 			"public": false
 		},
+		"getTracks": {
+			"method": "GET",
+			"path": "/tracks",
+			"public": false
+		},
 		"setAvatar": {
 			"method": "POST",
 			"path": "/avatar",
@@ -49,6 +54,11 @@
 		"addWaypoint": {
 			"method": "POST",
 			"path": "/waypoints",
+			"public": false
+		},
+		"updateWaypoint": {
+			"method": "POST",
+			"path": "/waypoints/update",
 			"public": false
 		},
 		"deleteWaypoint": {

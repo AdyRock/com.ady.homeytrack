@@ -8,6 +8,15 @@
 			"titleFormatted": {
 				"en": "Zone changed to [[zone]]"
 			},
+			"args": [
+				{
+					"name": "zone",
+					"type": "autocomplete",
+					"title": {
+						"en": "Zone"
+					}
+				}
+			],
 			"tokens": [
 				{
 					"name": "zone",
@@ -17,6 +26,26 @@
 					},
 					"example": {
 						"en": "Home"
+					}
+				}
+			]
+		}
+	],
+	"conditions": [
+		{
+			"id": "zone_is",
+			"title": {
+				"en": "The zone !{{is|isn't}} [[zone]]"
+			},
+			"titleFormatted": {
+				"en": "The zone !{{is|isn't}} [[zone]]"
+			},
+			"args": [
+				{
+					"name": "zone",
+					"type": "autocomplete",
+					"title": {
+						"en": "Zone"
 					}
 				}
 			]

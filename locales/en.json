@@ -4,6 +4,7 @@
 			"settings": "Settings",
 			"avatars": "Avatars",
 			"zones": "Zones",
+			"map": "Map",
 			"logs": "Logs"
 		},
 		"subtitle": "Configure how OwnTracks reports locations to Homey. The configuration here needs to match the settings in the OwnTracks app.",
@@ -18,12 +19,35 @@
 		"connectionMethod": {
 			"legend": "Connection method",
 			"mqtt": "MQTT",
-			"http": "HTTP"
+			"http": "HTTP",
+			"helpAria": "Help"
+		},
+		"help": {
+			"close": "Close",
+			"comparison": {
+				"title": "Choosing MQTT or HTTP",
+				"mqtt": "MQTT",
+				"mqttPros": "Fast, efficient, and well suited to frequent location updates. It supports live updates and can work reliably when the phone changes networks.",
+				"mqttCons": "Requires a broker, broker credentials, and extra setup on both Homey and each phone. The broker must be accessible from both Homey and the phones outside the local network.",
+				"http": "HTTP",
+				"httpPros": "Simple to set up with a personal endpoint URL created by the app. Athom securely and reliably relays updates from its service to Homey, and no MQTT broker is needed.",
+				"httpCons": "HTTP is less suited to very frequent updates than MQTT.",
+				"pros": "Pros",
+				"cons": "Cons"
+			},
+			"mqtt": {
+				"title": "Setting up MQTT mode",
+				"body": "1. Set up an MQTT broker (self-hosted, or a cloud broker such as EMQX Serverless). It must be reachable from both Homey and every phone even when outside the local network.\n\n2. Create a broker account (username/password) - either one shared account for the whole family, or a separate account per person.\n\n3. Here in the app settings, select MQTT, then fill in the Broker URL, port, \"Use TLS\" and this connector's own login credentials, and click Save changes.\n\n4. On each phone, install OwnTracks and set the connection mode to MQTT (Private). Enter the same Host/Port/TLS setting and that phone's broker Username/Password.\n\n5. In Homey, pair a \"User\" device for each family member (Devices > Add device > Homey Tracks > User).\n\n6. Open that device's Advanced Settings and set \"OwnTracks / MQTT username (User ID)\" to whichever value is unique for that person - either their broker Username, or (if everyone shares one broker login) their OwnTracks \"Device ID\" instead.\n\n7. Tap the report button in OwnTracks to test - the matching Homey device's capabilities should update within a few seconds."
+			},
+			"http": {
+				"title": "Setting up HTTP mode",
+				"body": "1. Here in the app settings, select HTTP and click Save changes. No broker is needed for this mode.\n\n2. In Homey, pair a \"User\" device for each family member (Devices > Add device > Homey Tracks > User).\n\n3. After creating the device, note the personalized HTTP endpoint URL shown (also available afterwards on that device's Advanced Settings page).\n\n4. On each phone, install OwnTracks, set the connection mode to HTTP, and paste that person's endpoint URL as the target.\n\n5. Tap the report button in OwnTracks to test - the matching Homey device's capabilities should update within a few seconds."
+			}
 		},
 		"mqtt": {
 			"legend": "MQTT settings",
 			"brokerUrl": "Broker URL. The broker needs to be accessible from Homey and on the internet for the phone to connect.",
-			"useTls": "Use TLS (mqtts://) - required by most cloud brokers, typically on port 8883",
+			"useTls": "Use TLS - required by most cloud brokers.",
 			"port": "Port",
 			"username": "Username",
 			"password": "Password"
@@ -42,7 +66,9 @@
 			"intro": "Zones/waypoints are synced to and from every user's OwnTracks app, so everyone shares the same regions (e.g. for the Presence alarm).",
 			"noZonesYet": "No zones yet.",
 			"addZone": "Add zone",
+			"updateZone": "Update zone",
 			"modalTitle": "Add a zone",
+			"editModalTitle": "Edit zone",
 			"name": "Name",
 			"namePlaceholder": "e.g. Home",
 			"mapHint": "Click the map to set the zone's location:",
@@ -50,8 +76,22 @@
 			"longitude": "Longitude",
 			"radius": "Radius (meters)",
 			"cancel": "Cancel",
+			"editAria": "Edit zone",
 			"deleteAria": "Delete zone",
 			"fillInRequired": "Please fill in a name, latitude and longitude"
+		},
+		"map": {
+			"intro": "Live positions and recent tracks",
+			"noUsers": "No users paired yet.",
+			"filter": "Filter users",
+			"filterTitle": "Users on map",
+			"filterHint": "Select the users to show on the map.",
+			"noUsersToFilter": "No users paired yet.",
+			"close": "Done",
+			"showHistory": "Show coordinates",
+			"hideHistory": "Hide coordinates",
+			"historyTitle": "Logged coordinates",
+			"noHistory": "No coordinates logged yet."
 		},
 		"logs": {
 			"intro": "The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.",

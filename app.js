@@ -211,6 +211,22 @@ module.exports = class MyApp extends Homey.App
 	}
 
 	/**
+	 * @returns {{ id: string, name: string, avatarBase64: string|null, lastLocation: object|null, track: object[] }[]}
+	 * Each paired User device's last known location and recorded track history, for the
+	 * settings page's Map tab.
+	 */
+	listTracks()
+	{
+		return this.homey.drivers.getDriver('user').getDevices().map((device) => ({
+			id: device.getData().id,
+			name: device.getName(),
+			avatarBase64: device.getStoreValue('avatarBase64') || null,
+			lastLocation: device.getStoreValue('lastLocation') || null,
+			track: device.getStoreValue('track') || [],
+		}));
+	}
+
+	/**
 	 * Stores an uploaded avatar image (base64, no data-URI prefix) for the given paired user.
 	 * @param {string} userId
 	 * @param {string} base64
@@ -250,8 +266,12 @@ module.exports = class MyApp extends Homey.App
 			return;
 		}
 
-		this.connector.publish(topic, { _type: 'card', name: device.getName(), face });
-		this._log(`Published MQTT card for "${device.getName()}" to ${topic}`);
+		const cardTopic = topic.endsWith('/info') ? topic : `${topic}/info`;
+		const topicDevice = topic.split('/').filter(Boolean).pop();
+		const tid = device.getStoreValue('lastTrackerId') || (topicDevice && topicDevice.slice(-2).toUpperCase()) || device.getUserId().slice(-2).toUpperCase();
+		const card = { _type: 'card', tid, name: device.getName(), face };
+		this.connector.publish(cardTopic, card);
+		this._log(`Published MQTT card: ${JSON.stringify({ topic: cardTopic, _type: card._type, tid: card.tid, name: card.name, faceBytes: Buffer.byteLength(face, 'base64') })}`);
 	}
 
 	async _reconnect()
@@ -337,7 +357,7 @@ module.exports = class MyApp extends Homey.App
 	_onLocation(location)
 	{
 		this.lastLocations.set(`${location.user}/${location.device}`, location);
-		this._log(`Location update from ${location.user}/${location.device}: ${location.lat}, ${location.lon}`);
+		this._log(`Location update from ${location.user}/${location.device}: ${location.lat}, ${location.lon} at ${new Date(location.timestamp || Date.now()).toISOString()} (tid=${location.trackerId || 'none'}, topic=${location.topic || 'none'})`);
 		this._updateUserDevice(location).catch((err) => this._logError('Failed to update user device', err));
 	}
 
@@ -399,6 +419,36 @@ module.exports = class MyApp extends Homey.App
 			rad: typeof waypoint.rad === 'number' ? waypoint.rad : 100,
 			tst: Math.round(Date.now() / 1000),
 		});
+	}
+
+	/**
+	 * Updates an existing zone by its original name, allowing its name and location to change.
+	 * @param {string} originalDesc
+	 * @param {{ desc: string, lat: number, lon: number, rad: number }} waypoint
+	 */
+	updateWaypoint(originalDesc, waypoint)
+	{
+		if (!originalDesc || !waypoint || !waypoint.desc || typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number')
+		{
+			throw new Error('A zone needs a name, latitude and longitude');
+		}
+
+		const waypoints = this.listWaypoints();
+		const existingIndex = waypoints.findIndex((wp) => wp.desc.toLowerCase() === originalDesc.toLowerCase());
+		if (existingIndex < 0) throw new Error('Zone not found');
+
+		const duplicateIndex = waypoints.findIndex((wp, index) => index !== existingIndex && wp.desc.toLowerCase() === waypoint.desc.toLowerCase());
+		if (duplicateIndex >= 0) throw new Error('A zone with this name already exists');
+
+		waypoints[existingIndex] = {
+			desc: waypoint.desc,
+			lat: waypoint.lat,
+			lon: waypoint.lon,
+			rad: typeof waypoint.rad === 'number' ? waypoint.rad : 100,
+			tst: Math.round(Date.now() / 1000),
+		};
+		this.homey.settings.set('ownTracksWaypoints', waypoints);
+		this._notifyWaypointsChanged();
 	}
 
 	/**

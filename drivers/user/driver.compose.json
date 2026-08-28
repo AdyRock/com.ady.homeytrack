@@ -13,7 +13,8 @@
 		"alarm_presence",
 		"zone",
 		"measure_battery",
-		"last_seen"
+		"last_seen",
+		"last_coordinates"
 	],
 	"capabilitiesOptions": {
 		"zone": {
@@ -69,4 +70,3 @@
 		}
 	]
 }
-
