@@ -50,6 +50,7 @@
 			display: flex;
 			flex-direction: column;
 			min-height: 100vh;
+			overflow-x: hidden;
 			box-sizing: border-box;
 		}
 
@@ -381,23 +382,30 @@
 
 		.tab-nav {
 			display: flex;
+			flex-wrap: wrap;
 			gap: 8px;
 			padding: 4px;
 			background: #eee;
 			border-radius: 8px;
 			margin-bottom: 16px;
-			width: fit-content;
+			width: 100%;
+			box-sizing: border-box;
 		}
 
 		button.tab-nav-button {
 			background: transparent !important;
 			border: none !important;
 			border-radius: 6px !important;
-			padding: 8px 18px !important;
+			padding: 6px !important;
 			cursor: pointer;
 			font-size: 14px !important;
+			line-height: 1.1;
 			color: #333 !important;
 			box-shadow: none !important;
+			flex: 1 1 0;
+			min-width: 0;
+			white-space: normal;
+			text-align: center;
 		}
 
 		button.tab-nav-button.active {
