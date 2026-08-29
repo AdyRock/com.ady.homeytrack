@@ -17,6 +17,7 @@
   "category": [
     "tools"
   ],
+  "brandColor": "#0091ff",
   "permissions": [],
   "images": {
     "small": "/assets/images/small.png",
@@ -294,6 +295,10 @@
       "platforms": [
         "local"
       ],
+      "images": {
+        "small": "/drivers/user/assets/images/small.jpg",
+        "large": "/drivers/user/assets/images/large.jpg"
+      },
       "connectivity": [
         "cloud"
       ],
@@ -310,6 +315,11 @@
             "en": "Zone (waypoint)"
           }
         }
+      },
+      "energy": {
+        "batteries": [
+          "OTHER"
+        ]
       },
       "settings": [
         {
