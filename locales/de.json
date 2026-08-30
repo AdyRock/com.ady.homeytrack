@@ -1,0 +1,136 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Einstellungen",
+			"avatars": "Avatare",
+			"zones": "Zonen (Waypoints)",
+			"map": "Karte",
+			"logs": "Protokolle"
+		},
+		"subtitle": "Konfigurieren Sie, wie OwnTracks Standorte an Homey meldet. Die Einstellungen hier müssen zu den Einstellungen in der OwnTracks-App passen.",
+		"status": {
+			"checking": "Verbindung wird überprüft…",
+			"unknown": "Unbekannter Verbindungsstatus",
+			"connecting": "Verbinden ([[method]])…",
+			"connected": "Verbunden ([[method]])",
+			"notConnectedWithError": "Nicht verbunden ([[method]]): [[error]]",
+			"notConnected": "Nicht verbunden ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Verbindungsmethode",
+			"mqtt": "MQTT",
+			"http": "HTTP",
+			"helpAria": "Hilfe"
+		},
+		"help": {
+			"close": "Schließen",
+			"comparison": {
+				"title": "MQTT oder HTTP wählen",
+				"mqtt": "MQTT",
+				"mqttPros": "Schnell, effizient und gut geeignet für häufige Standortaktualisierungen. Es unterstützt Live-Updates und funktioniert zuverlässig, wenn das Handy das Netzwerk wechselt.",
+				"mqttCons": "Erfordert einen Broker, Broker-Anmeldedaten und zusätzliche Einrichtung auf Homey und jedem Handy. Der Broker muss sowohl von Homey als auch von den Handys außerhalb des lokalen Netzwerks erreichbar sein.",
+				"http": "HTTP",
+				"httpPros": "Einfach einzurichten mit einer persönlichen Endpunkt-URL, die von der App erstellt wird. Athom leitet Updates sicher und zuverlässig von seinem Dienst an Homey weiter, ohne dass ein MQTT-Broker nötig ist.",
+				"httpCons": "HTTP eignet sich weniger für sehr häufige Updates als MQTT.",
+				"pros": "Vorteile",
+				"cons": "Nachteile"
+			},
+			"mqtt": {
+				"title": "MQTT-Modus einrichten",
+				"body": "1. Richten Sie einen MQTT-Broker ein (selbst gehostet oder ein Cloud-Broker wie EMQX Serverless). Er muss sowohl von Homey als auch von jedem Handy erreichbar sein, auch außerhalb des lokalen Netzwerks.\n\n2. Erstellen Sie ein Broker-Konto (Benutzername/Passwort) – entweder ein gemeinsames Konto für die ganze Familie oder ein separates Konto pro Person.\n\n3. Wählen Sie hier in den App-Einstellungen MQTT, geben Sie die Broker-URL, den Port, \"TLS verwenden\" und die eigenen Anmeldedaten dieses Connectors ein und klicken Sie auf Änderungen speichern.\n\n4. Installieren Sie OwnTracks auf jedem Handy und stellen Sie den Verbindungsmodus auf MQTT (Private) ein. Geben Sie dieselben Host-/Port-/TLS-Einstellungen sowie den Broker-Benutzernamen und das Passwort dieses Handys ein.\n\n5. In Homey koppeln Sie für jedes Familienmitglied ein \"User\"-Gerät (Geräte > Gerät hinzufügen > Homey Tracks > User).\n\n6. Öffnen Sie die erweiterten Einstellungen dieses Geräts und setzen Sie \"OwnTracks / MQTT username (User ID)\" auf den für diese Person eindeutigen Wert – entweder ihren Broker-Benutzernamen oder (wenn alle dasselbe Broker-Login teilen) ihre OwnTracks-\"Device ID\".\n\n7. Tippen Sie in OwnTracks auf die Report-Schaltfläche zum Testen – die passenden Homey-Gerätefunktionen sollten innerhalb weniger Sekunden aktualisiert werden."
+			},
+			"http": {
+				"title": "HTTP-Modus einrichten",
+				"body": "1. Wählen Sie hier in den App-Einstellungen HTTP und klicken Sie auf Änderungen speichern. Für diesen Modus ist kein Broker erforderlich.\n\n2. In Homey koppeln Sie für jedes Familienmitglied ein \"User\"-Gerät (Geräte > Gerät hinzufügen > Homey Tracks > User).\n\n3. Nachdem Sie das Gerät erstellt haben, notieren Sie die personalisierte HTTP-Endpunkt-URL (auch später auf der Seite Erweitert für dieses Gerät verfügbar).\n\n4. Installieren Sie OwnTracks auf jedem Handy, stellen Sie den Verbindungsmodus auf HTTP ein und fügen Sie die Endpunkt-URL dieser Person als Ziel ein.\n\n5. Tippen Sie in OwnTracks auf die Report-Schaltfläche zum Testen – die passenden Homey-Gerätefunktionen sollten innerhalb weniger Sekunden aktualisiert werden."
+			}
+		},
+		"mqtt": {
+			"legend": "MQTT-Einstellungen",
+			"brokerUrl": "Broker-URL. Der Broker muss von Homey und im Internet erreichbar sein, damit das Handy eine Verbindung herstellen kann.",
+			"useTls": "TLS verwenden – für die meisten Cloud-Broker erforderlich.",
+			"port": "Port",
+			"username": "Benutzername",
+			"password": "Passwort"
+		},
+		"footerNote": "Jedes gekoppelte \"User\"-Gerät hat seinen eigenen OwnTracks-Benutzernamen / HTTP-Endpunkt-URL, der auf der Seite Erweitert für dieses Gerät angezeigt wird.",
+		"save": "Änderungen speichern",
+		"saved": "Einstellungen gespeichert",
+		"avatars": {
+			"intro": "Fügen Sie einen Benutzer in Homey über den normalen Gerät-Hinzufügen-Dialog hinzu. Laden Sie anschließend ein Foto für jeden gekoppelten Benutzer hoch, das als Marker auf der OwnTracks-Karte angezeigt wird.",
+			"noUsers": "Noch keine Benutzer gekoppelt. Fügen Sie ein \"User\"-Gerät hinzu, um für sie ein Avatar hochzuladen.",
+			"noAvatarYet": " (noch kein Avatar)",
+			"chooseFile": "Datei wählen",
+			"copyFailed": "In die Zwischenablage kopieren fehlgeschlagen"
+		},
+		"zones": {
+			"intro": "Zonen (Waypoints) werden mit der OwnTracks-App jedes Benutzers synchronisiert, sodass alle dieselben Regionen gemeinsam nutzen (z. B. für den Presence-Alarm).",
+			"noZonesYet": "Noch keine Zonen (Waypoints).",
+			"addZone": "Zone hinzufügen (Waypoint)",
+			"updateZone": "Zone aktualisieren (Waypoint)",
+			"modalTitle": "Zone hinzufügen (Waypoint)",
+			"editModalTitle": "Zone bearbeiten (Waypoint)",
+			"name": "Name",
+			"namePlaceholder": "z. B. Zuhause",
+			"mapHint": "Klicken Sie auf die Karte, um den Standort der Zone (Waypoint) festzulegen:",
+			"latitude": "Breitengrad",
+			"longitude": "Längengrad",
+			"radius": "Radius (Meter)",
+			"cancel": "Abbrechen",
+			"editAria": "Zone bearbeiten (Waypoint)",
+			"deleteAria": "Zone löschen (Waypoint)",
+			"fillInRequired": "Bitte geben Sie einen Namen, Breitengrad und Längengrad ein"
+		},
+		"map": {
+			"intro": "Live-Positionen und aktuelle Fahrspuren",
+			"noUsers": "Noch keine Benutzer gekoppelt.",
+			"filter": "Benutzer filtern",
+			"filterTitle": "Benutzer auf der Karte",
+			"filterHint": "Wählen Sie die Benutzer aus, die auf der Karte angezeigt werden sollen.",
+			"noUsersToFilter": "Noch keine Benutzer gekoppelt.",
+			"close": "Fertig",
+			"showHistory": "Koordinaten anzeigen",
+			"hideHistory": "Koordinaten ausblenden",
+			"historyTitle": "Protokollierte Koordinaten",
+			"noHistory": "Noch keine Koordinaten protokolliert."
+		},
+		"logs": {
+			"intro": "Die letzten ~20 KB protokollierter Meldungen, neueste unten (nicht bei App-Neustarts erhalten). Fehler werden immer erfasst.",
+			"enable": "Protokollmeldungen aktivieren (zusätzlich zu Fehlern)",
+			"clear": "Protokoll löschen",
+			"email": "Protokoll senden (an Entwickler)",
+			"emailSending": "Senden…",
+			"emailSent": "Protokoll gesendet",
+			"noMessages": "(noch keine Protokollmeldungen)",
+			"loading": "Laden…",
+			"copy": "Protokoll kopieren",
+			"copied": "Kopiert!",
+			"copyFailed": "In die Zwischenablage kopieren fehlgeschlagen"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Benutzer hinzufügen",
+			"subtitle": "Gerät erstellen, um den Standort eines Familienmitglieds zu verfolgen",
+			"name": "Name",
+			"namePlaceholder": "z. B. Ady",
+			"userId": "Benutzer-ID",
+			"userIdPlaceholder": "z. B. ady",
+			"note": "Verwenden Sie diese Benutzer-ID als OwnTracks-Benutzernamen (MQTT) oder in der HTTP-Endpunkt-URL, die in den App-Einstellungen konfiguriert ist.",
+			"submit": "Benutzer hinzufügen",
+			"fillInRequired": "Bitte geben Sie einen Namen und eine Benutzer-ID ein"
+		},
+		"done": {
+			"title": "Benutzer hinzugefügt",
+			"subtitle": "Jetzt OwnTracks-App für diesen Benutzer einrichten",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Stellen Sie den Verbindungsmodus auf MQTT (Private) ein, wählen Sie den in den App-Einstellungen konfigurierten Broker und setzen Sie den Benutzernamen auf:",
+			"httpLegend": "HTTP",
+			"httpNote": "Stellen Sie den Verbindungsmodus auf HTTP und verwenden Sie diese Endpunkt-URL:",
+			"copy": "Kopieren",
+			"loading": "Laden…",
+			"couldNotLoadEndpoint": "Endpunkt konnte nicht geladen werden, siehe App-Einstellungen",
+			"close": "Fertig",
+			"copyFailed": "In die Zwischenablage kopieren fehlgeschlagen"
+		}
+	}
+}

@@ -1,17 +1,47 @@
 {
 	"id": "person_left_zone",
 	"title": {
-		"en": "A person left a zone (waypoint)"
+		"en": "A person left a zone (waypoint)",
+		"no": "En person forlot en sone (waypoint)",
+		"nl": "Iemand heeft een zone verlaten (waypoint)",
+		"de": "Eine Person hat eine Zone verlassen (Waypoint)",
+		"fr": "Une personne a quitté une zone (point de repère)",
+		"es": "Una persona salió de una zona (waypoint)",
+		"pt": "Uma pessoa saiu de uma zona (waypoint)",
+		"it": "Una persona è uscita da una zona (waypoint)",
+		"pl": "Osoba opuściła strefę (waypoint)",
+		"ru": "Человек вышел из зоны (waypoint)",
+		"ko": "사람이 구역(웨이포인트)에서 나갔습니다"
 	},
 	"titleFormatted": {
-		"en": "A person left a zone (waypoint)"
+		"en": "A person left a zone (waypoint)",
+		"no": "En person forlot en sone (waypoint)",
+		"nl": "Iemand heeft een zone verlaten (waypoint)",
+		"de": "Eine Person hat eine Zone verlassen (Waypoint)",
+		"fr": "Une personne a quitté une zone (point de repère)",
+		"es": "Una persona salió de una zona (waypoint)",
+		"pt": "Uma pessoa saiu de uma zona (waypoint)",
+		"it": "Una persona è uscita da una zona (waypoint)",
+		"pl": "Osoba opuściła strefę (waypoint)",
+		"ru": "Человек вышел из зоны (waypoint)",
+		"ko": "사람이 구역(웨이포인트)에서 나갔습니다"
 	},
 	"tokens": [
 		{
 			"name": "user",
 			"type": "string",
 			"title": {
-				"en": "user"
+				"en": "user",
+				"no": "bruker",
+				"nl": "gebruiker",
+				"de": "Benutzer",
+				"fr": "utilisateur",
+				"es": "usuario",
+				"pt": "usuário",
+				"it": "utente",
+				"pl": "użytkownik",
+				"ru": "пользователь",
+				"ko": "사용자"
 			},
 			"example": {
 				"en": "Adrian"
@@ -21,7 +51,17 @@
 			"name": "zone",
 			"type": "string",
 			"title": {
-				"en": "zone (waypoint)"
+				"en": "zone (waypoint)",
+				"no": "sone (waypoint)",
+				"nl": "zone (waypoint)",
+				"de": "Zone (Waypoint)",
+				"fr": "zone (point de repère)",
+				"es": "zona (waypoint)",
+				"pt": "zona (waypoint)",
+				"it": "zona (waypoint)",
+				"pl": "strefa (waypoint)",
+				"ru": "зона (waypoint)",
+				"ko": "구역(웨이포인트)"
 			},
 			"example": {
 				"en": "Home"

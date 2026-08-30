@@ -1,0 +1,136 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Ajustes",
+			"avatars": "Avatares",
+			"zones": "Zonas (waypoints)",
+			"map": "Mapa",
+			"logs": "Registros"
+		},
+		"subtitle": "Configura cómo OwnTracks informa las ubicaciones a Homey. La configuración aquí debe coincidir con la de la aplicación OwnTracks.",
+		"status": {
+			"checking": "Comprobando conexión…",
+			"unknown": "Estado de conexión desconocido",
+			"connecting": "Conectando ([[method]])…",
+			"connected": "Conectado ([[method]])",
+			"notConnectedWithError": "No conectado ([[method]]): [[error]]",
+			"notConnected": "No conectado ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Método de conexión",
+			"mqtt": "MQTT",
+			"http": "HTTP",
+			"helpAria": "Ayuda"
+		},
+		"help": {
+			"close": "Cerrar",
+			"comparison": {
+				"title": "Elegir MQTT o HTTP",
+				"mqtt": "MQTT",
+				"mqttPros": "Rápido, eficiente y muy adecuado para actualizaciones frecuentes de ubicación. Soporta actualizaciones en vivo y funciona de forma fiable cuando el teléfono cambia de red.",
+				"mqttCons": "Requiere un broker, credenciales del broker y una configuración adicional en Homey y en cada teléfono. El broker debe ser accesible desde Homey y desde los teléfonos fuera de la red local.",
+				"http": "HTTP",
+				"httpPros": "Fácil de configurar con una URL de extremo personal creada por la aplicación. Athom reenvía las actualizaciones de forma segura y fiable desde su servicio a Homey, sin necesidad de un broker MQTT.",
+				"httpCons": "HTTP es menos adecuado para actualizaciones muy frecuentes que MQTT.",
+				"pros": "Ventajas",
+				"cons": "Desventajas"
+			},
+			"mqtt": {
+				"title": "Configurar el modo MQTT",
+				"body": "1. Configura un broker MQTT (autoalojado o un broker en la nube como EMQX Serverless). Debe ser accesible tanto desde Homey como desde cada teléfono, incluso fuera de la red local.\n\n2. Crea una cuenta de broker (nombre de usuario/contraseña): ya sea una cuenta compartida para toda la familia o una cuenta separada por persona.\n\n3. Aquí, en la configuración de la aplicación, selecciona MQTT, rellena la URL del broker, el puerto, \"Usar TLS\" y las credenciales de este conector, y haz clic en Guardar cambios.\n\n4. En cada teléfono, instala OwnTracks y configura el modo de conexión como MQTT (Private). Introduce la misma configuración de Host/Port/TLS y el nombre de usuario/contraseña del broker del teléfono.\n\n5. En Homey, empareja un dispositivo \"User\" para cada miembro de la familia (Dispositivos > Añadir dispositivo > Homey Tracks > User).\n\n6. Abre la configuración avanzada de ese dispositivo y establece \"OwnTracks / MQTT username (User ID)\" en el valor único de esa persona: o bien su nombre de usuario del broker, o (si todos comparten un inicio de sesión del broker) su \"Device ID\" de OwnTracks.\n\n7. Pulsa el botón de informe en OwnTracks para probarlo: las capacidades del dispositivo correspondiente de Homey deberían actualizarse en unos segundos."
+			},
+			"http": {
+				"title": "Configurar el modo HTTP",
+				"body": "1. Aquí, en la configuración de la aplicación, selecciona HTTP y haz clic en Guardar cambios. No se necesita ningún broker para este modo.\n\n2. En Homey, empareja un dispositivo \"User\" para cada miembro de la familia (Dispositivos > Añadir dispositivo > Homey Tracks > User).\n\n3. Después de crear el dispositivo, toma nota de la URL del endpoint HTTP personalizada que aparece (también disponible más adelante en la página de configuración avanzada de ese dispositivo).\n\n4. En cada teléfono, instala OwnTracks, configura el modo de conexión como HTTP y pega la URL del endpoint de esa persona como destino.\n\n5. Pulsa el botón de informe en OwnTracks para probarlo: las capacidades del dispositivo correspondiente de Homey deberían actualizarse en unos segundos."
+			}
+		},
+		"mqtt": {
+			"legend": "Ajustes MQTT",
+			"brokerUrl": "URL del broker. El broker debe ser accesible desde Homey y desde Internet para que el teléfono pueda conectarse.",
+			"useTls": "Usar TLS: obligatorio para la mayoría de los brokers en la nube.",
+			"port": "Puerto",
+			"username": "Nombre de usuario",
+			"password": "Contraseña"
+		},
+		"footerNote": "Cada dispositivo \"User\" emparejado tiene su propio nombre de usuario de OwnTracks / URL de endpoint HTTP, que se muestra en la página de configuración avanzada de ese dispositivo.",
+		"save": "Guardar cambios",
+		"saved": "Ajustes guardados",
+		"avatars": {
+			"intro": "Añade un usuario a Homey mediante el flujo normal de añadir dispositivo. A continuación, sube una foto para cada usuario emparejado, que aparecerá como marcador en el mapa de OwnTracks.",
+			"noUsers": "Todavía no hay usuarios emparejados. Añade un dispositivo \"User\" para subir un avatar para ellos.",
+			"noAvatarYet": " (todavía no hay avatar)",
+			"chooseFile": "Elegir archivo",
+			"copyFailed": "No se pudo copiar al portapapeles"
+		},
+		"zones": {
+			"intro": "Las zonas (waypoints) se sincronizan desde y hacia la aplicación OwnTracks de cada usuario, para que todos compartan las mismas regiones (por ejemplo, para la alarma de presencia).",
+			"noZonesYet": "Todavía no hay zonas (waypoints).",
+			"addZone": "Añadir zona (waypoint)",
+			"updateZone": "Actualizar zona (waypoint)",
+			"modalTitle": "Añadir zona (waypoint)",
+			"editModalTitle": "Editar zona (waypoint)",
+			"name": "Nombre",
+			"namePlaceholder": "p. ej. Casa",
+			"mapHint": "Haz clic en el mapa para establecer la ubicación de la zona (waypoint):",
+			"latitude": "Latitud",
+			"longitude": "Longitud",
+			"radius": "Radio (metros)",
+			"cancel": "Cancelar",
+			"editAria": "Editar zona (waypoint)",
+			"deleteAria": "Eliminar zona (waypoint)",
+			"fillInRequired": "Rellena el nombre, la latitud y la longitud"
+		},
+		"map": {
+			"intro": "Posiciones en vivo y trazados recientes",
+			"noUsers": "Todavía no hay usuarios emparejados.",
+			"filter": "Filtrar usuarios",
+			"filterTitle": "Usuarios en el mapa",
+			"filterHint": "Selecciona los usuarios que se mostrarán en el mapa.",
+			"noUsersToFilter": "Todavía no hay usuarios emparejados.",
+			"close": "Hecho",
+			"showHistory": "Mostrar coordenadas",
+			"hideHistory": "Ocultar coordenadas",
+			"historyTitle": "Coordenadas registradas",
+			"noHistory": "Todavía no hay coordenadas registradas."
+		},
+		"logs": {
+			"intro": "Los últimos ~20 KB de mensajes registrados, con los más recientes abajo (no se conservan al reiniciar la aplicación). Los errores siempre se registran.",
+			"enable": "Activar mensajes de registro (además de los errores)",
+			"clear": "Borrar registro",
+			"email": "Enviar registro (al desarrollador)",
+			"emailSending": "Enviando…",
+			"emailSent": "Registro enviado",
+			"noMessages": "(todavía no hay mensajes de registro)",
+			"loading": "Cargando…",
+			"copy": "Copiar registro",
+			"copied": "¡Copiado!",
+			"copyFailed": "No se pudo copiar al portapapeles"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Añadir usuario",
+			"subtitle": "Crear un dispositivo para seguir la ubicación de un miembro de la familia",
+			"name": "Nombre",
+			"namePlaceholder": "p. ej. Ady",
+			"userId": "ID de usuario",
+			"userIdPlaceholder": "p. ej. ady",
+			"note": "Usa este ID de usuario como nombre de usuario de OwnTracks (MQTT) o en la URL del endpoint HTTP configurada en la configuración de la aplicación.",
+			"submit": "Añadir usuario",
+			"fillInRequired": "Rellena el nombre y el ID de usuario"
+		},
+		"done": {
+			"title": "Usuario añadido",
+			"subtitle": "Ahora configura la aplicación OwnTracks para este usuario",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Configura el modo de conexión como MQTT (Private), apunta al broker configurado en la configuración de la aplicación y establece el nombre de usuario en:",
+			"httpLegend": "HTTP",
+			"httpNote": "Configura el modo de conexión como HTTP y usa esta URL del endpoint:",
+			"copy": "Copiar",
+			"loading": "Cargando…",
+			"couldNotLoadEndpoint": "No se pudo cargar el endpoint, consulta la configuración de la aplicación",
+			"close": "Hecho",
+			"copyFailed": "No se pudo copiar al portapapeles"
+		}
+	}
+}

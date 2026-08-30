@@ -1,0 +1,136 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Instellingen",
+			"avatars": "Avatars",
+			"zones": "Zones (waypoints)",
+			"map": "Kaart",
+			"logs": "Logboeken"
+		},
+		"subtitle": "Configureer hoe OwnTracks locaties naar Homey stuurt. Deze configuratie moet overeenkomen met de instellingen in de OwnTracks-app.",
+		"status": {
+			"checking": "Verbinding controleren…",
+			"unknown": "Onbekende verbindingsstatus",
+			"connecting": "Verbinden ([[method]])…",
+			"connected": "Verbonden ([[method]])",
+			"notConnectedWithError": "Niet verbonden ([[method]]): [[error]]",
+			"notConnected": "Niet verbonden ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Verbindingsmethode",
+			"mqtt": "MQTT",
+			"http": "HTTP",
+			"helpAria": "Help"
+		},
+		"help": {
+			"close": "Sluiten",
+			"comparison": {
+				"title": "MQTT of HTTP kiezen",
+				"mqtt": "MQTT",
+				"mqttPros": "Snel, efficiënt en goed geschikt voor frequente locatie-updates. Het ondersteunt live updates en werkt betrouwbaar als de telefoon van netwerk wisselt.",
+				"mqttCons": "Vereist een broker, broker-credentials en extra configuratie op zowel Homey als elke telefoon. De broker moet bereikbaar zijn vanuit zowel Homey als de telefoons buiten het lokale netwerk.",
+				"http": "HTTP",
+				"httpPros": "Eenvoudig in te stellen met een persoonlijk endpoint-URL die door de app wordt aangemaakt. Athom stuurt updates veilig en betrouwbaar van zijn service naar Homey, zonder MQTT-broker.",
+				"httpCons": "HTTP is minder geschikt voor zeer frequente updates dan MQTT.",
+				"pros": "Voordelen",
+				"cons": "Nadelen"
+			},
+			"mqtt": {
+				"title": "MQTT-modus instellen",
+				"body": "1. Zet een MQTT-broker op (zelf gehost, of een cloudbroker zoals EMQX Serverless). Deze moet bereikbaar zijn vanuit zowel Homey als elke telefoon, zelfs buiten het lokale netwerk.\n\n2. Maak een brokeraccount aan (gebruikersnaam/wachtwoord) – hetzij één gedeelde account voor het hele gezin, hetzij een aparte account per persoon.\n\n3. Kies hier in de appinstellingen MQTT, vul de Broker URL, poort, \"Gebruik TLS\" en de inloggegevens van deze connector in en klik op Wijzigingen opslaan.\n\n4. Installeer OwnTracks op elke telefoon en zet de verbindingsmodus op MQTT (Private). Vul dezelfde Host/Port/TLS-instellingen in en het gebruikersnaam/wachtwoord van die telefoon bij de broker.\n\n5. In Homey koppel je een \"User\"-apparaat voor elk familielid (Apparaten > Apparaat toevoegen > Homey Tracks > User).\n\n6. Open de Geavanceerde instellingen van dat apparaat en zet \"OwnTracks / MQTT username (User ID)\" op de unieke waarde voor die persoon – ofwel hun brokergebruikersnaam, of (als iedereen dezelfde brokerlogin deelt) hun OwnTracks \"Device ID\" in plaats daarvan.\n\n7. Tik op de rapportknop in OwnTracks om te testen – de bijbehorende Homey-apparaatfuncties moeten binnen enkele seconden bijwerken."
+			},
+			"http": {
+				"title": "HTTP-modus instellen",
+				"body": "1. Kies hier in de appinstellingen HTTP en klik op Wijzigingen opslaan. Voor deze modus is geen broker nodig.\n\n2. In Homey koppel je een \"User\"-apparaat voor elk familielid (Apparaten > Apparaat toevoegen > Homey Tracks > User).\n\n3. Nadat je het apparaat hebt gemaakt, noteer je de gepersonaliseerde HTTP-endpoint-URL die wordt weergegeven (ook beschikbaar op de pagina Geavanceerde instellingen van dat apparaat).\n\n4. Installeer OwnTracks op elke telefoon, zet de verbindingsmodus op HTTP en plak die persoon zijn endpoint-URL als doel.\n\n5. Tik op de rapportknop in OwnTracks om te testen – de bijbehorende Homey-apparaatfuncties moeten binnen enkele seconden bijwerken."
+			}
+		},
+		"mqtt": {
+			"legend": "MQTT-instellingen",
+			"brokerUrl": "Broker URL. De broker moet bereikbaar zijn vanuit Homey en via internet zodat de telefoon verbinding kan maken.",
+			"useTls": "Gebruik TLS – vereist door de meeste cloud-brokers.",
+			"port": "Poort",
+			"username": "Gebruikersnaam",
+			"password": "Wachtwoord"
+		},
+		"footerNote": "Elk gekoppeld \"User\"-apparaat heeft zijn eigen OwnTracks-gebruikersnaam / HTTP-endpoint-URL, zichtbaar op de pagina Geavanceerde instellingen van dat apparaat.",
+		"save": "Wijzigingen opslaan",
+		"saved": "Instellingen opgeslagen",
+		"avatars": {
+			"intro": "Voeg een gebruiker toe in Homey via de normale flow voor Apparaat toevoegen. Upload vervolgens een foto voor elke gekoppelde gebruiker, die als markering op de OwnTracks-kaart wordt weergegeven.",
+			"noUsers": "Nog geen gebruikers gekoppeld. Voeg een \"User\"-apparaat toe om een avatar voor hen te uploaden.",
+			"noAvatarYet": " (nog geen avatar)",
+			"chooseFile": "Bestand kiezen",
+			"copyFailed": "Kon niet naar het klembord kopiëren"
+		},
+		"zones": {
+			"intro": "Zones (waypoints) worden gesynchroniseerd met en van de OwnTracks-app van elke gebruiker, zodat iedereen dezelfde regio's deelt (bijv. voor de Presence-alarm).",
+			"noZonesYet": "Nog geen zones (waypoints).",
+			"addZone": "Zone toevoegen (waypoint)",
+			"updateZone": "Zone bijwerken (waypoint)",
+			"modalTitle": "Zone toevoegen (waypoint)",
+			"editModalTitle": "Zone bewerken (waypoint)",
+			"name": "Naam",
+			"namePlaceholder": "bijv. Home",
+			"mapHint": "Klik op de kaart om de locatie van de zone (waypoint) in te stellen:",
+			"latitude": "Breedtegraad",
+			"longitude": "Lengtegraad",
+			"radius": "Straal (meter)",
+			"cancel": "Annuleren",
+			"editAria": "Zone bewerken (waypoint)",
+			"deleteAria": "Zone verwijderen (waypoint)",
+			"fillInRequired": "Vul een naam, breedtegraad en lengtegraad in"
+		},
+		"map": {
+			"intro": "Live posities en recente routes",
+			"noUsers": "Nog geen gebruikers gekoppeld.",
+			"filter": "Gebruikers filteren",
+			"filterTitle": "Gebruikers op kaart",
+			"filterHint": "Selecteer de gebruikers die op de kaart moeten worden weergegeven.",
+			"noUsersToFilter": "Nog geen gebruikers gekoppeld.",
+			"close": "Gereed",
+			"showHistory": "Coördinaten tonen",
+			"hideHistory": "Coördinaten verbergen",
+			"historyTitle": "Gelogde coördinaten",
+			"noHistory": "Nog geen coördinaten gelogd."
+		},
+		"logs": {
+			"intro": "De laatste ~20 KB aan gelogde berichten, nieuwste onderaan (niet bewaard bij opnieuw opstarten van de app). Fouten worden altijd vastgelegd.",
+			"enable": "Logberichten inschakelen (naast fouten)",
+			"clear": "Log wissen",
+			"email": "Log verzenden (naar ontwikkelaar)",
+			"emailSending": "Verzenden…",
+			"emailSent": "Log verzonden",
+			"noMessages": "(nog geen logberichten)",
+			"loading": "Laden…",
+			"copy": "Log kopiëren",
+			"copied": "Gekopieerd!",
+			"copyFailed": "Kon niet naar het klembord kopiëren"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Gebruiker toevoegen",
+			"subtitle": "Maak een apparaat aan om de locatie van een familielid te volgen",
+			"name": "Naam",
+			"namePlaceholder": "bijv. Ady",
+			"userId": "Gebruikers-ID",
+			"userIdPlaceholder": "bijv. ady",
+			"note": "Gebruik deze Gebruikers-ID als OwnTracks-gebruikersnaam (MQTT), of in de HTTP-endpoint-URL die in de appinstellingen is geconfigureerd.",
+			"submit": "Gebruiker toevoegen",
+			"fillInRequired": "Vul een naam en gebruikers-ID in"
+		},
+		"done": {
+			"title": "Gebruiker toegevoegd",
+			"subtitle": "Stel nu de OwnTracks-app voor deze gebruiker in",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Zet de verbindingsmodus op MQTT (Private), wijs hem naar de in de appinstellingen geconfigureerde broker en zet de gebruikersnaam op:",
+			"httpLegend": "HTTP",
+			"httpNote": "Zet de verbindingsmodus op HTTP en gebruik deze endpoint-URL:",
+			"copy": "Kopiëren",
+			"loading": "Laden…",
+			"couldNotLoadEndpoint": "Endpoint kon niet worden geladen, zie appinstellingen",
+			"close": "Gereed",
+			"copyFailed": "Kon niet naar het klembord kopiëren"
+		}
+	}
+}

@@ -8,10 +8,30 @@
 		"local"
 	],
 	"name": {
-		"en": "Homey Tracks"
+		"en": "Homey Tracks",
+		"no": "Homey Tracks",
+		"nl": "Homey Tracks",
+		"de": "Homey Tracks",
+		"fr": "Homey Tracks",
+		"es": "Homey Tracks",
+		"pt": "Homey Tracks",
+		"it": "Homey Tracks",
+		"pl": "Homey Tracks",
+		"ru": "Homey Tracks",
+		"ko": "Homey Tracks"
 	},
 	"description": {
-		"en": "Keep track of the family with the OwnTrack app"
+		"en": "Keep track of the family with the OwnTracks app",
+		"no": "Hold øye med familien med OwnTracks-appen",
+		"nl": "Houd de familie in de gaten met de OwnTracks-app",
+		"de": "Verfolgen Sie Ihre Familie mit der OwnTracks-App",
+		"fr": "Suivez votre famille avec l'application OwnTracks",
+		"es": "Sigue a tu familia con la aplicación OwnTracks",
+		"pt": "Acompanhe a família com o aplicativo OwnTracks",
+		"it": "Tieni traccia della famiglia con l'app OwnTracks",
+		"pl": "Śledź swoją rodzinę za pomocą aplikacji OwnTracks",
+		"ru": "Следите за семьёй с помощью приложения OwnTracks",
+		"ko": "OwnTracks 앱으로 가족 위치를 추적하세요"
 	},
 	"category": [
 		"tools"
@@ -33,6 +53,76 @@
 			"family",
 			"location",
 			"presence",
+			"OwnTracks"
+		],
+		"no": [
+			"sporing",
+			"familie",
+			"posisjon",
+			"tilstedeværelse",
+			"OwnTracks"
+		],
+		"nl": [
+			"tracking",
+			"familie",
+			"locatie",
+			"aanwezigheid",
+			"OwnTracks"
+		],
+		"de": [
+			"Verfolgung",
+			"Familie",
+			"Standort",
+			"Anwesenheit",
+			"OwnTracks"
+		],
+		"fr": [
+			"suivi",
+			"famille",
+			"emplacement",
+			"présence",
+			"OwnTracks"
+		],
+		"es": [
+			"seguimiento",
+			"familia",
+			"ubicación",
+			"presencia",
+			"OwnTracks"
+		],
+		"pt": [
+			"rastreamento",
+			"família",
+			"localização",
+			"presença",
+			"OwnTracks"
+		],
+		"it": [
+			"tracciamento",
+			"famiglia",
+			"posizione",
+			"presenza",
+			"OwnTracks"
+		],
+		"pl": [
+			"śledzenie",
+			"rodzina",
+			"lokalizacja",
+			"obecność",
+			"OwnTracks"
+		],
+		"ru": [
+			"отслеживание",
+			"семья",
+			"местоположение",
+			"присутствие",
+			"OwnTracks"
+		],
+		"ko": [
+			"추적",
+			"가족",
+			"위치",
+			"현황",
 			"OwnTracks"
 		]
 	},

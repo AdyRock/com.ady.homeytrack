@@ -1,7 +1,17 @@
 {
 	"type": "string",
 	"title": {
-		"en": "Zone"
+		"en": "Zone",
+		"no": "Sone",
+		"nl": "Zone",
+		"de": "Zone",
+		"fr": "Zone",
+		"es": "Zona",
+		"pt": "Zona",
+		"it": "Zona",
+		"pl": "Strefa",
+		"ru": "Зона",
+		"ko": "구역"
 	},
 	"getable": true,
 	"setable": false,

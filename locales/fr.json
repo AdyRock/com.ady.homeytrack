@@ -1,0 +1,136 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Paramètres",
+			"avatars": "Avatars",
+			"zones": "Zones (points de repère)",
+			"map": "Carte",
+			"logs": "Journaux"
+		},
+		"subtitle": "Configurez la manière dont OwnTracks envoie les positions à Homey. La configuration ici doit correspondre aux réglages de l'application OwnTracks.",
+		"status": {
+			"checking": "Vérification de la connexion…",
+			"unknown": "État de connexion inconnu",
+			"connecting": "Connexion ([[method]])…",
+			"connected": "Connecté ([[method]])",
+			"notConnectedWithError": "Non connecté ([[method]]): [[error]]",
+			"notConnected": "Non connecté ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Méthode de connexion",
+			"mqtt": "MQTT",
+			"http": "HTTP",
+			"helpAria": "Aide"
+		},
+		"help": {
+			"close": "Fermer",
+			"comparison": {
+				"title": "Choisir MQTT ou HTTP",
+				"mqtt": "MQTT",
+				"mqttPros": "Rapide, efficace et bien adapté aux mises à jour fréquentes de localisation. Il prend en charge les mises à jour en direct et fonctionne de manière fiable lorsque le téléphone change de réseau.",
+				"mqttCons": "Nécessite un broker, des identifiants de broker et une configuration supplémentaire sur Homey et sur chaque téléphone. Le broker doit être accessible depuis Homey et les téléphones, même hors du réseau local.",
+				"http": "HTTP",
+				"httpPros": "Simple à configurer avec une URL d'endpoint personnelle créée par l'application. Athom transmet les mises à jour de manière sécurisée et fiable de son service à Homey, sans nécessiter de broker MQTT.",
+				"httpCons": "HTTP est moins adapté aux mises à jour très fréquentes que MQTT.",
+				"pros": "Avantages",
+				"cons": "Inconvénients"
+			},
+			"mqtt": {
+				"title": "Configurer le mode MQTT",
+				"body": "1. Configurez un broker MQTT (auto-hébergé ou un broker cloud tel que EMQX Serverless). Il doit être accessible à la fois depuis Homey et depuis chaque téléphone, même lorsqu'ils sont hors du réseau local.\n\n2. Créez un compte broker (nom d'utilisateur/mot de passe) – soit un seul compte partagé pour toute la famille, soit un compte distinct par personne.\n\n3. Ici, dans les paramètres de l'application, sélectionnez MQTT, renseignez l'URL du broker, le port, \"Utiliser TLS\" et les identifiants de ce connecteur, puis cliquez sur Enregistrer les modifications.\n\n4. Sur chaque téléphone, installez OwnTracks et réglez le mode de connexion sur MQTT (Private). Saisissez les mêmes paramètres Host/Port/TLS et le nom d'utilisateur/mot de passe du broker de ce téléphone.\n\n5. Dans Homey, associez un appareil \"User\" pour chaque membre de la famille (Appareils > Ajouter un appareil > Homey Tracks > User).\n\n6. Ouvrez les paramètres avancés de cet appareil et définissez \"OwnTracks / MQTT username (User ID)\" sur la valeur unique de cette personne – soit leur nom d'utilisateur broker, soit (si tout le monde partage la même connexion broker) leur \"Device ID\" OwnTracks.\n\n7. Appuyez sur le bouton de rapport dans OwnTracks pour tester – les fonctionnalités de l'appareil Homey correspondant doivent se mettre à jour en quelques secondes."
+			},
+			"http": {
+				"title": "Configurer le mode HTTP",
+				"body": "1. Ici, dans les paramètres de l'application, sélectionnez HTTP puis cliquez sur Enregistrer les modifications. Aucun broker n'est nécessaire pour ce mode.\n\n2. Dans Homey, associez un appareil \"User\" pour chaque membre de la famille (Appareils > Ajouter un appareil > Homey Tracks > User).\n\n3. Après avoir créé l'appareil, notez l'URL d'endpoint HTTP personnalisée affichée (également disponible plus tard sur la page Paramètres avancés de cet appareil).\n\n4. Sur chaque téléphone, installez OwnTracks, réglez le mode de connexion sur HTTP et collez l'URL d'endpoint de cette personne comme cible.\n\n5. Appuyez sur le bouton de rapport dans OwnTracks pour tester – les fonctionnalités de l'appareil Homey correspondant doivent se mettre à jour en quelques secondes."
+			}
+		},
+		"mqtt": {
+			"legend": "Paramètres MQTT",
+			"brokerUrl": "URL du broker. Le broker doit être accessible depuis Homey et depuis Internet pour que le téléphone puisse se connecter.",
+			"useTls": "Utiliser TLS – requis par la plupart des brokers cloud.",
+			"port": "Port",
+			"username": "Nom d'utilisateur",
+			"password": "Mot de passe"
+		},
+		"footerNote": "Chaque appareil \"User\" associé dispose de son propre nom d'utilisateur OwnTracks / URL d'endpoint HTTP, affiché sur la page Paramètres avancés de cet appareil.",
+		"save": "Enregistrer les modifications",
+		"saved": "Paramètres enregistrés",
+		"avatars": {
+			"intro": "Ajoutez un utilisateur dans Homey via le flux normal d'ajout d'appareil. Puis téléchargez une photo pour chaque utilisateur associé, affichée comme son marqueur sur la carte OwnTracks.",
+			"noUsers": "Aucun utilisateur associé pour le moment. Ajoutez un appareil \"User\" pour téléverser un avatar pour lui.",
+			"noAvatarYet": " (pas encore d'avatar)",
+			"chooseFile": "Choisir un fichier",
+			"copyFailed": "Impossible de copier dans le presse-papiers"
+		},
+		"zones": {
+			"intro": "Les zones (waypoints) sont synchronisées entre l'application OwnTracks de chaque utilisateur et Homey, de sorte que tout le monde partage les mêmes régions (par exemple pour l'alarme de présence).",
+			"noZonesYet": "Aucune zone (waypoint) pour le moment.",
+			"addZone": "Ajouter une zone (waypoint)",
+			"updateZone": "Mettre à jour la zone (waypoint)",
+			"modalTitle": "Ajouter une zone (waypoint)",
+			"editModalTitle": "Modifier la zone (waypoint)",
+			"name": "Nom",
+			"namePlaceholder": "par ex. Accueil",
+			"mapHint": "Cliquez sur la carte pour définir l'emplacement de la zone (waypoint) :",
+			"latitude": "Latitude",
+			"longitude": "Longitude",
+			"radius": "Rayon (mètres)",
+			"cancel": "Annuler",
+			"editAria": "Modifier la zone (waypoint)",
+			"deleteAria": "Supprimer la zone (waypoint)",
+			"fillInRequired": "Veuillez remplir le nom, la latitude et la longitude"
+		},
+		"map": {
+			"intro": "Positions en direct et traces récentes",
+			"noUsers": "Aucun utilisateur associé pour le moment.",
+			"filter": "Filtrer les utilisateurs",
+			"filterTitle": "Utilisateurs sur la carte",
+			"filterHint": "Sélectionnez les utilisateurs à afficher sur la carte.",
+			"noUsersToFilter": "Aucun utilisateur associé pour le moment.",
+			"close": "Terminé",
+			"showHistory": "Afficher les coordonnées",
+			"hideHistory": "Masquer les coordonnées",
+			"historyTitle": "Coordonnées enregistrées",
+			"noHistory": "Aucune coordonnée enregistrée pour le moment."
+		},
+		"logs": {
+			"intro": "Les derniers ~20 Ko de messages enregistrés, les plus récents en bas (non conservés lors du redémarrage de l'application). Les erreurs sont toujours capturées.",
+			"enable": "Activer les messages de journal (en plus des erreurs)",
+			"clear": "Effacer le journal",
+			"email": "Envoyer le journal (au développeur)",
+			"emailSending": "Envoi…",
+			"emailSent": "Journal envoyé",
+			"noMessages": "(aucun message de journal pour le moment)",
+			"loading": "Chargement…",
+			"copy": "Copier le journal",
+			"copied": "Copié !",
+			"copyFailed": "Impossible de copier dans le presse-papiers"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Ajouter un utilisateur",
+			"subtitle": "Créer un appareil pour suivre la position d'un membre de la famille",
+			"name": "Nom",
+			"namePlaceholder": "par ex. Ady",
+			"userId": "Identifiant utilisateur",
+			"userIdPlaceholder": "par ex. ady",
+			"note": "Utilisez cet identifiant utilisateur comme nom d'utilisateur OwnTracks (MQTT), ou dans l'URL d'endpoint HTTP configurée dans les paramètres de l'application.",
+			"submit": "Ajouter un utilisateur",
+			"fillInRequired": "Veuillez remplir le nom et l'identifiant utilisateur"
+		},
+		"done": {
+			"title": "Utilisateur ajouté",
+			"subtitle": "Configurez maintenant l'application OwnTracks pour cet utilisateur",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Réglez le mode de connexion sur MQTT (Private), pointez-le vers le broker configuré dans les paramètres de l'application, puis définissez le nom d'utilisateur sur :",
+			"httpLegend": "HTTP",
+			"httpNote": "Réglez le mode de connexion sur HTTP et utilisez cette URL d'endpoint :",
+			"copy": "Copier",
+			"loading": "Chargement…",
+			"couldNotLoadEndpoint": "Impossible de charger l'endpoint, consultez les paramètres de l'application",
+			"close": "Terminé",
+			"copyFailed": "Impossible de copier dans le presse-papiers"
+		}
+	}
+}

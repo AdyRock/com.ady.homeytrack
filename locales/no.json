@@ -1,0 +1,136 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Innstillinger",
+			"avatars": "Avatarer",
+			"zones": "Soner (waypoints)",
+			"map": "Kart",
+			"logs": "Logger"
+		},
+		"subtitle": "Konfigurer hvordan OwnTracks rapporterer posisjoner til Homey. Denne konfigurasjonen må samsvare med innstillingene i OwnTracks-appen.",
+		"status": {
+			"checking": "Sjekker tilkobling…",
+			"unknown": "Ukjent tilkoblingsstatus",
+			"connecting": "Kobler til ([[method]])…",
+			"connected": "Tilkoblet ([[method]])",
+			"notConnectedWithError": "Ikke tilkoblet ([[method]]): [[error]]",
+			"notConnected": "Ikke tilkoblet ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Tilkoblingsmetode",
+			"mqtt": "MQTT",
+			"http": "HTTP",
+			"helpAria": "Hjelp"
+		},
+		"help": {
+			"close": "Lukk",
+			"comparison": {
+				"title": "Velg MQTT eller HTTP",
+				"mqtt": "MQTT",
+				"mqttPros": "Rask, effektiv og godt egnet for hyppige posisjonsoppdateringer. Den støtter sanntidsoppdateringer og kan fungere pålitelig når telefonen skifter nettverk.",
+				"mqttCons": "Krever en broker, innlogging for brokeren og ekstra oppsett på både Homey og hver telefon. Brokeren må være tilgjengelig fra både Homey og telefonene utenfor det lokale nettverket.",
+				"http": "HTTP",
+				"httpPros": "Enkelt å sette opp med en personlig endepunkt-URL som lages av appen. Athom videresender oppdateringer sikkert og pålitelig fra sin tjeneste til Homey, uten at det trengs MQTT-broker.",
+				"httpCons": "HTTP er mindre egnet for svært hyppige oppdateringer enn MQTT.",
+				"pros": "Fordeler",
+				"cons": "Ulemper"
+			},
+			"mqtt": {
+				"title": "Konfigurere MQTT-modus",
+				"body": "1. Sett opp en MQTT-broker (selvhostet eller en sky-broker som EMQX Serverless). Den må være tilgjengelig fra både Homey og hver telefon, også når de er utenfor det lokale nettverket.\n\n2. Opprett en broker-konto (brukernavn/passord) – enten én delt konto for hele familien eller en egen konto per person.\n\n3. Her i appinnstillingene velger du MQTT, fyller inn Broker URL, port, \"Bruk TLS\" og denne connectorens egne innloggingsopplysninger, og klikker Lagre endringer.\n\n4. På hver telefon installerer du OwnTracks og setter tilkoblingsmodus til MQTT (Private). Skriv inn samme vert/port/TLS-innstillinger og den aktuelle telefonens broker-brukernavn/passord.\n\n5. I Homey kobler du til en \"User\"-enhet for hver familiemedlem (Enheter > Legg til enhet > Homey Tracks > User).\n\n6. Åpne den enhetens avanserte innstillinger og sett \"OwnTracks / MQTT username (User ID)\" til den unike verdien for personen – enten deres broker-brukernavn, eller (hvis alle deler én broker-login) deres OwnTracks \"Device ID\".\n\n7. Trykk på rapportknappen i OwnTracks for å teste – den tilsvarende Homey-enheten skal oppdatere funksjonene innen få sekunder."
+			},
+			"http": {
+				"title": "Konfigurere HTTP-modus",
+				"body": "1. Her i appinnstillingene velger du HTTP og klikker Lagre endringer. Ingen broker trengs for denne modusen.\n\n2. I Homey kobler du til en \"User\"-enhet for hver familiemedlem (Enheter > Legg til enhet > Homey Tracks > User).\n\n3. Etter å ha opprettet enheten noterer du den personlige HTTP-endepunkt-URL-en som vises (også tilgjengelig senere på den enhetens side for avanserte innstillinger).\n\n4. På hver telefon installerer du OwnTracks, setter tilkoblingsmodus til HTTP og limer inn denne personens endepunkt-URL som mål.\n\n5. Trykk på rapportknappen i OwnTracks for å teste – den tilsvarende Homey-enheten skal oppdatere funksjonene innen få sekunder."
+			}
+		},
+		"mqtt": {
+			"legend": "MQTT-innstillinger",
+			"brokerUrl": "Broker URL. Brokeren må være tilgjengelig fra Homey og fra internett for at telefonen skal kunne koble til.",
+			"useTls": "Bruk TLS – påkrevd av de fleste sky-brokere.",
+			"port": "Port",
+			"username": "Brukernavn",
+			"password": "Passord"
+		},
+		"footerNote": "Hver tilkoblede \"Bruker\"-enhet har sitt eget OwnTracks-brukernavn og sin egen HTTP-endepunkt-URL, vist på siden for avanserte innstillinger for enheten.",
+		"save": "Lagre endringer",
+		"saved": "Innstillingene er lagret",
+		"avatars": {
+			"intro": "Legg til bruker i Homey via den vanlige Tilføy enhet-flyten. Last deretter opp et bilde for hver koblet bruker, som vises som deres markør på OwnTracks-kartet.",
+			"noUsers": "Ingen brukere er koblet ennå. Legg til en \"User\"-enhet for å laste opp en avatar for dem.",
+			"noAvatarYet": " (ingen avatar ennå)",
+			"chooseFile": "Velg fil",
+			"copyFailed": "Kunne ikke kopiere til utklippstavlen"
+		},
+		"zones": {
+			"intro": "Soner (waypoints) synkroniseres til og fra hver brukers OwnTracks-app, så alle deler de samme områdene (for eksempel for Presence-alarmen).",
+			"noZonesYet": "Ingen soner (waypoints) ennå.",
+			"addZone": "Legg til sone (waypoint)",
+			"updateZone": "Oppdater sone (waypoint)",
+			"modalTitle": "Legg til sone (waypoint)",
+			"editModalTitle": "Rediger sone (waypoint)",
+			"name": "Navn",
+			"namePlaceholder": "f.eks. Hjem",
+			"mapHint": "Klikk på kartet for å sette sonens (waypointens) plassering:",
+			"latitude": "Breddegrad",
+			"longitude": "Lengdegrad",
+			"radius": "Radius (meter)",
+			"cancel": "Avbryt",
+			"editAria": "Rediger sone (waypoint)",
+			"deleteAria": "Slett sone (waypoint)",
+			"fillInRequired": "Fyll inn navn, breddegrad og lengdegrad"
+		},
+		"map": {
+			"intro": "Sanntidsposisjoner og nylige spor",
+			"noUsers": "Ingen brukere er koblet ennå.",
+			"filter": "Filtrer brukere",
+			"filterTitle": "Brukere på kartet",
+			"filterHint": "Velg brukerne som skal vises på kartet.",
+			"noUsersToFilter": "Ingen brukere er koblet ennå.",
+			"close": "Ferdig",
+			"showHistory": "Vis koordinater",
+			"hideHistory": "Skjul koordinater",
+			"historyTitle": "Loggede koordinater",
+			"noHistory": "Ingen koordinater logget ennå."
+		},
+		"logs": {
+			"intro": "De siste ~20 KB med loggmeddelelser, nyeste nederst (ikke lagret når appen startes på nytt). Feil blir alltid fanget opp.",
+			"enable": "Aktiver loggmeddelelser (i tillegg til feil)",
+			"clear": "Tøm logg",
+			"email": "Send logg (til utvikler)",
+			"emailSending": "Sender…",
+			"emailSent": "Logg sendt",
+			"noMessages": "(ingen loggmeddelelser ennå)",
+			"loading": "Laster…",
+			"copy": "Kopier logg",
+			"copied": "Kopiert!",
+			"copyFailed": "Kunne ikke kopiere til utklippstavlen"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Legg til bruker",
+			"subtitle": "Opprett en enhet for å spore en familiemedlems posisjon",
+			"name": "Navn",
+			"namePlaceholder": "f.eks. Ady",
+			"userId": "Bruker-ID",
+			"userIdPlaceholder": "f.eks. ady",
+			"note": "Bruk denne bruker-ID-en som OwnTracks-brukernavn (MQTT), eller i HTTP-endepunkt-URL-en konfigurert i appinnstillingene.",
+			"submit": "Legg til bruker",
+			"fillInRequired": "Fyll inn navn og bruker-ID"
+		},
+		"done": {
+			"title": "Bruker lagt til",
+			"subtitle": "Nå konfigureres OwnTracks-appen for denne brukeren",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Sett tilkoblingsmodus til MQTT (Private), konfigurer brokeren som er angitt i appinnstillingene, og sett brukernavnet til:",
+			"httpLegend": "HTTP",
+			"httpNote": "Sett tilkoblingsmodus til HTTP og bruk denne endepunkt-URL-en:",
+			"copy": "Kopier",
+			"loading": "Laster…",
+			"couldNotLoadEndpoint": "Kunne ikke laste inn endepunkt, se appinnstillingene",
+			"close": "Ferdig",
+			"copyFailed": "Kunne ikke kopiere til utklippstavlen"
+		}
+	}
+}

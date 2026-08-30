@@ -1,0 +1,136 @@
+{
+	"settings": {
+		"tabs": {
+			"settings": "Impostazioni",
+			"avatars": "Avatar",
+			"zones": "Zone (waypoints)",
+			"map": "Mappa",
+			"logs": "Log"
+		},
+		"subtitle": "Configura come OwnTracks invia le posizioni a Homey. Le impostazioni qui devono corrispondere a quelle nell'app OwnTracks.",
+		"status": {
+			"checking": "Controllo connessione…",
+			"unknown": "Stato della connessione sconosciuto",
+			"connecting": "Connessione ([[method]])…",
+			"connected": "Connesso ([[method]])",
+			"notConnectedWithError": "Non connesso ([[method]]): [[error]]",
+			"notConnected": "Non connesso ([[method]])"
+		},
+		"connectionMethod": {
+			"legend": "Metodo di connessione",
+			"mqtt": "MQTT",
+			"http": "HTTP",
+			"helpAria": "Aiuto"
+		},
+		"help": {
+			"close": "Chiudi",
+			"comparison": {
+				"title": "Scegliere MQTT o HTTP",
+				"mqtt": "MQTT",
+				"mqttPros": "Veloce, efficiente e molto adatto a aggiornamenti frequenti della posizione. Supporta aggiornamenti in tempo reale e può funzionare in modo affidabile quando il telefono cambia rete.",
+				"mqttCons": "Richiede un broker, credenziali del broker e una configurazione aggiuntiva sia su Homey che su ogni telefono. Il broker deve essere raggiungibile da Homey e dai telefoni anche al di fuori della rete locale.",
+				"http": "HTTP",
+				"httpPros": "Facile da configurare con un URL personalizzato creato dall'app. Athom inoltra gli aggiornamenti in modo sicuro e affidabile dal proprio servizio a Homey, senza bisogno di un broker MQTT.",
+				"httpCons": "HTTP è meno adatto ad aggiornamenti molto frequenti rispetto a MQTT.",
+				"pros": "Pro",
+				"cons": "Contro"
+			},
+			"mqtt": {
+				"title": "Configurazione della modalità MQTT",
+				"body": "1. Imposta un broker MQTT (self-hosted o un broker cloud come EMQX Serverless). Deve essere raggiungibile sia da Homey che da ciascun telefono, anche quando sono fuori dalla rete locale.\n\n2. Crea un account broker (nome utente/password): può essere un account condiviso per tutta la famiglia oppure un account separato per ciascuna persona.\n\n3. Qui, nelle impostazioni dell'app, seleziona MQTT, inserisci l'URL del broker, la porta, \"Usa TLS\" e le credenziali di questo connettore, poi clicca Salva modifiche.\n\n4. Su ogni telefono, installa OwnTracks e imposta la modalità di connessione su MQTT (Private). Inserisci le stesse impostazioni Host/Port/TLS e il nome utente/password del broker di quel telefono.\n\n5. In Homey, abbina un dispositivo \"User\" per ogni membro della famiglia (Dispositivi > Aggiungi dispositivo > Homey Tracks > User).\n\n6. Apri le Impostazioni avanzate di quel dispositivo e imposta \"OwnTracks / MQTT username (User ID)\" sul valore univoco della persona: o il loro nome utente del broker, oppure (se tutti condividono lo stesso accesso al broker) il loro \"Device ID\" di OwnTracks.\n\n7. Tocca il pulsante di segnalazione in OwnTracks per testare: le funzionalità del dispositivo Homey corrispondente dovrebbero aggiornarsi entro pochi secondi."
+			},
+			"http": {
+				"title": "Configurazione della modalità HTTP",
+				"body": "1. Qui, nelle impostazioni dell'app, seleziona HTTP e clicca Salva modifiche. Per questa modalità non è necessario alcun broker.\n\n2. In Homey, abbina un dispositivo \"User\" per ogni membro della famiglia (Dispositivi > Aggiungi dispositivo > Homey Tracks > User).\n\n3. Dopo aver creato il dispositivo, annota l'URL dell'endpoint HTTP personalizzato mostrata (disponibile anche in seguito nella pagina Impostazioni avanzate di quel dispositivo).\n\n4. Su ogni telefono, installa OwnTracks, imposta la modalità di connessione su HTTP e incolla l'URL dell'endpoint di quella persona come destinazione.\n\n5. Tocca il pulsante di segnalazione in OwnTracks per testare: le funzionalità del dispositivo Homey corrispondente dovrebbero aggiornarsi entro pochi secondi."
+			}
+		},
+		"mqtt": {
+			"legend": "Impostazioni MQTT",
+			"brokerUrl": "URL del broker. Il broker deve essere raggiungibile da Homey e da Internet affinché il telefono possa connettersi.",
+			"useTls": "Usa TLS: richiesto dalla maggior parte dei broker cloud.",
+			"port": "Porta",
+			"username": "Nome utente",
+			"password": "Password"
+		},
+		"footerNote": "Ogni dispositivo \"User\" associato ha il proprio nome utente OwnTracks / URL dell'endpoint HTTP, mostrato nella pagina Impostazioni avanzate di quel dispositivo.",
+		"save": "Salva modifiche",
+		"saved": "Impostazioni salvate",
+		"avatars": {
+			"intro": "Aggiungi un utente a Homey usando il normale flusso di Aggiungi dispositivo. Quindi carica una foto per ogni utente associato, mostrata come marcatore sulla mappa OwnTracks.",
+			"noUsers": "Nessun utente associato ancora. Aggiungi un dispositivo \"User\" per caricare un avatar per loro.",
+			"noAvatarYet": " (nessun avatar ancora)",
+			"chooseFile": "Scegli file",
+			"copyFailed": "Impossibile copiare negli appunti"
+		},
+		"zones": {
+			"intro": "Le zone (waypoints) vengono sincronizzate con l'app OwnTracks di ogni utente, così tutti condividono le stesse aree (ad esempio per l'allarme di presenza).",
+			"noZonesYet": "Nessuna zona (waypoint) ancora.",
+			"addZone": "Aggiungi zona (waypoint)",
+			"updateZone": "Aggiorna zona (waypoint)",
+			"modalTitle": "Aggiungi zona (waypoint)",
+			"editModalTitle": "Modifica zona (waypoint)",
+			"name": "Nome",
+			"namePlaceholder": "es. Casa",
+			"mapHint": "Fai clic sulla mappa per impostare la posizione della zona (waypoint):",
+			"latitude": "Latitudine",
+			"longitude": "Longitudine",
+			"radius": "Raggio (metri)",
+			"cancel": "Annulla",
+			"editAria": "Modifica zona (waypoint)",
+			"deleteAria": "Elimina zona (waypoint)",
+			"fillInRequired": "Inserisci nome, latitudine e longitudine"
+		},
+		"map": {
+			"intro": "Posizioni live e tracce recenti",
+			"noUsers": "Nessun utente associato ancora.",
+			"filter": "Filtra utenti",
+			"filterTitle": "Utenti sulla mappa",
+			"filterHint": "Seleziona gli utenti da mostrare sulla mappa.",
+			"noUsersToFilter": "Nessun utente associato ancora.",
+			"close": "Fatto",
+			"showHistory": "Mostra coordinate",
+			"hideHistory": "Nascondi coordinate",
+			"historyTitle": "Coordinate registrate",
+			"noHistory": "Nessuna coordinata registrata ancora."
+		},
+		"logs": {
+			"intro": "Gli ultimi ~20 KB dei messaggi registrati, più recenti in basso (non persistenti tra i riavvii dell'app). Gli errori vengono sempre catturati.",
+			"enable": "Abilita messaggi di log (oltre agli errori)",
+			"clear": "Cancella log",
+			"email": "Invia log (allo sviluppatore)",
+			"emailSending": "Invio…",
+			"emailSent": "Log inviato",
+			"noMessages": "(nessun messaggio di log ancora)",
+			"loading": "Caricamento…",
+			"copy": "Copia log",
+			"copied": "Copiato!",
+			"copyFailed": "Impossibile copiare negli appunti"
+		}
+	},
+	"pair": {
+		"addUser": {
+			"title": "Aggiungi utente",
+			"subtitle": "Crea un dispositivo per monitorare la posizione di un membro della famiglia",
+			"name": "Nome",
+			"namePlaceholder": "es. Ady",
+			"userId": "User ID",
+			"userIdPlaceholder": "es. ady",
+			"note": "Usa questo User ID come nome utente OwnTracks (MQTT) o nell'URL dell'endpoint HTTP configurata nelle impostazioni dell'app.",
+			"submit": "Aggiungi utente",
+			"fillInRequired": "Inserisci nome e User ID"
+		},
+		"done": {
+			"title": "Utente aggiunto",
+			"subtitle": "Ora configura l'app OwnTracks per questo utente",
+			"mqttLegend": "MQTT",
+			"mqttNote": "Imposta la modalità di connessione su MQTT (Private), puntala al broker configurato nelle impostazioni dell'app e imposta il nome utente su:",
+			"httpLegend": "HTTP",
+			"httpNote": "Imposta la modalità di connessione su HTTP e usa questo URL dell'endpoint:",
+			"copy": "Copia",
+			"loading": "Caricamento…",
+			"couldNotLoadEndpoint": "Impossibile caricare l'endpoint, vedi le impostazioni dell'app",
+			"close": "Fatto",
+			"copyFailed": "Impossibile copiare negli appunti"
+		}
+	}
+}

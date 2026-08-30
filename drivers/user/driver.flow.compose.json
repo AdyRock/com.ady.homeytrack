@@ -3,17 +3,47 @@
 		{
 			"id": "entered_zone",
 			"title": {
-				"en": "Entered [[zone]] zone (waypoint)"
+				"en": "Entered [[zone]] zone (waypoint)",
+				"no": "Kom inn i [[zone]]-sonen (waypoint)",
+				"nl": "Betreed [[zone]] zone (waypoint)",
+				"de": "[[zone]]-Zone betreten (Waypoint)",
+				"fr": "Entré dans la zone [[zone]] (point de repère)",
+				"es": "Entró en la zona [[zone]] (waypoint)",
+				"pt": "Entrou na zona [[zone]] (waypoint)",
+				"it": "Entrata nella zona [[zone]] (waypoint)",
+				"pl": "Wszedł do strefy [[zone]] (waypoint)",
+				"ru": "Вошёл в зону [[zone]] (waypoint)",
+				"ko": "[[zone]] 구역(웨이포인트)에 들어갔습니다"
 			},
 			"titleFormatted": {
-				"en": "Entered [[zone]] zone (waypoint)"
+				"en": "Entered [[zone]] zone (waypoint)",
+				"no": "Kom inn i [[zone]]-sonen (waypoint)",
+				"nl": "Betreed [[zone]] zone (waypoint)",
+				"de": "[[zone]]-Zone betreten (Waypoint)",
+				"fr": "Entré dans la zone [[zone]] (point de repère)",
+				"es": "Entró en la zona [[zone]] (waypoint)",
+				"pt": "Entrou na zona [[zone]] (waypoint)",
+				"it": "Entrata nella zona [[zone]] (waypoint)",
+				"pl": "Wszedł do strefy [[zone]] (waypoint)",
+				"ru": "Вошёл в зону [[zone]] (waypoint)",
+				"ko": "[[zone]] 구역(웨이포인트)에 들어갔습니다"
 			},
 			"args": [
 				{
 					"name": "zone",
 					"type": "autocomplete",
 					"title": {
-						"en": "Zone (waypoint)"
+						"en": "Zone (waypoint)",
+						"no": "Sone (waypoint)",
+						"nl": "Zone (waypoint)",
+						"de": "Zone (Waypoint)",
+						"fr": "Zone (point de repère)",
+						"es": "Zona (waypoint)",
+						"pt": "Zona (waypoint)",
+						"it": "Zona (waypoint)",
+						"pl": "Strefa (waypoint)",
+						"ru": "Зона (waypoint)",
+						"ko": "구역(웨이포인트)"
 					}
 				}
 			],
@@ -22,7 +52,17 @@
 					"name": "zone",
 					"type": "string",
 					"title": {
-						"en": "zone (waypoint)"
+						"en": "zone (waypoint)",
+						"no": "sone (waypoint)",
+						"nl": "zone (waypoint)",
+						"de": "Zone (Waypoint)",
+						"fr": "zone (point de repère)",
+						"es": "zona (waypoint)",
+						"pt": "zona (waypoint)",
+						"it": "zona (waypoint)",
+						"pl": "strefa (waypoint)",
+						"ru": "зона (waypoint)",
+						"ko": "구역(웨이포인트)"
 					},
 					"example": {
 						"en": "Home"
@@ -33,17 +73,47 @@
 		{
 				"id": "left_zone",
 				"title": {
-					"en": "Left [[zone]] zone (waypoint)"
+					"en": "Left [[zone]] zone (waypoint)",
+					"no": "Forlot [[zone]]-sonen (waypoint)",
+					"nl": "Verliet [[zone]] zone (waypoint)",
+					"de": "[[zone]]-Zone verlassen (Waypoint)",
+					"fr": "A quitté la zone [[zone]] (point de repère)",
+					"es": "Salió de la zona [[zone]] (waypoint)",
+					"pt": "Saiu da zona [[zone]] (waypoint)",
+					"it": "Uscita dalla zona [[zone]] (waypoint)",
+					"pl": "Opuścił strefę [[zone]] (waypoint)",
+					"ru": "Вышел из зоны [[zone]] (waypoint)",
+					"ko": "[[zone]] 구역(웨이포인트)에서 나갔습니다"
 				},
 				"titleFormatted": {
-					"en": "Left [[zone]] zone (waypoint)"
+					"en": "Left [[zone]] zone (waypoint)",
+					"no": "Forlot [[zone]]-sonen (waypoint)",
+					"nl": "Verliet [[zone]] zone (waypoint)",
+					"de": "[[zone]]-Zone verlassen (Waypoint)",
+					"fr": "A quitté la zone [[zone]] (point de repère)",
+					"es": "Salió de la zona [[zone]] (waypoint)",
+					"pt": "Saiu da zona [[zone]] (waypoint)",
+					"it": "Uscita dalla zona [[zone]] (waypoint)",
+					"pl": "Opuścił strefę [[zone]] (waypoint)",
+					"ru": "Вышел из зоны [[zone]] (waypoint)",
+					"ko": "[[zone]] 구역(웨이포인트)에서 나갔습니다"
 				},
 				"args": [
 					{
 						"name": "zone",
 						"type": "autocomplete",
 						"title": {
-							"en": "Zone (waypoint)"
+							"en": "Zone (waypoint)",
+							"no": "Sone (waypoint)",
+							"nl": "Zone (waypoint)",
+							"de": "Zone (Waypoint)",
+							"fr": "Zone (point de repère)",
+							"es": "Zona (waypoint)",
+							"pt": "Zona (waypoint)",
+							"it": "Zona (waypoint)",
+							"pl": "Strefa (waypoint)",
+							"ru": "Зона (waypoint)",
+							"ko": "구역(웨이포인트)"
 						}
 					}
 				],
@@ -52,7 +122,17 @@
 						"name": "zone",
 						"type": "string",
 						"title": {
-							"en": "zone (waypoint)"
+							"en": "zone (waypoint)",
+							"no": "sone (waypoint)",
+							"nl": "zone (waypoint)",
+							"de": "Zone (Waypoint)",
+							"fr": "zone (point de repère)",
+							"es": "zona (waypoint)",
+							"pt": "zona (waypoint)",
+							"it": "zona (waypoint)",
+							"pl": "strefa (waypoint)",
+							"ru": "зона (waypoint)",
+							"ko": "구역(웨이포인트)"
 						},
 						"example": {
 							"en": "Home"
@@ -63,10 +143,30 @@
 			{
 				"id": "zone_changed",
 				"title": {
-					"en": "Zone (waypoint) changed"
+					"en": "Zone (waypoint) changed",
+					"no": "Sone (waypoint) endret",
+					"nl": "Zone (waypoint) gewijzigd",
+					"de": "Zone (Waypoint) geändert",
+					"fr": "Zone (point de repère) modifiée",
+					"es": "Zona (waypoint) cambiada",
+					"pt": "Zona (waypoint) alterada",
+					"it": "Zona (waypoint) modificata",
+					"pl": "Strefa (waypoint) zmieniona",
+					"ru": "Зона (waypoint) изменена",
+					"ko": "구역(웨이포인트) 변경됨"
 				},
 				"titleFormatted": {
-					"en": "Zone (waypoint) changed to [[zone]]"
+					"en": "Zone (waypoint) changed to [[zone]]",
+					"no": "Sone (waypoint) endret til [[zone]]",
+					"nl": "Zone (waypoint) gewijzigd naar [[zone]]",
+					"de": "Zone (Waypoint) geändert zu [[zone]]",
+					"fr": "Zone (point de repère) modifiée en [[zone]]",
+					"es": "Zona (waypoint) cambiada a [[zone]]",
+					"pt": "Zona (waypoint) alterada para [[zone]]",
+					"it": "Zona (waypoint) modificata in [[zone]]",
+					"pl": "Strefa (waypoint) zmieniona na [[zone]]",
+					"ru": "Зона (waypoint) изменена на [[zone]]",
+					"ko": "구역(웨이포인트)이 [[zone]](으)로 변경됨"
 				},
 				"deprecated": true,
 				"args": [
@@ -74,7 +174,17 @@
 						"name": "zone",
 						"type": "autocomplete",
 						"title": {
-							"en": "Zone (waypoint)"
+							"en": "Zone (waypoint)",
+							"no": "Sone (waypoint)",
+							"nl": "Zone (waypoint)",
+							"de": "Zone (Waypoint)",
+							"fr": "Zone (point de repère)",
+							"es": "Zona (waypoint)",
+							"pt": "Zona (waypoint)",
+							"it": "Zona (waypoint)",
+							"pl": "Strefa (waypoint)",
+							"ru": "Зона (waypoint)",
+							"ko": "구역(웨이포인트)"
 						}
 					}
 				],
@@ -83,7 +193,17 @@
 						"name": "zone",
 						"type": "string",
 						"title": {
-							"en": "zone (waypoint)"
+							"en": "zone (waypoint)",
+							"no": "sone (waypoint)",
+							"nl": "zone (waypoint)",
+							"de": "Zone (Waypoint)",
+							"fr": "zone (point de repère)",
+							"es": "zona (waypoint)",
+							"pt": "zona (waypoint)",
+							"it": "zona (waypoint)",
+							"pl": "strefa (waypoint)",
+							"ru": "зона (waypoint)",
+							"ko": "구역(웨이포인트)"
 						},
 						"example": {
 							"en": "Home"
@@ -96,17 +216,47 @@
 		{
 			"id": "zone_is",
 			"title": {
-				"en": "The zone (waypoint) !{{is|isn't}} [[zone]]"
+				"en": "The zone (waypoint) !{{is|isn't}} [[zone]]",
+				"no": "Sonen (waypoint) !{{er|er ikke}} [[zone]]",
+				"nl": "De zone (waypoint) !{{is|is niet}} [[zone]]",
+				"de": "Die Zone (Waypoint) !{{ist|ist nicht}} [[zone]]",
+				"fr": "La zone (point de repère) !{{est|n'est pas}} [[zone]]",
+				"es": "La zona (waypoint) !{{está|no está}} [[zone]]",
+				"pt": "A zona (waypoint) !{{está|não está}} [[zone]]",
+				"it": "La zona (waypoint) !{{è|non è}} [[zone]]",
+				"pl": "Strefa (waypoint) !{{jest|nie jest}} [[zone]]",
+				"ru": "Зона (waypoint) !{{равна|не равна}} [[zone]]",
+				"ko": "구역(웨이포인트)이 [[zone]] !{{입니다|아닙니다}}"
 			},
 			"titleFormatted": {
-				"en": "The zone (waypoint) !{{is|isn't}} [[zone]]"
+				"en": "The zone (waypoint) !{{is|isn't}} [[zone]]",
+				"no": "Sonen (waypoint) !{{er|er ikke}} [[zone]]",
+				"nl": "De zone (waypoint) !{{is|is niet}} [[zone]]",
+				"de": "Die Zone (Waypoint) !{{ist|ist nicht}} [[zone]]",
+				"fr": "La zone (point de repère) !{{est|n'est pas}} [[zone]]",
+				"es": "La zona (waypoint) !{{está|no está}} [[zone]]",
+				"pt": "A zona (waypoint) !{{está|não está}} [[zone]]",
+				"it": "La zona (waypoint) !{{è|non è}} [[zone]]",
+				"pl": "Strefa (waypoint) !{{jest|nie jest}} [[zone]]",
+				"ru": "Зона (waypoint) !{{равна|не равна}} [[zone]]",
+				"ko": "구역(웨이포인트)이 [[zone]] !{{입니다|아닙니다}}"
 			},
 			"args": [
 				{
 					"name": "zone",
 					"type": "autocomplete",
 					"title": {
-						"en": "Zone (waypoint)"
+						"en": "Zone (waypoint)",
+						"no": "Sone (waypoint)",
+						"nl": "Zone (waypoint)",
+						"de": "Zone (Waypoint)",
+						"fr": "Zone (point de repère)",
+						"es": "Zona (waypoint)",
+						"pt": "Zona (waypoint)",
+						"it": "Zona (waypoint)",
+						"pl": "Strefa (waypoint)",
+						"ru": "Зона (waypoint)",
+						"ko": "구역(웨이포인트)"
 					}
 				}
 			]

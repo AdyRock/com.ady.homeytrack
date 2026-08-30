@@ -1,6 +1,16 @@
 {
 	"name": {
-		"en": "User"
+		"en": "User",
+		"no": "Bruker",
+		"nl": "Gebruiker",
+		"de": "Benutzer",
+		"fr": "Utilisateur",
+		"es": "Usuario",
+		"pt": "Usuário",
+		"it": "Utente",
+		"pl": "Użytkownik",
+		"ru": "Пользователь",
+		"ko": "사용자"
 	},
 	"class": "sensor",
 	"platforms": [
@@ -23,7 +33,17 @@
 	"capabilitiesOptions": {
 		"zone": {
 			"title": {
-				"en": "Zone (waypoint)"
+				"en": "Zone (waypoint)",
+				"no": "Sone (waypoint)",
+				"nl": "Zone (waypoint)",
+				"de": "Zone (Waypoint)",
+				"fr": "Zone (point de repère)",
+				"es": "Zona (waypoint)",
+				"pt": "Zona (waypoint)",
+				"it": "Zona (waypoint)",
+				"pl": "Strefa (waypoint)",
+				"ru": "Зона (waypoint)",
+				"ko": "구역(웨이포인트)"
 			}
 		}
 	},
@@ -35,10 +55,30 @@
 			"id": "userId",
 			"type": "text",
 			"label": {
-				"en": "OwnTracks / MQTT username (User ID)"
+				"en": "OwnTracks / MQTT username (User ID)",
+				"no": "OwnTracks / MQTT-brukernavn (bruker-ID)",
+				"nl": "OwnTracks / MQTT-gebruikersnaam (Gebruikers-ID)",
+				"de": "OwnTracks / MQTT-Benutzername (Benutzer-ID)",
+				"fr": "Nom d'utilisateur OwnTracks / MQTT (ID utilisateur)",
+				"es": "Nombre de usuario de OwnTracks / MQTT (ID de usuario)",
+				"pt": "Nome de usuário OwnTracks / MQTT (ID do usuário)",
+				"it": "Nome utente OwnTracks / MQTT (ID utente)",
+				"pl": "Nazwa użytkownika OwnTracks / MQTT (ID użytkownika)",
+				"ru": "Имя пользователя OwnTracks / MQTT (ID пользователя)",
+				"ko": "OwnTracks / MQTT 사용자 이름 (사용자 ID)"
 			},
 			"hint": {
-				"en": "For HTTP mode, this is used in the endpoint URL below. For MQTT mode, it must match either the phone's OwnTracks broker Username, or (if all phones share one broker login) its 'Device ID' instead - whichever is unique per person. Changing this also updates the HTTP endpoint URL below."
+				"en": "For HTTP mode, this is used in the endpoint URL below. For MQTT mode, it must match either the phone's OwnTracks broker Username, or (if all phones share one broker login) its 'Device ID' instead - whichever is unique per person. Changing this also updates the HTTP endpoint URL below.",
+				"no": "For HTTP-modus brukes dette i endepunkt-URL-en nedenfor. For MQTT-modus må det samsvare med telefonens OwnTracks-broker-brukernavn, eller (hvis alle telefoner deler samme brokerlogin) deres 'Device ID' i stedet – alt etter hva som er unikt per person. Endring av dette oppdaterer også HTTP-endepunkt-URL-en nedenfor.",
+				"nl": "Voor HTTP-modus wordt dit gebruikt in de onderstaande endpoint-URL. Voor MQTT-modus moet dit overeenkomen met de gebruikersnaam van de OwnTracks-broker van de telefoon, of (als alle telefoons dezelfde brokerlogin delen) in plaats daarvan met hun 'Device ID' – wat ook maar uniek per persoon is. Het wijzigen hiervan werkt ook de onderstaande HTTP-endpoint-URL bij.",
+				"de": "Für den HTTP-Modus wird dies in der untenstehenden Endpunkt-URL verwendet. Für den MQTT-Modus muss es entweder mit dem OwnTracks-Broker-Benutzernamen des Telefons übereinstimmen oder (wenn alle Telefone dasselbe Broker-Login teilen) stattdessen mit ihrer 'Device ID' – was auch immer pro Person eindeutig ist. Eine Änderung aktualisiert auch die untenstehende HTTP-Endpunkt-URL.",
+				"fr": "En mode HTTP, cela est utilisé dans l'URL d'endpoint ci-dessous. En mode MQTT, il doit correspondre soit au nom d'utilisateur du broker OwnTracks du téléphone, soit (si tous les téléphones partagent le même identifiant de broker) à son \"Device ID\" à la place – selon ce qui est unique pour chaque personne. La modification met également à jour l'URL d'endpoint HTTP ci-dessous.",
+				"es": "En modo HTTP, esto se usa en la URL del endpoint de abajo. En modo MQTT, debe coincidir con el nombre de usuario del broker OwnTracks del teléfono, o (si todos los teléfonos comparten el mismo inicio de sesión del broker) con su 'Device ID' en su lugar, lo que sea único por persona. Cambiar esto también actualiza la URL del endpoint HTTP de abajo.",
+				"pt": "No modo HTTP, isso é usado na URL do endpoint abaixo. No modo MQTT, ele deve corresponder ao nome de usuário do broker OwnTracks do telefone, ou (se todos os telefones compartilharem o mesmo login do broker) ao seu 'Device ID' em vez disso — o que for único por pessoa. Alterar isso também atualiza a URL do endpoint HTTP abaixo.",
+				"it": "In modalità HTTP, questo viene usato nell'URL dell'endpoint qui sotto. In modalità MQTT, deve corrispondere al nome utente del broker OwnTracks del telefono, oppure (se tutti i telefoni condividono lo stesso accesso al broker) al suo 'Device ID' invece — qualunque valore sia univoco per persona. La modifica aggiorna anche l'URL dell'endpoint HTTP qui sotto.",
+				"pl": "W trybie HTTP jest to używane w adresie URL endpointu poniżej. W trybie MQTT musi odpowiadać nazwie użytkownika brokera OwnTracks telefonu lub (jeśli wszystkie telefony korzystają z tego samego loginu do brokera) zamiast tego ich \"Device ID\" — cokolwiek jest unikalne dla każdej osoby. Zmiana ta aktualizuje również adres URL endpointu HTTP poniżej.",
+				"ru": "В режиме HTTP это используется в URL конечной точки ниже. В режиме MQTT оно должно соответствовать либо имени пользователя брокера OwnTracks телефона, либо (если все телефоны используют один и тот же логин брокера) его \"Device ID\" — что бы ни было уникально для каждого человека. Изменение также обновляет URL конечной точки HTTP ниже.",
+				"ko": "HTTP 모드에서는 아래 엔드포인트 URL에 사용됩니다. MQTT 모드에서는 휴대폰의 OwnTracks 브로커 사용자 이름과 일치해야 하며, 모든 휴대폰이 같은 브로커 로그인을 공유하는 경우에는 그 대신 'Device ID'가 고유한 값이어야 합니다. 이 값을 변경하면 아래 HTTP 엔드포인트 URL도 함께 업데이트됩니다."
 			},
 			"value": ""
 		},
@@ -46,10 +86,30 @@
 			"id": "httpEndpoint",
 			"type": "label",
 			"label": {
-				"en": "HTTP endpoint URL"
+				"en": "HTTP endpoint URL",
+				"no": "HTTP-endepunkt-URL",
+				"nl": "HTTP-endpoint-URL",
+				"de": "HTTP-Endpunkt-URL",
+				"fr": "URL d'endpoint HTTP",
+				"es": "URL del endpoint HTTP",
+				"pt": "URL do endpoint HTTP",
+				"it": "URL dell'endpoint HTTP",
+				"pl": "URL endpointu HTTP",
+				"ru": "URL конечной точки HTTP",
+				"ko": "HTTP 엔드포인트 URL"
 			},
 			"hint": {
-				"en": "If using HTTP mode, configure the OwnTracks app to post location updates to this URL."
+				"en": "If using HTTP mode, configure the OwnTracks app to post location updates to this URL.",
+				"no": "Hvis du bruker HTTP-modus, konfigurer OwnTracks-appen til å sende posisjonsoppdateringer til denne URL-en.",
+				"nl": "Als je HTTP-modus gebruikt, configureer de OwnTracks-app om locatie-updates naar deze URL te sturen.",
+				"de": "Wenn Sie den HTTP-Modus verwenden, konfigurieren Sie die OwnTracks-App so, dass sie Standortaktualisierungen an diese URL sendet.",
+				"fr": "Si vous utilisez le mode HTTP, configurez l'application OwnTracks pour qu'elle envoie les mises à jour de localisation à cette URL.",
+				"es": "Si usas el modo HTTP, configura la aplicación OwnTracks para que publique las actualizaciones de ubicación en esta URL.",
+				"pt": "Se estiver usando o modo HTTP, configure o aplicativo OwnTracks para enviar atualizações de localização para esta URL.",
+				"it": "Se usi la modalità HTTP, configura l'app OwnTracks per inviare gli aggiornamenti di posizione a questo URL.",
+				"pl": "Jeśli używasz trybu HTTP, skonfiguruj aplikację OwnTracks, aby wysyłała aktualizacje lokalizacji na ten adres URL.",
+				"ru": "Если используется режим HTTP, настройте приложение OwnTracks так, чтобы оно отправляло обновления местоположения на этот URL.",
+				"ko": "HTTP 모드를 사용할 경우 OwnTracks 앱을 설정해 위치 업데이트를 이 URL로 전송하게 하세요."
 			},
 			"value": ""
 		},
@@ -57,10 +117,30 @@
 			"id": "presenceZones",
 			"type": "text",
 			"label": {
-				"en": "Presence zones (waypoints)"
+				"en": "Presence zones (waypoints)",
+				"no": "Tilstedeværelsessoner (waypoints)",
+				"nl": "Aanwezigheidszones (waypoints)",
+				"de": "Anwesenheitszonen (Waypoints)",
+				"fr": "Zones de présence (points de repère)",
+				"es": "Zonas de presencia (waypoints)",
+				"pt": "Zonas de presença (waypoints)",
+				"it": "Zone di presenza (waypoint)",
+				"pl": "Strefy obecności (waypointy)",
+				"ru": "Зоны присутствия (waypoints)",
+				"ko": "재실 구역 (웨이포인트)"
 			},
 			"hint": {
-				"en": "Comma-separated list of OwnTracks region/waypoint names that count as 'present' for the Presence alarm (case-insensitive). Defaults to 'Home' if left blank."
+				"en": "Comma-separated list of OwnTracks region/waypoint names that count as 'present' for the Presence alarm (case-insensitive). Defaults to 'Home' if left blank.",
+				"no": "Kommaseparert liste over OwnTracks-region-/waypoint-navn som teller som 'til stede' for Presence-alarmen (skiller ikke mellom store/små bokstaver). Standard er 'Home' hvis den er tom.",
+				"nl": "Komma-gescheiden lijst met naamgevingen van OwnTracks-regio's/waypoints die als 'aanwezig' tellen voor de Presence-alarm (hoofdletterongevoelig). Standaard is 'Home' als deze leeg is.",
+				"de": "Kommagetrennte Liste von OwnTracks-Region-/Waypoint-Namen, die für den Presence-Alarm als \"anwesend\" gelten (ohne Berücksichtigung der Groß-/Kleinschreibung). Standardmäßig ist \"Home\" gesetzt, wenn leer gelassen.",
+				"fr": "Liste séparée par des virgules des noms de régions/points de repère OwnTracks qui comptent comme \"présent\" pour l'alarme de présence (insensible à la casse). Par défaut, 'Home' est utilisé si le champ est vide.",
+				"es": "Lista separada por comas de nombres de regiones/waypoints de OwnTracks que cuentan como 'presentes' para la alarma de presencia (sin distinguir mayúsculas/minúsculas). Por defecto es 'Home' si se deja en blanco.",
+				"pt": "Lista separada por vírgulas de nomes de região/waypoint do OwnTracks que contam como 'presente' para o alarme de presença (sem diferenciar maiúsculas/minúsculas). O padrão é 'Home' se estiver em branco.",
+				"it": "Elenco separato da virgole di nomi di regioni/waypoint OwnTracks considerati \"presenti\" per l'allarme di presenza (non sensibile alle maiuscole/minuscole). Se vuoto, il valore predefinito è 'Home'.",
+				"pl": "Lista rozdzielana przecinkami nazw regionów/waypointów OwnTracks, które liczą się jako \"obecne\" dla alarmu Presence (bez rozróżniania wielkości liter). Domyślnie jest to 'Home', jeśli pole jest puste.",
+				"ru": "Список через запятую имён регионов/waypoints OwnTracks, которые считаются \"присутствующими\" для сигнализации Presence (без учёта регистра). По умолчанию используется 'Home', если поле пустое.",
+				"ko": "Presence 알람에서 'present'로 간주되는 OwnTracks 지역/웨이포인트 이름을 쉼표로 구분한 목록(대소문자 구분 안 함). 비워 두면 기본값은 'Home'입니다."
 			},
 			"value": ""
 		}

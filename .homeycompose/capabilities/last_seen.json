@@ -1,7 +1,17 @@
 {
 	"type": "string",
 	"title": {
-		"en": "Last seen"
+		"en": "Last seen",
+		"no": "Sist sett",
+		"nl": "Laatst gezien",
+		"de": "Zuletzt gesehen",
+		"fr": "Vu pour la dernière fois",
+		"es": "Visto por última vez",
+		"pt": "Visto pela última vez",
+		"it": "Ultimo aggiornamento",
+		"pl": "Ostatnio widziany",
+		"ru": "Последнее обновление",
+		"ko": "마지막 업데이트"
 	},
 	"getable": true,
 	"setable": false,

@@ -1,0 +1,5 @@
+Śledź lokalizację rodziny za pomocą aplikacji OwnTracks
+
+Homey Tracks zmienia Homey w inteligentny lokalizator rodziny, wykorzystując aplikację OwnTracks na telefonie do przesyłania aktualizacji lokalizacji w czasie rzeczywistym.
+Pozwala sprawdzić, gdzie znajdują się bliscy, automatyzować domowe czynności na podstawie przybycia i wyjścia oraz lepiej orientować się w codziennych przemieszczeniach.
+Idealne rozwiązanie do inteligentnej obsługi powrotów, automatyzacji opartej na obecności i stworzenia lepiej połączonego domu.

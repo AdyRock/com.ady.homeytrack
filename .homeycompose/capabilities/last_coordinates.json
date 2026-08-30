@@ -1,7 +1,17 @@
 {
 	"type": "string",
 	"title": {
-		"en": "Last coordinates"
+		"en": "Last coordinates",
+		"no": "Siste koordinater",
+		"nl": "Laatste coördinaten",
+		"de": "Letzte Koordinaten",
+		"fr": "Dernières coordonnées",
+		"es": "Últimas coordenadas",
+		"pt": "Últimas coordenadas",
+		"it": "Ultime coordinate",
+		"pl": "Ostatnie współrzędne",
+		"ru": "Последние координаты",
+		"ko": "마지막 좌표"
 	},
 	"getable": true,
 	"setable": false,
