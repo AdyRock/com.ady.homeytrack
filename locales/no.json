@@ -50,7 +50,9 @@
 			"useTls": "Bruk TLS – påkrevd av de fleste sky-brokere.",
 			"port": "Port",
 			"username": "Brukernavn",
-			"password": "Passord"
+			"password": "Passord",
+			"showPassword": "Vis passord",
+			"hidePassword": "Skjul passord"
 		},
 		"footerNote": "Hver tilkoblede \"Bruker\"-enhet har sitt eget OwnTracks-brukernavn og sin egen HTTP-endepunkt-URL, vist på siden for avanserte innstillinger for enheten.",
 		"save": "Lagre endringer",

@@ -50,7 +50,9 @@
 			"useTls": "TLS verwenden – für die meisten Cloud-Broker erforderlich.",
 			"port": "Port",
 			"username": "Benutzername",
-			"password": "Passwort"
+			"password": "Passwort",
+			"showPassword": "Passwort anzeigen",
+			"hidePassword": "Passwort ausblenden"
 		},
 		"footerNote": "Jedes gekoppelte \"User\"-Gerät hat seinen eigenen OwnTracks-Benutzernamen / HTTP-Endpunkt-URL, der auf der Seite Erweitert für dieses Gerät angezeigt wird.",
 		"save": "Änderungen speichern",

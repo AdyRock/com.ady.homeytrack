@@ -50,7 +50,9 @@
 			"useTls": "Usar TLS — obrigatório para a maioria dos brokers em nuvem.",
 			"port": "Porta",
 			"username": "Nome de usuário",
-			"password": "Senha"
+			"password": "Senha",
+			"showPassword": "Mostrar senha",
+			"hidePassword": "Ocultar senha"
 		},
 		"footerNote": "Cada dispositivo \"User\" emparelhado tem seu próprio nome de usuário do OwnTracks / URL do endpoint HTTP, mostrada na página de Configurações avançadas desse dispositivo.",
 		"save": "Salvar alterações",

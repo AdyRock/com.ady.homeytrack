@@ -37,7 +37,23 @@ module.exports = class UserDriver extends Homey.Driver
 
 	async onPair(session)
 	{
+		let pairDetails = { name: null, userId: null };
+		let deviceCreated = false;
+
 		session.setHandler('getHomeyId', async () => this.homey.cloud.getHomeyId());
+		session.setHandler('setPairDetails', async (details) =>
+		{
+			pairDetails = details;
+		});
+		session.setHandler('getPairSetup', async () => ({
+			connectionMethod: this.homey.settings.get('connectionMethod') || 'http',
+			deviceCreated,
+			...pairDetails,
+		}));
+		session.setHandler('setPairDeviceCreated', async () =>
+		{
+			deviceCreated = true;
+		});
 	}
 
 };

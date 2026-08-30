@@ -7,5 +7,18 @@
   },
   "1.0.2": {
     "en": "Updated store information"
+  },
+  "1.0.3": {
+    "en": "Added translations",
+    "nl": "Vertalingen toegevoegd",
+    "fr": "Traductions ajoutées",
+    "de": "Übersetzungen hinzugefügt",
+    "es": "Traducciones añadidas",
+    "it": "Traduzioni aggiunte",
+    "pt": "Traduções adicionadas",
+    "ru": "Добавлены переводы",
+    "zh": "已添加翻译",
+    "ja": "翻訳が追加されました",
+    "ko": "번역이 추가되었습니다"
   }
 }

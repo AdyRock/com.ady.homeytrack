@@ -25,8 +25,6 @@
 			<input class="homey-form-input" type="text" id="userId">
 		</div>
 		<p data-i18n="pair.addUser.note">Use this User ID as the OwnTracks username (MQTT), or in the HTTP endpoint URL configured in the app settings.</p>
-
-		<button type="button" id="addUser" class="homey-button-primary-full" data-i18n="pair.addUser.submit">Add user</button>
 	</form>
 
 	<script type="text/javascript">
@@ -35,11 +33,23 @@
 
 		const nameInput = document.getElementById('name');
 		const userIdInput = document.getElementById('userId');
-		const addButton = document.getElementById('addUser');
 		let userIdEdited = false;
 
 		nameInput.placeholder = Homey.__('pair.addUser.namePlaceholder');
 		userIdInput.placeholder = Homey.__('pair.addUser.userIdPlaceholder');
+
+		Promise.all([
+			Homey.getViewStoreValue('done', 'name'),
+			Homey.getViewStoreValue('done', 'userId'),
+		]).then(([storedName, storedUserId]) =>
+		{
+			if (storedName) nameInput.value = storedName;
+			if (storedUserId)
+			{
+				userIdInput.value = storedUserId;
+				userIdEdited = true;
+			}
+		});
 
 		function slugify(value)
 		{
@@ -50,37 +60,26 @@
 				.replace(/(^-|-$)/g, '');
 		}
 
-		userIdInput.addEventListener('input', () => { userIdEdited = true; });
+		function syncPairDetails()
+		{
+			Homey.emit('setPairDetails', {
+				name: nameInput.value.trim(),
+				userId: slugify(userIdInput.value),
+			}, (err) =>
+			{
+				if (err) Homey.alert(err);
+			});
+		}
+
+		userIdInput.addEventListener('input', () =>
+		{
+			userIdEdited = true;
+			syncPairDetails();
+		});
 		nameInput.addEventListener('input', () =>
 		{
 			if (!userIdEdited) userIdInput.value = slugify(nameInput.value);
-		});
-
-		addButton.addEventListener('click', () =>
-		{
-			const name = nameInput.value.trim();
-			const userId = slugify(userIdInput.value);
-
-			if (!name || !userId)
-			{
-				Homey.alert(Homey.__('pair.addUser.fillInRequired'));
-				return;
-			}
-
-			Homey.createDevice({
-				name,
-				data: { id: userId },
-			}).then(() =>
-			{
-				Homey.setViewStoreValue('done', 'userId', userId).then(() =>
-				{
-					Homey.showView('done');
-				});
-			}).catch((err) =>
-			{
-				// err can be an Error/object, which some Homey.alert implementations fail to render
-				Homey.alert(err && err.message ? err.message : String(err));
-			});
+			syncPairDetails();
 		});
 	</script>
 </body>

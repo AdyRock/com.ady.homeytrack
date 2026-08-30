@@ -1,5 +1,11 @@
 'use strict';
 
+if (process.env.DEBUG === '1')
+{
+	// eslint-disable-next-line node/no-unsupported-features/node-builtins, global-require
+	require('inspector').open(9229, '0.0.0.0', true);
+}
+
 const Homey = require('homey');
 const nodemailer = require('nodemailer');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');

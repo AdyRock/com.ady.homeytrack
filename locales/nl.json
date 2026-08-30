@@ -50,7 +50,9 @@
 			"useTls": "Gebruik TLS – vereist door de meeste cloud-brokers.",
 			"port": "Poort",
 			"username": "Gebruikersnaam",
-			"password": "Wachtwoord"
+			"password": "Wachtwoord",
+			"showPassword": "Wachtwoord tonen",
+			"hidePassword": "Wachtwoord verbergen"
 		},
 		"footerNote": "Elk gekoppeld \"User\"-apparaat heeft zijn eigen OwnTracks-gebruikersnaam / HTTP-endpoint-URL, zichtbaar op de pagina Geavanceerde instellingen van dat apparaat.",
 		"save": "Wijzigingen opslaan",

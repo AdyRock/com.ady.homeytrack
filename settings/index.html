@@ -322,6 +322,44 @@
 			fill: currentColor !important;
 		}
 
+		.password-input-wrapper {
+			position: relative;
+		}
+
+		.password-input-wrapper .homey-form-input {
+			padding-right: 44px;
+			box-sizing: border-box;
+		}
+
+		button.password-toggle-button {
+			position: absolute;
+			top: 50%;
+			right: 8px;
+			transform: translateY(-50%);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 32px !important;
+			height: 32px !important;
+			min-width: 32px !important;
+			padding: 0 !important;
+			border: none !important;
+			background: transparent !important;
+			box-shadow: none !important;
+			color: #666 !important;
+			cursor: pointer;
+		}
+
+		.password-toggle-button svg {
+			width: 20px;
+			height: 20px;
+			stroke: currentColor;
+		}
+
+		.password-toggle-button .hidden {
+			display: none;
+		}
+
 		.radio-with-help {
 			display: grid;
 			grid-template-columns: minmax(0, 1fr) 28px;
@@ -575,7 +613,22 @@
 					<div class="homey-form-group">
 						<label class="homey-form-label" for="mqttPassword"
 							data-i18n="settings.mqtt.password">Password</label>
-						<input class="homey-form-input" type="password" id="mqttPassword">
+						<div class="password-input-wrapper">
+							<input class="homey-form-input" type="password" id="mqttPassword">
+							<button type="button" id="toggleMqttPassword" class="password-toggle-button"
+								aria-label="Show password" title="Show password" aria-pressed="false">
+								<svg class="password-show-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke-width="2"
+										stroke-linecap="round" stroke-linejoin="round" />
+									<circle cx="12" cy="12" r="3" stroke-width="2" />
+								</svg>
+								<svg class="password-hide-icon hidden" viewBox="0 0 24 24" fill="none"
+									aria-hidden="true">
+									<path d="M3 3l18 18M10.6 10.7a2 2 0 0 0 2.7 2.7M9.9 4.3A10.8 10.8 0 0 1 12 4c6.5 0 10 8 10 8a16.5 16.5 0 0 1-2.1 3.2M6.6 6.6C3.6 8.5 2 12 2 12s3.5 8 10 8a9.8 9.8 0 0 0 5.4-1.6"
+										stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+								</svg>
+							</button>
+						</div>
 					</div>
 				</fieldset>
 
@@ -856,7 +909,26 @@
 			const mqttPort = document.getElementById('mqttPort');
 			const mqttUsername = document.getElementById('mqttUsername');
 			const mqttPassword = document.getElementById('mqttPassword');
+			const toggleMqttPassword = document.getElementById('toggleMqttPassword');
 			const saveButton = document.getElementById('save');
+
+			function updatePasswordToggle(passwordVisible)
+			{
+				const translationKey = passwordVisible ? 'hidePassword' : 'showPassword';
+				const label = Homey.__(`settings.mqtt.${translationKey}`);
+				mqttPassword.type = passwordVisible ? 'text' : 'password';
+				toggleMqttPassword.setAttribute('aria-label', label);
+				toggleMqttPassword.setAttribute('title', label);
+				toggleMqttPassword.setAttribute('aria-pressed', String(passwordVisible));
+				toggleMqttPassword.querySelector('.password-show-icon').classList.toggle('hidden', passwordVisible);
+				toggleMqttPassword.querySelector('.password-hide-icon').classList.toggle('hidden', !passwordVisible);
+			}
+
+			toggleMqttPassword.addEventListener('click', () =>
+			{
+				updatePasswordToggle(mqttPassword.type === 'password');
+			});
+			updatePasswordToggle(false);
 
 			function updateVisibility()
 			{

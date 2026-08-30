@@ -782,7 +782,10 @@
           }
         },
         {
-          "id": "done"
+          "id": "done",
+          "navigation": {
+            "prev": "add_user"
+          }
         }
       ],
       "id": "user"

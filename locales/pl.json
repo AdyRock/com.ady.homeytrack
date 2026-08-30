@@ -50,7 +50,9 @@
 			"useTls": "Użyj TLS — wymagane przez większość brokerów chmurowych.",
 			"port": "Port",
 			"username": "Nazwa użytkownika",
-			"password": "Hasło"
+			"password": "Hasło",
+			"showPassword": "Pokaż hasło",
+			"hidePassword": "Ukryj hasło"
 		},
 		"footerNote": "Każde sparowane urządzenie \"User\" ma własną nazwę użytkownika OwnTracks / URL endpointu HTTP wyświetlony na stronie Ustawienia zaawansowane tego urządzenia.",
 		"save": "Zapisz zmiany",
