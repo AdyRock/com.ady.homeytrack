@@ -8,6 +8,7 @@ if (process.env.DEBUG === '1')
 
 const Homey = require('homey');
 const nodemailer = require('nodemailer');
+const { randomUUID } = require('crypto');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');
 
 const SETTINGS_KEYS = [
@@ -33,8 +34,11 @@ module.exports = class MyApp extends Homey.App
 		this.personEnteredZoneCard = this.homey.flow.getTriggerCard('person_entered_zone');
 		this.personLeftZoneCard = this.homey.flow.getTriggerCard('person_left_zone');
 		this.lastLocations = new Map();
+		this.mqttWaypointSyncSignatures = new Map();
+		this.mqttActiveTopics = new Set();
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
 		this.logBuffer = [];
+		this._migrateWaypointModel();
 
 		// Default "logsEnabled" to false on first run, so its state is explicit and predictable
 		// rather than relying on an unset setting happening to be falsy.
@@ -55,6 +59,17 @@ module.exports = class MyApp extends Homey.App
 			if (SETTINGS_KEYS.includes(key))
 			{
 				this._reconnect().catch((err) => this._logError('Failed to reconnect OwnTracks connector', err));
+			}
+			if (key === 'speedUnit')
+			{
+				this.homey.drivers.getDriver('user').getDevices().forEach((device) =>
+				{
+					device.updateSpeedUnit().catch((err) => this._logError('Failed to update speed unit', err));
+				});
+			}
+			if (key === 'logsEnabled')
+			{
+				this.homey.api.realtime('logs_enabled_changed', Boolean(this.homey.settings.get('logsEnabled')));
 			}
 		});
 
@@ -182,7 +197,7 @@ module.exports = class MyApp extends Homey.App
 	 * avatars) on the same map, and keep everyone's zones in sync.
 	 * @returns {Promise<object[]>}
 	 */
-	async buildFriendsResponse()
+	async buildFriendsResponse(userId)
 	{
 		const devices = this.homey.drivers.getDriver('user').getDevices();
 		const entries = [];
@@ -192,13 +207,15 @@ module.exports = class MyApp extends Homey.App
 			entries.push(...await device.getFriendPayload().catch(() => []));
 		}
 
-		const waypoints = this.listWaypoints();
-		if (waypoints.length)
+		const requestingDevice = this._findUserDevice(userId, userId);
+		const waypoints = requestingDevice ? this.listWaypoints(requestingDevice.getData().id) : this.listWaypoints();
+		entries.push({
+			_type: 'waypoints',
+			waypoints: waypoints.map((wp) => ({ _type: 'waypoint', ...wp })),
+		});
+		if (requestingDevice)
 		{
-			entries.push({
-				_type: 'waypoints',
-				waypoints: waypoints.map((wp) => ({ _type: 'waypoint', ...wp })),
-			});
+			this._setWaypointReconciliationReady(requestingDevice.getData().id);
 		}
 
 		return entries;
@@ -232,6 +249,127 @@ module.exports = class MyApp extends Homey.App
 			lastLocation: device.getStoreValue('lastLocation') || null,
 			track: device.getStoreValue('track') || [],
 		}));
+	}
+
+	async deleteJourney(userId, start, end)
+	{
+		const rangeStart = Number(start);
+		const rangeEnd = Number(end);
+		if (!Number.isFinite(rangeStart) || !Number.isFinite(rangeEnd) || rangeStart > rangeEnd)
+		{
+			throw new Error('Invalid journey time range');
+		}
+
+		const device = this._findUserDevice(userId, userId);
+		if (!device)
+		{
+			throw new Error('User not found');
+		}
+
+		const track = device.getStoreValue('track') || [];
+		const retainedTrack = track.filter((point) => !Number.isFinite(point.timestamp)
+			|| point.timestamp < rangeStart || point.timestamp > rangeEnd);
+		await device.setStoreValue('track', retainedTrack);
+		this.homey.api.realtime('tracks_updated', null);
+		return { ok: true, deleted: track.length - retainedTrack.length };
+	}
+
+	async deleteTrackPoint(userId, timestamp, lat, lon)
+	{
+		const pointTimestamp = Number(timestamp);
+		const pointLat = Number(lat);
+		const pointLon = Number(lon);
+		if (![pointTimestamp, pointLat, pointLon].every(Number.isFinite))
+		{
+			throw new Error('Invalid track point');
+		}
+
+		const device = this._findUserDevice(userId, userId);
+		if (!device)
+		{
+			throw new Error('User not found');
+		}
+
+		const track = device.getStoreValue('track') || [];
+		const pointIndex = track.findIndex((point) => point.timestamp === pointTimestamp
+			&& point.lat === pointLat && point.lon === pointLon);
+		if (pointIndex < 0)
+		{
+			throw new Error('Track point not found');
+		}
+
+		const retainedTrack = [...track];
+		retainedTrack.splice(pointIndex, 1);
+		await device.setStoreValue('track', retainedTrack);
+		this.homey.api.realtime('tracks_updated', null);
+		return { ok: true };
+	}
+
+	/**
+	 * Requests a fresh report from the user's last known OwnTracks MQTT topic.
+	 * HTTP mode cannot initiate a request after the phone has stopped reporting.
+	 * @param {import('./drivers/user/device')} device
+	 * @returns {boolean} Whether an MQTT command was published.
+	 */
+	requestUserLocation(device)
+	{
+		if (!this.connector || typeof this.connector.requestLocation !== 'function')
+		{
+			return false;
+		}
+
+		const topic = device.getStoreValue('lastTopic');
+		const requested = this.connector.requestLocation(topic);
+		if (requested)
+		{
+			this._log(`Requested fresh location from ${device.getName()} on ${topic}/cmd`);
+		}
+		return requested;
+	}
+
+	_syncMqttWaypointsToDevice(device, force = false)
+	{
+		if (!this.connector || typeof this.connector.syncWaypoints !== 'function')
+		{
+			return false;
+		}
+
+		const topic = device.getStoreValue('lastTopic');
+		if (!topic)
+		{
+			return false;
+		}
+
+		const waypoints = this.listWaypoints(device.getData().id);
+		const signature = `${topic}:${JSON.stringify(waypoints)}`;
+		const deviceId = device.getData().id;
+		if (!force && this.mqttWaypointSyncSignatures.get(deviceId) === signature)
+		{
+			return false;
+		}
+
+		const synced = this.connector.syncWaypoints(topic, waypoints);
+		if (synced)
+		{
+			this.mqttWaypointSyncSignatures.set(deviceId, signature);
+			this._setWaypointReconciliationReady(deviceId);
+			this._log(`Synced ${waypoints.length} MQTT waypoint(s) to ${device.getName()}`);
+		}
+		return synced;
+	}
+
+	_syncMqttWaypointsToAll(force = false)
+	{
+		let devices;
+		try
+		{
+			devices = this.homey.drivers.getDriver('user').getDevices();
+		} catch (err)
+		{
+			return;
+		}
+
+		devices.forEach((device) => this._syncMqttWaypointsToDevice(device, force));
 	}
 
 	/**
@@ -297,12 +435,19 @@ module.exports = class MyApp extends Homey.App
 		this.connector = createConnector(this.homey);
 		this.connector.on('location', (location) => this._onLocation(location));
 		this.connector.on('waypoint', (waypoint) => this._onWaypoint(waypoint));
+		this.connector.on('waypoints', (report) => this._onWaypoints(report));
 		this.connector.on('error', (err) =>
 		{
 			this._logError('OwnTracks connector error', err);
 			this._setConnectionStatus({ connected: false, connecting: false, method, error: this._describeError(err) });
 		});
-		this.connector.on('reconnected', () => this._setConnectionStatus({ connected: true, connecting: false, method, error: null }));
+		this.connector.on('reconnected', () =>
+		{
+			this._setConnectionStatus({ connected: true, connecting: false, method, error: null });
+			this.mqttWaypointSyncSignatures.clear();
+			this.mqttActiveTopics.clear();
+			this._syncMqttWaypointsToAll(true);
+		});
 		this.connector.on('disconnected', () => this._setConnectionStatus({ connected: false, connecting: false, method, error: 'Disconnected from broker' }));
 
 		try
@@ -310,6 +455,9 @@ module.exports = class MyApp extends Homey.App
 			await this.connector.connect();
 			this._log(`OwnTracks connector connected (${method})`);
 			this._setConnectionStatus({ connected: true, connecting: false, method, error: null });
+			this.mqttWaypointSyncSignatures.clear();
+			this.mqttActiveTopics.clear();
+			this._syncMqttWaypointsToAll(true);
 		} catch (err)
 		{
 			this._logError('Failed to connect OwnTracks connector', err);
@@ -375,27 +523,150 @@ module.exports = class MyApp extends Homey.App
 		await card.trigger({ user: deviceName, zone }, {});
 	}
 
-	/**
-	 * Merges a waypoint (region/geofence) reported by an OwnTracks app into the shared list,
-	 * so it can be re-synced to every other paired user's app.
-	 * @param {{ desc: string, lat: number, lon: number, rad: number, tst: number }} waypoint
-	 */
+	_migrateWaypointModel()
+	{
+		if (this.homey.settings.get('waypointModelVersion') === 1) return;
+
+		const legacyWaypoints = this.homey.settings.get('ownTracksWaypoints') || [];
+		this.homey.settings.set('sharedWaypoints', legacyWaypoints.map((waypoint) => this._normalizeWaypoint(waypoint)));
+		this.homey.settings.set('privateWaypoints', {});
+		this.homey.settings.set('sharedWaypointExclusions', {});
+		this.homey.settings.set('waypointReconciliationReady', {});
+		this.homey.settings.set('waypointModelVersion', 1);
+	}
+
+	_normalizeWaypoint(waypoint, id = null)
+	{
+		return {
+			id: id || waypoint.id || randomUUID(),
+			desc: waypoint.desc.trim(),
+			lat: Number(waypoint.lat),
+			lon: Number(waypoint.lon),
+			rad: Number(waypoint.rad) || 100,
+			tst: waypoint.tst || Math.round(Date.now() / 1000),
+		};
+	}
+
+	_validateWaypoint(waypoint)
+	{
+		if (!waypoint || typeof waypoint.desc !== 'string' || !waypoint.desc.trim()
+			|| !Number.isFinite(Number(waypoint.lat)) || !Number.isFinite(Number(waypoint.lon)))
+		{
+			throw new Error('A zone needs a name, latitude and longitude');
+		}
+	}
+
+	_findUserDevice(user, device)
+	{
+		try
+		{
+			return this.homey.drivers.getDriver('user').getDevices().find((candidate) =>
+			{
+				const candidateUser = candidate.getUserId();
+				return candidate.getData().id === user || candidateUser === user || candidateUser === device;
+			});
+		} catch (err)
+		{
+			return null;
+		}
+	}
+
+	_waypointsEqual(left, right)
+	{
+		return left.desc.toLowerCase() === right.desc.toLowerCase()
+			&& left.lat === right.lat && left.lon === right.lon && left.rad === right.rad;
+	}
+
+	_getSharedWaypoints()
+	{
+		return this.homey.settings.get('sharedWaypoints') || [];
+	}
+
+	_getPrivateWaypoints()
+	{
+		return this.homey.settings.get('privateWaypoints') || {};
+	}
+
+	_getSharedExclusions()
+	{
+		return this.homey.settings.get('sharedWaypointExclusions') || {};
+	}
+
+	_setWaypointReconciliationReady(deviceId)
+	{
+		const ready = this.homey.settings.get('waypointReconciliationReady') || {};
+		if (ready[deviceId]) return;
+		ready[deviceId] = true;
+		this.homey.settings.set('waypointReconciliationReady', ready);
+	}
+
+	/** Handles an individual phone-created waypoint as private to its paired user. */
 	_onWaypoint(waypoint)
 	{
-		const waypoints = this.listWaypoints();
-		const existingIndex = waypoints.findIndex((wp) => wp.desc.toLowerCase() === waypoint.desc.toLowerCase());
+		const device = this._findUserDevice(waypoint.user, waypoint.device);
+		if (!device || !waypoint.desc) return;
 
-		if (existingIndex >= 0)
+		const deviceId = device.getData().id;
+		const shared = this._getSharedWaypoints();
+		const sharedMatch = shared.find((item) => this._waypointsEqual(item, waypoint));
+		if (sharedMatch)
 		{
-			waypoints[existingIndex] = waypoint;
-		} else
+			this.setSharedWaypointEnabled(deviceId, sharedMatch.id, true);
+			return;
+		}
+		const changedShared = shared.find((item) => item.desc.toLowerCase() === waypoint.desc.toLowerCase());
+		if (changedShared) this.setSharedWaypointEnabled(deviceId, changedShared.id, false);
+
+		const privateWaypoints = this._getPrivateWaypoints();
+		const userWaypoints = privateWaypoints[deviceId] || [];
+		const existing = userWaypoints.find((item) => item.desc.toLowerCase() === waypoint.desc.toLowerCase());
+		const normalized = this._normalizeWaypoint(waypoint, existing && existing.id);
+		if (existing && this._waypointsEqual(existing, normalized)) return;
+		privateWaypoints[deviceId] = existing
+			? userWaypoints.map((item) => item.id === existing.id ? normalized : item)
+			: [...userWaypoints, normalized];
+		this.homey.settings.set('privateWaypoints', privateWaypoints);
+		this._log(`Private zone "${waypoint.desc}" synced from ${device.getName()}`);
+		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToDevice(device);
+	}
+
+	_onWaypoints(report)
+	{
+		const device = this._findUserDevice(report.user, report.device);
+		if (!device) return;
+		const deviceId = device.getData().id;
+		const ready = this.homey.settings.get('waypointReconciliationReady') || {};
+		if (!ready[deviceId])
 		{
-			waypoints.push(waypoint);
+			this._setWaypointReconciliationReady(deviceId);
+			return;
 		}
 
-		this.homey.settings.set('ownTracksWaypoints', waypoints);
-		this._log(`Zone "${waypoint.desc}" synced from OwnTracks`);
+		const incoming = report.waypoints || [];
+		const shared = this._getSharedWaypoints();
+		const exclusions = this._getSharedExclusions();
+		const excluded = new Set(exclusions[deviceId] || []);
+		shared.forEach((waypoint) =>
+		{
+			if (incoming.some((item) => this._waypointsEqual(item, waypoint))) excluded.delete(waypoint.id);
+			else excluded.add(waypoint.id);
+		});
+		exclusions[deviceId] = [...excluded];
+
+		const privateWaypoints = this._getPrivateWaypoints();
+		const previousPrivate = privateWaypoints[deviceId] || [];
+		privateWaypoints[deviceId] = incoming
+			.filter((waypoint) => !shared.some((item) => this._waypointsEqual(item, waypoint)))
+			.map((waypoint) =>
+			{
+				const existing = previousPrivate.find((item) => item.desc.toLowerCase() === waypoint.desc.toLowerCase());
+				return this._normalizeWaypoint(waypoint, existing && existing.id);
+			});
+		this.homey.settings.set('sharedWaypointExclusions', exclusions);
+		this.homey.settings.set('privateWaypoints', privateWaypoints);
 		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToDevice(device);
 	}
 
 	/**
@@ -404,35 +675,83 @@ module.exports = class MyApp extends Homey.App
 	 */
 	_notifyWaypointsChanged()
 	{
-		this.homey.api.realtime('waypoints_updated', this.listWaypoints());
+		this.homey.api.realtime('waypoints_updated', this.listMapWaypoints());
+		this.homey.api.realtime('waypoint_configuration_updated', null);
 	}
 
 	/**
 	 * @returns {{ desc: string, lat: number, lon: number, rad: number, tst: number }[]}
 	 */
-	listWaypoints()
+	listWaypoints(deviceId = null)
 	{
-		return this.homey.settings.get('ownTracksWaypoints') || [];
+		const shared = this._getSharedWaypoints();
+		if (deviceId)
+		{
+			const excluded = new Set(this._getSharedExclusions()[deviceId] || []);
+			return [...shared.filter((waypoint) => !excluded.has(waypoint.id)), ...(this._getPrivateWaypoints()[deviceId] || [])];
+		}
+
+		const all = [...shared];
+		Object.values(this._getPrivateWaypoints()).flat().forEach((waypoint) =>
+		{
+			if (!all.some((item) => this._waypointsEqual(item, waypoint))) all.push(waypoint);
+		});
+		return all;
+	}
+
+	listMapWaypoints()
+	{
+		const configuration = this.listWaypointConfiguration();
+		const waypoints = configuration.shared.map((waypoint) => ({
+			...waypoint,
+			scope: 'shared',
+			userId: null,
+		}));
+		configuration.users.forEach((user) =>
+		{
+			user.private.forEach((waypoint) =>
+			{
+				if (waypoints.some((existing) => this._waypointsEqual(existing, waypoint))) return;
+				waypoints.push({ ...waypoint, scope: 'private', userId: user.id });
+			});
+		});
+		return waypoints;
+	}
+
+	listWaypointConfiguration()
+	{
+		const shared = this._getSharedWaypoints();
+		const privateWaypoints = this._getPrivateWaypoints();
+		const exclusions = this._getSharedExclusions();
+		return {
+			shared,
+			users: this.listUsers().map((user) => ({
+				id: user.id,
+				name: user.name,
+				shared: shared.map((waypoint) => ({ ...waypoint, enabled: !(exclusions[user.id] || []).includes(waypoint.id) })),
+				private: privateWaypoints[user.id] || [],
+			})),
+		};
 	}
 
 	/**
 	 * Adds or updates a zone (matched by name, case-insensitive) and persists it.
 	 * @param {{ desc: string, lat: number, lon: number, rad: number }} waypoint
 	 */
-	addWaypoint(waypoint)
+	addWaypoint(waypoint, scope = 'shared', userId = null)
 	{
-		if (!waypoint || !waypoint.desc || typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number')
+		this._validateWaypoint(waypoint);
+		const normalized = this._normalizeWaypoint(waypoint);
+		const privateWaypoints = this._getPrivateWaypoints();
+		const collection = scope === 'private' ? (privateWaypoints[userId] || []) : this._getSharedWaypoints();
+		if (collection.some((item) => item.desc.toLowerCase() === normalized.desc.toLowerCase())) throw new Error('A zone with this name already exists');
+		if (scope === 'private')
 		{
-			throw new Error('A zone needs a name, latitude and longitude');
-		}
-
-		this._onWaypoint({
-			desc: waypoint.desc,
-			lat: waypoint.lat,
-			lon: waypoint.lon,
-			rad: typeof waypoint.rad === 'number' ? waypoint.rad : 100,
-			tst: Math.round(Date.now() / 1000),
-		});
+			privateWaypoints[userId] = [...collection, normalized];
+			this.homey.settings.set('privateWaypoints', privateWaypoints);
+		} else this.homey.settings.set('sharedWaypoints', [...collection, normalized]);
+		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToAll();
 	}
 
 	/**
@@ -440,40 +759,123 @@ module.exports = class MyApp extends Homey.App
 	 * @param {string} originalDesc
 	 * @param {{ desc: string, lat: number, lon: number, rad: number }} waypoint
 	 */
-	updateWaypoint(originalDesc, waypoint)
+	updateWaypoint(id, waypoint, scope = 'shared', userId = null)
 	{
-		if (!originalDesc || !waypoint || !waypoint.desc || typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number')
-		{
-			throw new Error('A zone needs a name, latitude and longitude');
-		}
-
-		const waypoints = this.listWaypoints();
-		const existingIndex = waypoints.findIndex((wp) => wp.desc.toLowerCase() === originalDesc.toLowerCase());
+		this._validateWaypoint(waypoint);
+		const privateWaypoints = this._getPrivateWaypoints();
+		const waypoints = scope === 'private' ? (privateWaypoints[userId] || []) : this._getSharedWaypoints();
+		const existingIndex = waypoints.findIndex((item) => item.id === id || item.desc.toLowerCase() === String(id).toLowerCase());
 		if (existingIndex < 0) throw new Error('Zone not found');
 
 		const duplicateIndex = waypoints.findIndex((wp, index) => index !== existingIndex && wp.desc.toLowerCase() === waypoint.desc.toLowerCase());
 		if (duplicateIndex >= 0) throw new Error('A zone with this name already exists');
 
-		waypoints[existingIndex] = {
-			desc: waypoint.desc,
-			lat: waypoint.lat,
-			lon: waypoint.lon,
-			rad: typeof waypoint.rad === 'number' ? waypoint.rad : 100,
-			tst: Math.round(Date.now() / 1000),
-		};
-		this.homey.settings.set('ownTracksWaypoints', waypoints);
+		waypoints[existingIndex] = this._normalizeWaypoint(waypoint, waypoints[existingIndex].id);
+		if (scope === 'private')
+		{
+			privateWaypoints[userId] = waypoints;
+			this.homey.settings.set('privateWaypoints', privateWaypoints);
+		} else this.homey.settings.set('sharedWaypoints', waypoints);
 		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToAll();
 	}
 
 	/**
 	 * Removes a zone by name (case-insensitive).
 	 * @param {string} desc
 	 */
-	removeWaypoint(desc)
+	removeWaypoint(id, scope = 'shared', userId = null)
 	{
-		const waypoints = this.listWaypoints().filter((wp) => wp.desc.toLowerCase() !== (desc || '').toLowerCase());
-		this.homey.settings.set('ownTracksWaypoints', waypoints);
+		if (scope === 'private')
+		{
+			const privateWaypoints = this._getPrivateWaypoints();
+			privateWaypoints[userId] = (privateWaypoints[userId] || []).filter((item) => item.id !== id && item.desc.toLowerCase() !== String(id).toLowerCase());
+			this.homey.settings.set('privateWaypoints', privateWaypoints);
+		} else
+		{
+			const removedIds = this._getSharedWaypoints()
+				.filter((item) => item.id === id || item.desc.toLowerCase() === String(id).toLowerCase())
+				.map((item) => item.id);
+			this.homey.settings.set('sharedWaypoints', this._getSharedWaypoints().filter((item) => !removedIds.includes(item.id)));
+			const exclusions = this._getSharedExclusions();
+			Object.keys(exclusions).forEach((deviceId) => { exclusions[deviceId] = exclusions[deviceId].filter((excludedId) => !removedIds.includes(excludedId)); });
+			this.homey.settings.set('sharedWaypointExclusions', exclusions);
+		}
 		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToAll();
+	}
+
+	setSharedWaypointEnabled(userId, waypointId, enabled)
+	{
+		if (!this._getSharedWaypoints().some((waypoint) => waypoint.id === waypointId)) throw new Error('Shared zone not found');
+		const exclusions = this._getSharedExclusions();
+		const excluded = new Set(exclusions[userId] || []);
+		if (enabled) excluded.delete(waypointId); else excluded.add(waypointId);
+		exclusions[userId] = [...excluded];
+		this.homey.settings.set('sharedWaypointExclusions', exclusions);
+		this._notifyWaypointsChanged();
+		const device = this._findUserDevice(userId, userId);
+		if (device) this._syncMqttWaypointsToDevice(device);
+	}
+
+	movePrivateWaypointToShared(userId, waypointId)
+	{
+		const privateWaypoints = this._getPrivateWaypoints();
+		const userWaypoints = privateWaypoints[userId] || [];
+		const source = userWaypoints.find((waypoint) => waypoint.id === waypointId);
+		if (!source) throw new Error('Private zone not found');
+
+		const sharedWaypoints = this._getSharedWaypoints();
+		const existingShared = sharedWaypoints.find((waypoint) => waypoint.desc.toLowerCase() === source.desc.toLowerCase());
+		if (existingShared && !this._waypointsEqual(existingShared, source))
+		{
+			throw new Error(`A different shared zone named "${source.desc}" already exists`);
+		}
+
+		const sharedWaypoint = existingShared || source;
+		if (!existingShared) this.homey.settings.set('sharedWaypoints', [...sharedWaypoints, source]);
+		privateWaypoints[userId] = userWaypoints.filter((waypoint) => waypoint.id !== waypointId);
+		this.homey.settings.set('privateWaypoints', privateWaypoints);
+
+		const exclusions = this._getSharedExclusions();
+		exclusions[userId] = (exclusions[userId] || []).filter((excludedId) => excludedId !== sharedWaypoint.id);
+		this.homey.settings.set('sharedWaypointExclusions', exclusions);
+		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToAll();
+	}
+
+	copyPrivateWaypoint(sourceUserId, waypointId, destinationUserIds, conflict = 'cancel')
+	{
+		const privateWaypoints = this._getPrivateWaypoints();
+		const source = (privateWaypoints[sourceUserId] || []).find((waypoint) => waypoint.id === waypointId);
+		if (!source) throw new Error('Private zone not found');
+		if (conflict === 'cancel' && (destinationUserIds || []).some((destinationUserId) =>
+			(privateWaypoints[destinationUserId] || []).some((waypoint) => waypoint.desc.toLowerCase() === source.desc.toLowerCase())))
+		{
+			throw new Error(`Zone "${source.desc}" already exists for a selected user`);
+		}
+
+		for (const destinationUserId of destinationUserIds || [])
+		{
+			const destination = privateWaypoints[destinationUserId] || [];
+			const existingIndex = destination.findIndex((waypoint) => waypoint.desc.toLowerCase() === source.desc.toLowerCase());
+			let copied = this._normalizeWaypoint(source);
+			if (existingIndex >= 0 && conflict === 'replace') destination[existingIndex] = copied;
+			else
+			{
+				if (existingIndex >= 0 && conflict === 'rename')
+				{
+					let suffix = 2;
+					while (destination.some((waypoint) => waypoint.desc.toLowerCase() === `${source.desc} (${suffix})`.toLowerCase())) suffix++;
+					copied = { ...copied, desc: `${source.desc} (${suffix})` };
+				}
+				destination.push(copied);
+			}
+			privateWaypoints[destinationUserId] = destination;
+		}
+		this.homey.settings.set('privateWaypoints', privateWaypoints);
+		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToAll();
 	}
 
 	/**
@@ -512,6 +914,12 @@ module.exports = class MyApp extends Homey.App
 		if (device)
 		{
 			await device.updateFromLocation(location);
+			const firstReportThisSession = location.topic && !this.mqttActiveTopics.has(location.topic);
+			if (location.topic)
+			{
+				this.mqttActiveTopics.add(location.topic);
+			}
+			this._syncMqttWaypointsToDevice(device, firstReportThisSession);
 			await this._publishMqttCard(device).catch((err) => this._logError('Failed to publish MQTT card', err));
 		}
 	}

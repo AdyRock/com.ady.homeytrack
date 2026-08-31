@@ -2,9 +2,14 @@
 
 const Homey = require('homey');
 const { distanceMeters } = require('../../lib/geo');
+const { filterLocation } = require('../../lib/filterLocation');
+const { confirmZoneChange } = require('../../lib/confirmZones');
 
 const TRACK_MIN_DISTANCE_METERS = 50;
 const TRACK_MAX_POINTS = 500;
+const SPEED_STALE_MS = 60 * 1000;
+const LOCATION_REQUEST_DELAY_MS = 30 * 1000;
+const KMH_TO_MPH = 0.621371;
 
 module.exports = class UserDevice extends Homey.Device
 {
@@ -12,6 +17,17 @@ module.exports = class UserDevice extends Homey.Device
 	async onInit()
 	{
 		this.log(`User device initialized: ${this.getName()} (${this.getData().id})`);
+		this.speedStaleTimer = null;
+		this.locationRequestTimer = null;
+		this.latestVelocityKmh = null;
+		this.pendingLocation = null;
+		this.pendingZoneChange = null;
+
+		if (!this.hasCapability('speed'))
+		{
+			await this.addCapability('speed');
+		}
+		await this.updateSpeedUnit();
 
 		if (!this.getSetting('userId'))
 		{
@@ -20,6 +36,154 @@ module.exports = class UserDevice extends Homey.Device
 		}
 
 		await this._refreshHttpEndpoint().catch(this.error);
+	}
+
+	async onUninit()
+	{
+		if (this.speedStaleTimer)
+		{
+			clearTimeout(this.speedStaleTimer);
+		}
+		if (this.locationRequestTimer)
+		{
+			clearTimeout(this.locationRequestTimer);
+		}
+	}
+
+	_scheduleLocationRequest(velocity)
+	{
+		if (this.locationRequestTimer)
+		{
+			clearTimeout(this.locationRequestTimer);
+			this.locationRequestTimer = null;
+		}
+
+		if (typeof velocity !== 'number' || !Number.isFinite(velocity) || velocity <= 0)
+		{
+			return;
+		}
+
+		this.locationRequestTimer = setTimeout(() =>
+		{
+			this.locationRequestTimer = null;
+			this.homey.app.requestUserLocation(this);
+			this._checkWaypointZoneFallback().catch(this.error);
+		}, LOCATION_REQUEST_DELAY_MS);
+	}
+
+	_findWaypointZones(lat, lon)
+	{
+		if (typeof lat !== 'number' || typeof lon !== 'number')
+		{
+			return [];
+		}
+
+		return this.homey.app.listWaypoints(this.getData().id)
+			.filter((waypoint) => typeof waypoint.lat === 'number'
+				&& typeof waypoint.lon === 'number'
+				&& distanceMeters(lat, lon, waypoint.lat, waypoint.lon) <= (Number(waypoint.rad) || 100))
+			.map((waypoint) => waypoint.desc);
+	}
+
+	async _checkWaypointZoneFallback()
+	{
+		const location = this.getStoreValue('lastLocation');
+		if (!location || (Array.isArray(location.regions) && location.regions.length))
+		{
+			return;
+		}
+
+		const inferredRegions = this._findWaypointZones(location.lat, location.lon);
+		if (inferredRegions.length)
+		{
+			await this._considerZoneChange(inferredRegions);
+			this.log(`Inferred zone from last coordinates: ${inferredRegions.join(', ')}`);
+		}
+	}
+
+	_getCurrentZones()
+	{
+		return String(this.getCapabilityValue('zone') || '')
+			.split(',')
+			.map((zone) => zone.trim())
+			.filter((zone) => zone && zone !== 'Unknown');
+	}
+
+	async _considerZoneChange(regions)
+	{
+		const decision = confirmZoneChange(this._getCurrentZones(), regions, this.pendingZoneChange);
+		this.pendingZoneChange = decision.pendingChange;
+		if (decision.shouldApply)
+		{
+			await this._applyZones(regions);
+		} else if (decision.pendingChange !== null)
+		{
+			this.log(`Waiting for confirmation before changing zones to: ${regions.join(', ') || 'Unknown'}`);
+		}
+	}
+
+	async _applyZones(regions)
+	{
+		const zone = regions.length ? regions.join(', ') : 'Unknown';
+		const isHome = regions.some((region) => this._getPresenceZones().includes(region.toLowerCase()));
+		const previousZones = this._getCurrentZones();
+		const currentZoneSet = new Set(regions.map((region) => region.toLowerCase()));
+		const previousZoneSet = new Set(previousZones.map((previous) => previous.toLowerCase()));
+
+		await this.setCapabilityValue('zone', zone).catch(this.error);
+		await this.setCapabilityValue('alarm_presence', isHome).catch(this.error);
+
+		const enteredZones = regions.filter((current) => !previousZoneSet.has(current.toLowerCase()));
+		const leftZones = previousZones.filter((previous) => !currentZoneSet.has(previous.toLowerCase()));
+		for (const enteredZone of enteredZones)
+		{
+			const triggerCard = this.homey.flow.getDeviceTriggerCard('entered_zone');
+			await triggerCard.trigger(this, { zone: enteredZone }, { zone: enteredZone });
+			await this.homey.app.triggerPersonZoneEvent('entered', this.getName(), enteredZone);
+		}
+		for (const leftZone of leftZones)
+		{
+			const triggerCard = this.homey.flow.getDeviceTriggerCard('left_zone');
+			await triggerCard.trigger(this, { zone: leftZone }, { zone: leftZone });
+			await this.homey.app.triggerPersonZoneEvent('left', this.getName(), leftZone);
+		}
+	}
+
+	async updateSpeedUnit()
+	{
+		const useMph = this.homey.settings.get('speedUnit') === 'mph';
+		await this.setCapabilityOptions('speed', { units: useMph ? 'mph' : 'km/h' }).catch(this.error);
+
+		if (typeof this.latestVelocityKmh === 'number')
+		{
+			const speed = useMph ? this.latestVelocityKmh * KMH_TO_MPH : this.latestVelocityKmh;
+			await this.setCapabilityValue('speed', speed).catch(this.error);
+		} else
+		{
+			await this.setCapabilityValue('speed', null).catch(this.error);
+		}
+	}
+
+	async _updateSpeed(velocity)
+	{
+		if (typeof velocity !== 'number' || !Number.isFinite(velocity))
+		{
+			return;
+		}
+
+		this.latestVelocityKmh = velocity;
+		if (this.speedStaleTimer)
+		{
+			clearTimeout(this.speedStaleTimer);
+		}
+		await this.updateSpeedUnit();
+		this.speedStaleTimer = setTimeout(() =>
+		{
+			this.latestVelocityKmh = null;
+			this.speedStaleTimer = null;
+			this.setCapabilityValue('speed', null).catch(this.error);
+			this.homey.api.realtime('tracks_updated', null);
+		}, SPEED_STALE_MS);
 	}
 
 	/**
@@ -96,53 +260,46 @@ module.exports = class UserDevice extends Homey.Device
 	 * Applies an incoming OwnTracks location report to this device's capabilities.
 	 * A region matching the "Presence zones" setting (default "Home", case-insensitive) is
 	 * treated as the user being present.
-	 * @param {{ regions?: string[], battery?: number, lat?: number, lon?: number, accuracy?: number, timestamp?: number }} location
+	 * @param {{ regions?: string[], battery?: number, velocity?: number, lat?: number, lon?: number, accuracy?: number, timestamp?: number }} location
 	 */
 	async updateFromLocation(location)
 	{
-		const regions = Array.isArray(location.regions) ? location.regions : [];
-		const zone = regions.length ? regions.join(', ') : 'Unknown';
-		const isHome = regions.some((region) => this._getPresenceZones().includes(region.toLowerCase()));
-		const previousZones = String(this.getCapabilityValue('zone') || '')
-			.split(',')
-			.map((previous) => previous.trim())
-			.filter((previous) => previous && previous !== 'Unknown');
+		const filtered = filterLocation(location, this.getStoreValue('lastLocation'), this.pendingLocation);
+		this.pendingLocation = filtered.pendingLocation;
+		if (!filtered.accepted)
+		{
+			this.log(`Ignored location fix: ${filtered.reason}`);
+			return;
+		}
 
-		await this.setCapabilityValue('zone', zone).catch(this.error);
-		await this.setCapabilityValue('alarm_presence', isHome).catch(this.error);
+		this._scheduleLocationRequest(location.velocity);
+		const reportedRegions = Array.isArray(location.regions) ? location.regions : [];
+		const isMoving = typeof location.velocity === 'number' && location.velocity > 0;
+		const regions = !reportedRegions.length && !isMoving
+			? this._findWaypointZones(location.lat, location.lon)
+			: reportedRegions;
+
+		await this._considerZoneChange(regions);
 		await this.setCapabilityValue('last_seen', await this._getLocalTimestamp()).catch(this.error);
 		if (typeof location.lat === 'number' && typeof location.lon === 'number')
 		{
 			await this.setCapabilityValue('last_coordinates', `${location.lat}, ${location.lon}`).catch(this.error);
 		}
 
-		const currentZones = new Set(regions);
-		const previousZoneSet = new Set(previousZones.map((previous) => previous.toLowerCase()));
-		const enteredZones = regions.filter((current) => !previousZoneSet.has(current.toLowerCase()));
-		const leftZones = previousZones.filter((previous) => !currentZones.has(previous));
-		for (const enteredZone of enteredZones)
-		{
-			const triggerCard = this.homey.flow.getDeviceTriggerCard('entered_zone');
-			await triggerCard.trigger(this, { zone: enteredZone }, { zone: enteredZone });
-			await this.homey.app.triggerPersonZoneEvent('entered', this.getName(), enteredZone);
-		}
-		for (const leftZone of leftZones)
-		{
-			const triggerCard = this.homey.flow.getDeviceTriggerCard('left_zone');
-			await triggerCard.trigger(this, { zone: leftZone }, { zone: leftZone });
-			await this.homey.app.triggerPersonZoneEvent('left', this.getName(), leftZone);
-		}
-
 		if (typeof location.battery === 'number')
 		{
 			await this.setCapabilityValue('measure_battery', location.battery).catch(this.error);
 		}
+		await this._updateSpeed(location.velocity);
 
 		await this.setStoreValue('lastLocation', {
 			lat: location.lat,
 			lon: location.lon,
 			accuracy: location.accuracy,
+			velocity: location.velocity,
+			regions: reportedRegions,
 			timestamp: location.timestamp,
+			receivedAt: Date.now(),
 		}).catch(this.error);
 
 		if (location.topic)
@@ -163,7 +320,7 @@ module.exports = class UserDevice extends Homey.Device
 	 * Appends a track point when the user has moved significantly (>= TRACK_MIN_DISTANCE_METERS)
 	 * since the last recorded point, capping the stored history to TRACK_MAX_POINTS, and pushes
 	 * a realtime update for the settings page's Map tab.
-	 * @param {{ lat?: number, lon?: number, timestamp?: number }} location
+	 * @param {{ lat?: number, lon?: number, accuracy?: number, velocity?: number, timestamp?: number }} location
 	 */
 	async _recordTrackPoint(location)
 	{
@@ -181,7 +338,13 @@ module.exports = class UserDevice extends Homey.Device
 			return;
 		}
 
-		track.push({ lat: location.lat, lon: location.lon, timestamp: location.timestamp || Date.now() });
+		track.push({
+			lat: location.lat,
+			lon: location.lon,
+			accuracy: location.accuracy,
+			velocity: location.velocity,
+			timestamp: location.timestamp || Date.now(),
+		});
 		while (track.length > TRACK_MAX_POINTS)
 		{
 			track.shift();

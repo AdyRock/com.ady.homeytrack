@@ -7,10 +7,11 @@ module.exports = class UserDriver extends Homey.Driver
 
 	async onInit()
 	{
-		const autocompleteZones = async (query) =>
+		const autocompleteZones = async (query, args) =>
 		{
 			const search = String(query || '').toLowerCase();
-			return this.homey.app.listWaypoints()
+			const deviceId = args && args.device && args.device.getData().id;
+			return this.homey.app.listWaypoints(deviceId)
 				.filter((waypoint) => waypoint.desc.toLowerCase().includes(search))
 				.map((waypoint) => ({ name: waypoint.desc, id: waypoint.desc }));
 		};

@@ -1,0 +1,22 @@
+{
+	"type": "number",
+	"title": {
+		"en": "Speed",
+		"no": "Hastighet",
+		"nl": "Snelheid",
+		"de": "Geschwindigkeit",
+		"fr": "Vitesse",
+		"es": "Velocidad",
+		"pt": "Velocidade",
+		"it": "Velocità",
+		"pl": "Prędkość",
+		"ru": "Скорость",
+		"ko": "속도"
+	},
+	"getable": true,
+	"setable": false,
+	"decimals": 1,
+	"units": "km/h",
+	"uiComponent": "sensor",
+	"icon": "/assets/speed.svg"
+}

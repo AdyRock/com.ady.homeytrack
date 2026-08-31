@@ -1,6 +1,6 @@
 {
 	"id": "com.ady.homeytrack",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"compatibility": ">=12.4.0",
 	"sdk": 3,
 	"runtime": "nodejs",
@@ -150,6 +150,16 @@
 			"path": "/tracks",
 			"public": false
 		},
+		"deleteJourney": {
+			"method": "POST",
+			"path": "/tracks/delete-journey",
+			"public": false
+		},
+		"deleteTrackPoint": {
+			"method": "POST",
+			"path": "/tracks/delete-point",
+			"public": false
+		},
 		"setAvatar": {
 			"method": "POST",
 			"path": "/avatar",
@@ -160,6 +170,11 @@
 			"path": "/waypoints",
 			"public": false
 		},
+		"getWaypointConfiguration": {
+			"method": "GET",
+			"path": "/waypoints/configuration",
+			"public": false
+		},
 		"addWaypoint": {
 			"method": "POST",
 			"path": "/waypoints",
@@ -168,6 +183,26 @@
 		"updateWaypoint": {
 			"method": "POST",
 			"path": "/waypoints/update",
+			"public": false
+		},
+		"removeScopedWaypoint": {
+			"method": "POST",
+			"path": "/waypoints/delete",
+			"public": false
+		},
+		"setSharedWaypointEnabled": {
+			"method": "POST",
+			"path": "/waypoints/shared-enabled",
+			"public": false
+		},
+		"movePrivateWaypointToShared": {
+			"method": "POST",
+			"path": "/waypoints/move-to-shared",
+			"public": false
+		},
+		"copyPrivateWaypoint": {
+			"method": "POST",
+			"path": "/waypoints/copy",
 			"public": false
 		},
 		"deleteWaypoint": {

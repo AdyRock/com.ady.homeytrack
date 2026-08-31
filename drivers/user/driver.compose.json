@@ -27,6 +27,7 @@
 		"alarm_presence",
 		"zone",
 		"measure_battery",
+		"speed",
 		"last_seen",
 		"last_coordinates"
 	],
