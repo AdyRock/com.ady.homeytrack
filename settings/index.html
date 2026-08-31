@@ -2219,6 +2219,7 @@
 			let activeJourneyUserId = null;
 			let selectedJourney = null;
 			let journeyGapMinutes = 30;
+			let accuracyCircle = null;
 
 			function startOfLocalDay(date)
 			{
@@ -2297,12 +2298,23 @@
 					if (![previous.lat, previous.lon, current.lat, current.lon].every(Number.isFinite)) continue;
 					const latitudeDelta = toRadians(current.lat - previous.lat);
 					const longitudeDelta = toRadians(current.lon - previous.lon);
-					const value = Math.sin(latitudeDelta / 2) ** 2
-						+ Math.cos(toRadians(previous.lat)) * Math.cos(toRadians(current.lat)) * Math.sin(longitudeDelta / 2) ** 2;
+					const value = Math.sin(latitudeDelta / 2) ** 2 + Math.cos(toRadians(previous.lat)) * Math.cos(toRadians(current.lat)) * Math.sin(longitudeDelta / 2) ** 2;
 					distance += earthRadiusMeters * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 				}
 
 				return distance;
+			}
+
+			function calculateDistanceMeters(previous_lat, previous_lon, current_lat, current_lon)
+			{
+				const earthRadiusMeters = 6371000;
+				const toRadians = (degrees) => degrees * Math.PI / 180;
+
+				if (![previous_lat, previous_lon, current_lat, current_lon].every(Number.isFinite)) return null;
+				const latitudeDelta = toRadians(current_lat - previous_lat);
+				const longitudeDelta = toRadians(current_lon - previous_lon);
+				const value = Math.sin(latitudeDelta / 2) ** 2 + Math.cos(toRadians(previous_lat)) * Math.cos(toRadians(current_lat)) * Math.sin(longitudeDelta / 2) ** 2;
+				return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 			}
 
 			function setJourneyTravelBounds(journey)
@@ -2561,6 +2573,12 @@
 				if (trackMap) return;
 
 				trackMap = L.map('trackMap').setView([51.5074, -0.1278], 13);
+				trackMap.createPane('zones');
+				trackMap.getPane('zones').style.zIndex = 400;
+
+				trackMap.createPane('trackPoints');
+				trackMap.getPane('trackPoints').style.zIndex = 450;
+
 				trackMap.on('zoomend', () =>
 				{
 					const radius = getTrackPointRadius();
@@ -2571,6 +2589,15 @@
 					maxZoom: 19,
 				}).addTo(trackMap);
 				updateTrackScale();
+
+				trackMap.on('click', () =>
+				{
+					if (accuracyCircle)
+					{
+						accuracyCircle.remove();
+						accuracyCircle = null;
+					}
+				});
 			}
 
 			function updateTrackScale()
@@ -2599,6 +2626,7 @@
 				{
 					if (typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number') return;
 					const circle = L.circle([waypoint.lat, waypoint.lon], {
+						pane: 'zones',
 						color: '#666',
 						fillColor: '#999',
 						fillOpacity: 0.15,
@@ -2692,6 +2720,12 @@
 				ensureTrackMap();
 
 				trackLayers.forEach((layer) => trackMap.removeLayer(layer));
+				if (accuracyCircle)
+				{
+					accuracyCircle.remove();
+					accuracyCircle = null;
+				}
+
 				trackLayers.length = 0;
 				trackPointLayers.length = 0;
 				trackPointMarkers = new WeakMap();
@@ -2721,11 +2755,52 @@
 								newestPosition = { lat: point.lat, lon: point.lon, timestamp: point.timestamp || 0 };
 							}
 							const pointMarker = L.circleMarker([point.lat, point.lon], {
+								pane: 'trackPoints',
 								radius: getTrackPointRadius(),
 								weight: 1,
 								color,
 								fillColor: color,
 								fillOpacity: 0.8,
+							});
+							pointMarker.on('click', (event) =>
+							{
+								if (accuracyCircle)
+								{
+									accuracyCircle.remove();
+									accuracyCircle = null;
+								}
+
+								accuracyCircle = L.circle([point.lat, point.lon], {
+									color: '#5BF527',
+									fillColor: '#999',
+									fillOpacity: 0.15,
+									radius: Number(point.acc) || 100,
+									interactive: false
+								}).addTo(trackMap);
+							});
+							pointMarker.on('mouseover', () =>
+							{
+								if (accuracyCircle)
+								{
+									accuracyCircle.remove();
+								}
+
+								accuracyCircle = L.circle([point.lat, point.lon], {
+									color: '#5BF527',
+									fillColor: '#999',
+									fillOpacity: 0.15,
+									radius: Number(point.acc) || 100,
+									interactive: false
+								}).addTo(trackMap);
+							});
+
+							pointMarker.on('mouseout', () =>
+							{
+								if (accuracyCircle)
+								{
+									accuracyCircle.remove();
+									accuracyCircle = null;
+								}
 							});
 							const popupContent = document.createElement('div');
 							const popupDetails = document.createElement('div');
@@ -2767,6 +2842,7 @@
 							popupContent.append(popupDetails, deletePointButton);
 							pointMarker.bindPopup(popupContent);
 							pointMarker.addTo(trackMap);
+							pointMarker.bringToFront();
 							trackLayers.push(pointMarker);
 							trackPointLayers.push(pointMarker);
 							trackPointMarkers.set(point, pointMarker);
@@ -2852,6 +2928,7 @@
 						Homey.__('settings.map.historyTime'),
 						Homey.__('settings.map.historySpeed'),
 						Homey.__('settings.map.historyAccuracy'),
+						Homey.__('settings.map.distance'),
 					].forEach((label) =>
 					{
 						const cell = document.createElement('th');
@@ -2864,17 +2941,37 @@
 						const speed = Number.isFinite(point.velocity)
 							? `${(mapSpeedUnit === 'mph' ? point.velocity * 0.621371 : point.velocity).toFixed(1)} ${mapSpeedUnit === 'mph' ? 'mph' : 'km/h'}`
 							: '-';
+						const distance = calculateDistanceMeters(
+							points[points.indexOf(point) + 1]?.lat,
+							points[points.indexOf(point) + 1]?.lon,
+							point.lat,
+							point.lon
+						);
 						const values = [
 							`${point.lat}, ${point.lon}`,
 							new Date(point.timestamp || Date.now()).toLocaleString(),
 							speed,
 							Number.isFinite(point.accuracy) ? `${point.accuracy} m` : '-',
+							Number.isFinite(distance) ? `${distance.toFixed(1)} m` : '-',
 						];
 						const row = document.createElement('tr');
 						row.className = 'track-history-point';
 						row.tabIndex = 0;
 						const showPointOnMap = () =>
 						{
+							if (accuracyCircle)
+							{
+								accuracyCircle.remove();
+							}
+							accuracyCircle = null;
+							if (typeof point.lat !== 'number' || typeof point.lon !== 'number') return;
+							accuracyCircle = L.circle([point.lat, point.lon], {
+								color: '#5BF527',
+								fillColor: '#999',
+								fillOpacity: 0.15,
+								radius: Number(point.rad) || 100,
+							}).addTo(trackMap);
+
 							const marker = trackPointMarkers.get(point);
 							if (!marker) return;
 							trackMap.panTo(marker.getLatLng());

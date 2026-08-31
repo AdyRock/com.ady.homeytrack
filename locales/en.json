@@ -158,7 +158,8 @@
 			"copyTrackPoints": "Copy track points",
 			"trackPointsCopied": "Track points copied",
 			"noTrackPoints": "No track points to copy.",
-			"noJourneys": "No journeys in this date range."
+			"noJourneys": "No journeys in this date range.",
+			"distance": "Distance"
 		},
 		"logs": {
 			"intro": "The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.",
