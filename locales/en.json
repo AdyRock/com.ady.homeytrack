@@ -164,7 +164,9 @@
 			"useTeardropPoints": "Use teardrop markers",
 			"hideUser": "Hide [[user]]",
 			"showUser": "Show [[user]]",
-			"centerOnUser": "Center on [[user]]"
+			"centerOnUser": "Center on [[user]]",
+			"hideTrackForUser": "Hide track for [[user]]",
+			"showTrackForUser": "Show track for [[user]]"
 		},
 		"logs": {
 			"intro": "The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.",

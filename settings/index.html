@@ -2367,6 +2367,7 @@
 			let journeyGapMinutes = 30;
 			let accuracyCircle = null;
 			const collapsedHistoryUserIds = new Set();
+			const hiddenTrackUserIds = new Set();
 			let trackPointStyle = 'teardrop';
 
 			function startOfLocalDay(date)
@@ -2396,6 +2397,7 @@
 
 			function getDisplayedTrack(user)
 			{
+				if (hiddenTrackUserIds.has(user.id)) return [];
 				const track = filterTrackByDate(user.track);
 				if (!selectedJourney) return track;
 				if (selectedJourney.userId !== user.id) return [];
@@ -3375,6 +3377,31 @@
 					name.className = 'track-context-user-name';
 					name.textContent = user.name;
 
+					const trackButton = document.createElement('button');
+					trackButton.type = 'button';
+					if (isVisible)
+					{
+						const isTrackHidden = hiddenTrackUserIds.has(user.id);
+						trackButton.className = 'track-context-icon-button';
+						trackButton.setAttribute('aria-label', Homey.__(isTrackHidden ? 'settings.map.showTrackForUser' : 'settings.map.hideTrackForUser').replace('[[user]]', user.name));
+						trackButton.innerHTML = isTrackHidden
+							? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/><line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>'
+							: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/></svg>';
+						trackButton.addEventListener('click', () =>
+						{
+							if (isTrackHidden) hiddenTrackUserIds.delete(user.id);
+							else hiddenTrackUserIds.add(user.id);
+							renderTracks(trackUsers, false, false);
+							renderTrackHistory(trackUsers);
+							hideTrackContextMenu();
+						});
+					} else
+					{
+						trackButton.className = 'track-context-icon-button track-context-icon-placeholder';
+						trackButton.disabled = true;
+						trackButton.setAttribute('aria-hidden', 'true');
+					}
+
 					const canCenter = isVisible && user.lastLocation
 						&& typeof user.lastLocation.lat === 'number' && typeof user.lastLocation.lon === 'number';
 					const centerButton = document.createElement('button');
@@ -3396,7 +3423,7 @@
 						centerButton.setAttribute('aria-hidden', 'true');
 					}
 
-					row.append(visibilityButton, name, centerButton);
+					row.append(visibilityButton, name, trackButton, centerButton);
 					trackContextMenuUserItems.appendChild(row);
 				});
 
