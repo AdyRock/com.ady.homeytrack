@@ -6,7 +6,7 @@ const { filterLocation } = require('../../lib/filterLocation');
 const { confirmZoneChange } = require('../../lib/confirmZones');
 
 const TRACK_MIN_DISTANCE_METERS = 50;
-const TRACK_MAX_POINTS = 500;
+const TRACK_MAX_POINTS = 1000;
 const SPEED_STALE_MS = 60 * 1000;
 const LOCATION_REQUEST_DELAY_MS = 30 * 1000;
 const KMH_TO_MPH = 0.621371;
@@ -317,9 +317,10 @@ module.exports = class UserDevice extends Homey.Device
 	}
 
 	/**
-	 * Appends a track point when the user has moved significantly (>= TRACK_MIN_DISTANCE_METERS)
-	 * since the last recorded point, capping the stored history to TRACK_MAX_POINTS, and pushes
-	 * a realtime update for the settings page's Map tab.
+	 * Appends a track point when the user has moved far enough since the last recorded point,
+	 * capping the stored history to TRACK_MAX_POINTS, and pushes a realtime update for the
+	 * settings page's Map tab. The required distance grows with speed (base distance plus the
+	 * current speed in km/h), so fast journeys don't flood the track with closely-spaced points.
 	 * @param {{ lat?: number, lon?: number, accuracy?: number, velocity?: number, timestamp?: number }} location
 	 */
 	async _recordTrackPoint(location)
@@ -331,7 +332,11 @@ module.exports = class UserDevice extends Homey.Device
 
 		const track = this.getStoreValue('track') || [];
 		const last = track[track.length - 1];
-		const moved = !last || distanceMeters(last.lat, last.lon, location.lat, location.lon) >= TRACK_MIN_DISTANCE_METERS;
+		const speedKmh = typeof location.velocity === 'number' && Number.isFinite(location.velocity) && location.velocity > 0
+			? location.velocity
+			: 0;
+		const requiredDistance = TRACK_MIN_DISTANCE_METERS + speedKmh;
+		const moved = !last || distanceMeters(last.lat, last.lon, location.lat, location.lon) >= requiredDistance;
 
 		if (!moved)
 		{

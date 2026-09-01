@@ -389,8 +389,42 @@
 		}
 
 		.track-history-user {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			width: 100%;
+			position: sticky;
+			top: 0;
+			z-index: 1;
+			background: #fff;
+			border: none;
+			border-bottom: 1px solid #eee;
+			padding: 4px 0;
+			font: inherit;
 			font-weight: bold;
 			margin-bottom: 4px;
+			cursor: pointer;
+			text-align: left;
+			color: inherit;
+		}
+
+		.track-history-collapse-icon {
+			display: inline-flex;
+			flex-shrink: 0;
+			transition: transform 0.15s ease;
+		}
+
+		.track-history-collapse-icon.expanded {
+			transform: rotate(90deg);
+		}
+
+		.track-history-collapse-icon svg {
+			width: 14px;
+			height: 14px;
+		}
+
+		.track-history-table.hidden {
+			display: none;
 		}
 
 		.track-history-table {
@@ -784,6 +818,42 @@
 			background: none;
 			border: none;
 			overflow: visible;
+		}
+
+		.track-teardrop-icon {
+			background: none;
+			border: none;
+		}
+
+		.track-context-menu {
+			position: fixed;
+			z-index: 2000;
+			background: #fff;
+			border-radius: 6px;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+			padding: 4px;
+			min-width: 220px;
+		}
+
+		.track-context-menu.hidden {
+			display: none;
+		}
+
+		.track-context-menu button {
+			display: block;
+			width: 100%;
+			text-align: left;
+			padding: 8px 12px;
+			background: none;
+			border: none;
+			cursor: pointer;
+			font-size: 14px;
+			border-radius: 4px;
+			color: #333;
+		}
+
+		.track-context-menu button:hover {
+			background: #f0f0f0;
 		}
 
 		.track-speed-label {
@@ -1187,6 +1257,9 @@
 			<div id="trackHistoryList" class="track-history-list"></div>
 		</div>
 		<div id="trackMap" class="track-map"></div>
+		<div id="trackContextMenu" class="track-context-menu hidden">
+			<button type="button" id="toggleTrackPointStyleMenuItem"></button>
+		</div>
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelLogs">
@@ -2209,6 +2282,18 @@
 			let trackScaleControl = null;
 			const trackLayers = []; // markers + polylines, cleared and redrawn on every refresh
 			const trackPointLayers = [];
+
+			// Bearing in degrees (0 = north, clockwise) from one point to the next, used to
+			// orient the direction-of-travel arrows drawn along each track segment.
+			function computeBearing(lat1, lon1, lat2, lon2)
+			{
+				const toRad = (deg) => deg * Math.PI / 180;
+				const toDeg = (rad) => rad * 180 / Math.PI;
+				const dLon = toRad(lon2 - lon1);
+				const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+				const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+				return (toDeg(Math.atan2(y, x)) + 360) % 360;
+			}
 			let trackPointMarkers = new WeakMap();
 			const trackZoneLayers = [];
 			const TRACK_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c'];
@@ -2220,6 +2305,8 @@
 			let selectedJourney = null;
 			let journeyGapMinutes = 30;
 			let accuracyCircle = null;
+			const collapsedHistoryUserIds = new Set();
+			let trackPointStyle = 'teardrop';
 
 			function startOfLocalDay(date)
 			{
@@ -2579,11 +2666,10 @@
 				trackMap.createPane('trackPoints');
 				trackMap.getPane('trackPoints').style.zIndex = 450;
 
-				trackMap.on('zoomend', () =>
-				{
-					const radius = getTrackPointRadius();
-					trackPointLayers.forEach((marker) => marker.setRadius(radius));
-				});
+				// Teardrop icon size and overlap-filtering are zoom-dependent, so the whole
+				// track needs redrawing (not just resizing) whenever the zoom level changes.
+				// adjustViewport is false so this never recenters the map the user just zoomed.
+				trackMap.on('zoomend', () => renderTracks(trackUsers, false, false));
 				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 					attribution: '&copy; OpenStreetMap contributors',
 					maxZoom: 19,
@@ -2598,6 +2684,27 @@
 						accuracyCircle = null;
 					}
 				});
+
+				trackMap.on('contextmenu', (event) =>
+				{
+					L.DomEvent.preventDefault(event.originalEvent);
+					showTrackContextMenu(event.originalEvent.clientX, event.originalEvent.clientY);
+				});
+				trackMap.on('movestart zoomstart', hideTrackContextMenu);
+
+				// Leaflet has no built-in long-press event, so it's detected manually from touch
+				// timing to give touch users the same menu as a desktop right-click.
+				let trackLongPressTimer = null;
+				const trackMapContainer = trackMap.getContainer();
+				trackMapContainer.addEventListener('touchstart', (event) =>
+				{
+					if (event.touches.length !== 1) return;
+					const touch = event.touches[0];
+					trackLongPressTimer = setTimeout(() => showTrackContextMenu(touch.clientX, touch.clientY), 550);
+				});
+				trackMapContainer.addEventListener('touchmove', () => clearTimeout(trackLongPressTimer));
+				trackMapContainer.addEventListener('touchend', () => clearTimeout(trackLongPressTimer));
+				trackMapContainer.addEventListener('touchcancel', () => clearTimeout(trackLongPressTimer));
 			}
 
 			function updateTrackScale()
@@ -2715,7 +2822,7 @@
 				});
 			}
 
-			function renderTracks(users, preserveViewport = false)
+			function renderTracks(users, preserveViewport = false, adjustViewport = true)
 			{
 				ensureTrackMap();
 
@@ -2746,7 +2853,14 @@
 							trackLayers.push(line);
 						}
 
-						track.forEach((point) =>
+						const classicRadius = getTrackPointRadius();
+						const teardropWidth = Math.max(14, classicRadius * 5);
+						// Keeps a minimum on-screen gap between points so closely spaced ones
+						// (e.g. while stationary) don't render on top of each other.
+						const minPointGapPx = (trackPointStyle === 'classic' ? classicRadius * 2 : teardropWidth) + 5;
+						let lastRenderedScreenPoint = null;
+
+						track.forEach((point, pointIndex) =>
 						{
 							if (typeof point.lat !== 'number' || typeof point.lon !== 'number') return;
 							bounds.push([point.lat, point.lon]);
@@ -2754,14 +2868,68 @@
 							{
 								newestPosition = { lat: point.lat, lon: point.lon, timestamp: point.timestamp || 0 };
 							}
-							const pointMarker = L.circleMarker([point.lat, point.lon], {
-								pane: 'trackPoints',
-								radius: getTrackPointRadius(),
-								weight: 1,
-								color,
-								fillColor: color,
-								fillOpacity: 0.8,
-							});
+
+							const screenPoint = trackMap.latLngToContainerPoint([point.lat, point.lon]);
+							if (pointIndex !== 0 && lastRenderedScreenPoint && screenPoint.distanceTo(lastRenderedScreenPoint) < minPointGapPx)
+							{
+								return;
+							}
+							lastRenderedScreenPoint = screenPoint;
+
+							// Point the teardrop at the next waypoint; for the last point (no "next"),
+							// keep pointing the way travel was already heading. Unused for the classic style.
+							const next = track[pointIndex + 1];
+							const prev = track[pointIndex - 1];
+							let pointBearing = 0;
+							if (next && typeof next.lat === 'number' && typeof next.lon === 'number')
+							{
+								pointBearing = computeBearing(point.lat, point.lon, next.lat, next.lon);
+							} else if (prev && typeof prev.lat === 'number' && typeof prev.lon === 'number')
+							{
+								pointBearing = computeBearing(prev.lat, prev.lon, point.lat, point.lon);
+							}
+							// The SVG's tip sits at the bottom-center, which is rotated to face south
+							// by default, so rotating by (bearing - 180) points it at the given bearing.
+							const rotation = (pointBearing - 180 + 360) % 360;
+							let pointMarker;
+							if (trackPointStyle === 'classic')
+							{
+								pointMarker = L.circleMarker([point.lat, point.lon], {
+									pane: 'trackPoints',
+									radius: classicRadius,
+									weight: 1,
+									color,
+									fillColor: color,
+									fillOpacity: 0.8,
+								});
+							} else
+							{
+								// Built from a small circle plus a tapering tail rather than a single SVG
+								// path, so the circle's size can be tuned independently of the tail length.
+								const circleDiameter = Math.max(10, Math.round(teardropWidth * 0.55));
+								const circleRadius = circleDiameter / 2;
+								const tailHalfWidth = circleRadius;
+								const tailHeight = Math.round(teardropWidth * 1.3);
+								const tailTop = circleRadius;
+								const iconHeight = tailTop + tailHeight;
+								// Anchored and rotated around the circle's own center (not the tail tip), so
+								// the waypoint coordinate sits in the middle of the circle and connecting
+								// lines meet there, with the tail swinging around it to show direction.
+								const originPercent = (circleRadius / iconHeight) * 100;
+								const teardropIcon = L.divIcon({
+									className: 'track-teardrop-icon',
+									html: `<div style="position: relative; width: ${circleDiameter}px; height: ${iconHeight}px; transform-origin: 50% ${originPercent}%; transform: rotate(${rotation}deg);">`
+										+ `<div style="position: absolute; top: 0; left: 0; width: ${circleDiameter}px; height: ${circleDiameter}px; border-radius: 50%; background: ${color};"></div>`
+										+ `<div style="position: absolute; top: ${tailTop}px; left: 50%; margin-left: -${tailHalfWidth}px; width: 0; height: 0; border-left: ${tailHalfWidth}px solid transparent; border-right: ${tailHalfWidth}px solid transparent; border-top: ${tailHeight}px solid ${color};"></div>`
+										+ `</div>`,
+									iconSize: [circleDiameter, iconHeight],
+									iconAnchor: [circleRadius, circleRadius],
+								});
+								pointMarker = L.marker([point.lat, point.lon], {
+									pane: 'trackPoints',
+									icon: teardropIcon,
+								});
+							}
 							pointMarker.on('click', (event) =>
 							{
 								if (accuracyCircle)
@@ -2842,7 +3010,6 @@
 							popupContent.append(popupDetails, deletePointButton);
 							pointMarker.bindPopup(popupContent);
 							pointMarker.addTo(trackMap);
-							pointMarker.bringToFront();
 							trackLayers.push(pointMarker);
 							trackPointLayers.push(pointMarker);
 							trackPointMarkers.set(point, pointMarker);
@@ -2881,7 +3048,11 @@
 						}
 					});
 
-				if (preserveViewport && newestPosition)
+				if (!adjustViewport)
+				{
+					// Called just to resize/re-filter markers after a zoom change - the user's
+					// current view should be left exactly as they set it.
+				} else if (preserveViewport && newestPosition)
 				{
 					trackMap.panInside([newestPosition.lat, newestPosition.lon], {
 						paddingTopLeft: [30, 30],
@@ -2917,11 +3088,32 @@
 				{
 					const group = document.createElement('div');
 					group.className = 'track-history-row';
-					const heading = document.createElement('div');
+					const heading = document.createElement('button');
+					heading.type = 'button';
 					heading.className = 'track-history-user';
-					heading.textContent = user.name;
+					const collapseIcon = document.createElement('span');
+					collapseIcon.className = 'track-history-collapse-icon';
+					collapseIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
+					const headingLabel = document.createElement('span');
+					headingLabel.textContent = user.name;
+					heading.append(collapseIcon, headingLabel);
 					const table = document.createElement('table');
 					table.className = 'track-history-table';
+
+					const isCollapsed = collapsedHistoryUserIds.has(user.id);
+					collapseIcon.classList.toggle('expanded', !isCollapsed);
+					table.classList.toggle('hidden', isCollapsed);
+					heading.setAttribute('aria-expanded', String(!isCollapsed));
+					heading.addEventListener('click', () =>
+					{
+						const nowCollapsed = !collapsedHistoryUserIds.has(user.id);
+						if (nowCollapsed) collapsedHistoryUserIds.add(user.id);
+						else collapsedHistoryUserIds.delete(user.id);
+						collapseIcon.classList.toggle('expanded', !nowCollapsed);
+						table.classList.toggle('hidden', nowCollapsed);
+						heading.setAttribute('aria-expanded', String(!nowCollapsed));
+					});
+
 					const header = document.createElement('tr');
 					[
 						Homey.__('settings.map.historyCoordinates'),
@@ -3072,6 +3264,42 @@
 				renderJourneys();
 				renderTracks(trackUsers);
 				renderTrackHistory(trackUsers);
+			});
+
+			Homey.get('trackPointStyle', (err, value) =>
+			{
+				if (!err && value === 'classic') trackPointStyle = 'classic';
+			});
+
+			const trackContextMenu = document.getElementById('trackContextMenu');
+			const togglePointStyleMenuItem = document.getElementById('toggleTrackPointStyleMenuItem');
+
+			function showTrackContextMenu(clientX, clientY)
+			{
+				togglePointStyleMenuItem.textContent = trackPointStyle === 'classic'
+					? Homey.__('settings.map.useTeardropPoints')
+					: Homey.__('settings.map.useClassicPoints');
+				trackContextMenu.style.left = `${clientX}px`;
+				trackContextMenu.style.top = `${clientY}px`;
+				trackContextMenu.classList.remove('hidden');
+			}
+
+			function hideTrackContextMenu()
+			{
+				trackContextMenu.classList.add('hidden');
+			}
+
+			togglePointStyleMenuItem.addEventListener('click', () =>
+			{
+				trackPointStyle = trackPointStyle === 'classic' ? 'teardrop' : 'classic';
+				Homey.set('trackPointStyle', trackPointStyle, (err) => { if (err) Homey.alert(err); });
+				hideTrackContextMenu();
+				renderTracks(trackUsers, false, false);
+			});
+
+			document.addEventListener('click', (event) =>
+			{
+				if (!trackContextMenu.classList.contains('hidden') && !trackContextMenu.contains(event.target)) hideTrackContextMenu();
 			});
 
 			document.getElementById('closeJourneys').addEventListener('click', () =>
