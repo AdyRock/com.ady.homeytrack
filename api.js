@@ -51,6 +51,16 @@ module.exports = {
 		return { ok: true };
 	},
 
+	async getSettingsBackup({ homey })
+	{
+		return homey.app.createSettingsBackup();
+	},
+
+	async restoreSettingsBackup({ homey, body })
+	{
+		return homey.app.restoreSettingsBackup(body);
+	},
+
 	/**
 	 * Used by the settings page to list zones/waypoints (shared across all users).
 	 */

@@ -20,6 +20,16 @@ const SETTINGS_KEYS = [
 	'mqttPassword',
 ];
 
+const SETTINGS_BACKUP_KEYS = [
+	...SETTINGS_KEYS,
+	'speedUnit',
+	'trackMinDistance',
+	'trackMaxPoints',
+	'journeyGapMinutes',
+	'trackPointStyle',
+	'logsEnabled',
+];
+
 const MAX_LOG_BUFFER_BYTES = 20 * 1024;
 
 module.exports = class MyApp extends Homey.App
@@ -229,10 +239,169 @@ module.exports = class MyApp extends Homey.App
 	{
 		return this.homey.drivers.getDriver('user').getDevices().map((device) => ({
 			id: device.getData().id,
+			userId: device.getUserId(),
 			name: device.getName(),
 			hasAvatar: Boolean(device.getStoreValue('avatarBase64')),
 			avatarBase64: device.getStoreValue('avatarBase64') || null,
 		}));
+	}
+
+	/**
+	 * Creates a portable settings document. Per-user data is identified by the OwnTracks user ID,
+	 * which remains stable when the app is moved to another Homey.
+	 */
+	createSettingsBackup()
+	{
+		const privateWaypoints = this._getPrivateWaypoints();
+		const exclusions = this._getSharedExclusions();
+		const devices = this.homey.drivers.getDriver('user').getDevices();
+		return {
+			format: 'homey-tracks-settings',
+			version: 1,
+			settings: Object.fromEntries(SETTINGS_BACKUP_KEYS.map((key) => [key, this.homey.settings.get(key)])),
+			avatars: devices.map((device) => ({
+				userId: device.getUserId(),
+				avatarBase64: device.getStoreValue('avatarBase64') || null,
+			})),
+			users: devices.map((device) => ({
+				userId: device.getUserId(),
+				name: device.getName(),
+				settings: { presenceZones: device.getSetting('presenceZones') || '' },
+				lastTopic: device.getStoreValue('lastTopic') || null,
+			})),
+			zones: {
+				shared: this._getSharedWaypoints(),
+				users: devices.map((device) => {
+					const deviceId = device.getData().id;
+					return {
+						userId: device.getUserId(),
+						private: privateWaypoints[deviceId] || [],
+						disabledSharedWaypointIds: exclusions[deviceId] || [],
+					};
+				}),
+			},
+		};
+	}
+
+	/** Restores a settings document created by createSettingsBackup(). */
+	async restoreSettingsBackup(backup)
+	{
+		if (!backup || backup.format !== 'homey-tracks-settings' || backup.version !== 1
+			|| !backup.settings || !backup.zones || !Array.isArray(backup.zones.shared)
+			|| !Array.isArray(backup.zones.users) || !Array.isArray(backup.avatars))
+		{
+			throw new Error('Invalid Homey Tracks settings backup');
+		}
+
+		const restoredSettings = {};
+		for (const key of SETTINGS_BACKUP_KEYS)
+		{
+			if (!Object.prototype.hasOwnProperty.call(backup.settings, key)) continue;
+			await this.homey.settings.set(key, backup.settings[key]);
+			restoredSettings[key] = backup.settings[key];
+		}
+
+		const devices = this.homey.drivers.getDriver('user').getDevices();
+		const findDeviceByUserId = (userId) => devices.find((device) => device.getUserId() === userId
+			|| device.getUserId().toLowerCase() === userId.toLowerCase());
+		const backupUsers = new Map((Array.isArray(backup.users) ? backup.users : [])
+			.filter((user) => user && typeof user.userId === 'string')
+			.map((user) => [user.userId, user]));
+		const avatarsByUserId = new Map(backup.avatars
+			.filter((avatar) => avatar && typeof avatar.userId === 'string')
+			.map((avatar) => [avatar.userId, avatar.avatarBase64]));
+		const privateWaypoints = this._getPrivateWaypoints();
+		const exclusions = this._getSharedExclusions();
+		let restoredUsers = 0;
+
+		backup.zones.users.forEach((user) => {
+			const device = findDeviceByUserId(user.userId);
+			if (!device || !Array.isArray(user.private) || !Array.isArray(user.disabledSharedWaypointIds)) return;
+			const deviceId = device.getData().id;
+			privateWaypoints[deviceId] = user.private;
+			exclusions[deviceId] = user.disabledSharedWaypointIds;
+			restoredUsers += 1;
+		});
+
+		await this.homey.settings.set('sharedWaypoints', backup.zones.shared);
+		await this.homey.settings.set('privateWaypoints', privateWaypoints);
+		await this.homey.settings.set('sharedWaypointExclusions', exclusions);
+		await this.homey.settings.set('importedUsers', backup.zones.users
+			.filter((user) => user && typeof user.userId === 'string')
+			.map((user) => ({
+				userId: user.userId,
+				name: backupUsers.get(user.userId)?.name || user.userId,
+				settings: backupUsers.get(user.userId)?.settings || {},
+				lastTopic: backupUsers.get(user.userId)?.lastTopic || null,
+				avatarBase64: avatarsByUserId.get(user.userId) || null,
+				private: user.private || [],
+				disabledSharedWaypointIds: user.disabledSharedWaypointIds || [],
+			})));
+
+		for (const avatar of backup.avatars)
+		{
+			const device = findDeviceByUserId(avatar.userId);
+			if (device && (typeof avatar.avatarBase64 === 'string' || avatar.avatarBase64 === null))
+			{
+				await device.setUploadedAvatar(avatar.avatarBase64);
+			}
+		}
+
+		const usersToRestore = new Map(backup.zones.users
+			.filter((user) => user && typeof user.userId === 'string')
+			.map((user) => [user.userId, { userId: user.userId, settings: {} }]));
+		backupUsers.forEach((user, userId) => usersToRestore.set(userId, user));
+		for (const user of usersToRestore.values())
+		{
+			const device = findDeviceByUserId(user.userId);
+			if (!device) continue;
+			const settings = { userId: user.userId };
+			if (typeof user.settings?.presenceZones === 'string') settings.presenceZones = user.settings.presenceZones;
+			await device.setSettings(settings);
+			if (typeof user.lastTopic === 'string') await device.setStoreValue('lastTopic', user.lastTopic);
+		}
+
+		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToAll(true);
+		return { ok: true, restoredUsers, settings: restoredSettings };
+	}
+
+	listImportedUsers()
+	{
+		const pairedUserIds = new Set(this.homey.drivers.getDriver('user').getDevices()
+			.map((device) => device.getUserId()));
+		return (this.homey.settings.get('importedUsers') || [])
+			.filter((user) => user && !pairedUserIds.has(user.userId))
+			.map(({ userId, name }) => ({ userId, name }));
+	}
+
+	async restoreImportedUser(device)
+	{
+		const importedUsers = this.homey.settings.get('importedUsers') || [];
+		const userId = device.getUserId();
+		const importedUser = importedUsers.find((user) => user.userId === userId
+			|| user.userId.toLowerCase() === userId.toLowerCase());
+		if (!importedUser) return false;
+
+		if (typeof importedUser.avatarBase64 === 'string') await device.setUploadedAvatar(importedUser.avatarBase64);
+		if (typeof importedUser.settings?.presenceZones === 'string')
+		{
+			await device.setSettings({ presenceZones: importedUser.settings.presenceZones });
+		}
+		if (typeof importedUser.lastTopic === 'string') await device.setStoreValue('lastTopic', importedUser.lastTopic);
+
+		const deviceId = device.getData().id;
+		const privateWaypoints = this._getPrivateWaypoints();
+		const exclusions = this._getSharedExclusions();
+		privateWaypoints[deviceId] = Array.isArray(importedUser.private) ? importedUser.private : [];
+		exclusions[deviceId] = Array.isArray(importedUser.disabledSharedWaypointIds)
+			? importedUser.disabledSharedWaypointIds : [];
+		await this.homey.settings.set('privateWaypoints', privateWaypoints);
+		await this.homey.settings.set('sharedWaypointExclusions', exclusions);
+		await this.homey.settings.set('importedUsers', importedUsers.filter((user) => user.userId !== importedUser.userId));
+		this._notifyWaypointsChanged();
+		this._syncMqttWaypointsToDevice(device, true);
+		return true;
 	}
 
 	/**

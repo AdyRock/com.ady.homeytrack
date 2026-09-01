@@ -42,6 +42,7 @@ module.exports = class UserDriver extends Homey.Driver
 		let deviceCreated = false;
 
 		session.setHandler('getHomeyId', async () => this.homey.cloud.getHomeyId());
+		session.setHandler('getImportedUsers', async () => this.homey.app.listImportedUsers());
 		session.setHandler('setPairDetails', async (details) =>
 		{
 			pairDetails = details;

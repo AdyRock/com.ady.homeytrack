@@ -15,6 +15,11 @@
 	</header>
 
 	<form class="homey-form">
+		<div class="homey-form-group" id="importedUserGroup" hidden>
+			<label class="homey-form-label" for="importedUser" data-i18n="pair.addUser.importedUser">Restored user</label>
+			<select class="homey-form-select" id="importedUser"></select>
+		</div>
+
 		<div class="homey-form-group">
 			<label class="homey-form-label" for="name" data-i18n="pair.addUser.name">Name</label>
 			<input class="homey-form-input" type="text" id="name">
@@ -33,6 +38,8 @@
 
 		const nameInput = document.getElementById('name');
 		const userIdInput = document.getElementById('userId');
+		const importedUserGroup = document.getElementById('importedUserGroup');
+		const importedUserInput = document.getElementById('importedUser');
 		let userIdEdited = false;
 
 		nameInput.placeholder = Homey.__('pair.addUser.namePlaceholder');
@@ -64,12 +71,40 @@
 		{
 			Homey.emit('setPairDetails', {
 				name: nameInput.value.trim(),
-				userId: slugify(userIdInput.value),
+				userId: userIdInput.value.trim(),
 			}, (err) =>
 			{
 				if (err) Homey.alert(err);
 			});
 		}
+
+		Homey.emit('getImportedUsers', null, (err, users) =>
+		{
+			if (err || !Array.isArray(users) || !users.length) return;
+			const promptOption = document.createElement('option');
+			promptOption.value = '';
+			promptOption.textContent = Homey.__('pair.addUser.chooseImportedUser');
+			importedUserInput.appendChild(promptOption);
+			users.forEach((user) =>
+			{
+				const option = document.createElement('option');
+				option.value = user.userId;
+				option.textContent = `${user.name} (${user.userId})`;
+				option.dataset.name = user.name;
+				importedUserInput.appendChild(option);
+			});
+			importedUserGroup.hidden = false;
+		});
+
+		importedUserInput.addEventListener('change', () =>
+		{
+			const option = importedUserInput.selectedOptions[0];
+			if (!option || !option.value) return;
+			nameInput.value = option.dataset.name;
+			userIdInput.value = option.value;
+			userIdEdited = true;
+			syncPairDetails();
+		});
 
 		userIdInput.addEventListener('input', () =>
 		{

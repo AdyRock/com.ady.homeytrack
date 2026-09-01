@@ -929,6 +929,31 @@ button.password-toggle-button {
 	flex: 1;
 }
 
+.settings-section-heading {
+	margin: 20px 0 10px;
+	color: #222;
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.25;
+}
+
+.settings-backup-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.settings-backup-input-label {
+	display: block;
+	margin-bottom: 6px;
+}
+
+.settings-backup-input {
+	width: 100%;
+	margin-bottom: 8px;
+	box-sizing: border-box;
+	resize: vertical;
+}
+
 .tab-nav-shell {
 	position: relative;
 	margin-bottom: 16px;

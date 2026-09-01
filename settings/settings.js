@@ -276,12 +276,31 @@ function onHomeyReady(Homey)
 	Homey.get('mqttPort', (err, value) => { if (!err && value) mqttPort.value = value; });
 	Homey.get('mqttUsername', (err, value) => { if (!err && value) mqttUsername.value = value; });
 	Homey.get('mqttPassword', (err, value) => { if (!err && value) mqttPassword.value = value; });
+	const trackMinDistanceInput = document.getElementById('trackMinDistance');
+	const trackMaxPointsInput = document.getElementById('trackMaxPoints');
+	let trackMinDistance = 50;
+	let trackMaxPoints = 1000;
+
 	Homey.get('speedUnit', (err, value) =>
 	{
 		if (err) return Homey.alert(err);
 		mapSpeedUnit = value === 'mph' ? 'mph' : 'kmh';
 		(mapSpeedUnit === 'mph' ? speedUnitMph : speedUnitKmh).checked = true;
 		if (trackMap) updateTrackScale();
+	});
+
+	Homey.get('trackMinDistance', (err, value) => {
+		if (!err && value) {
+			trackMinDistance = Number(value);
+			trackMinDistanceInput.value = trackMinDistance;
+		}
+	});
+
+	Homey.get('trackMaxPoints', (err, value) => {
+		if (!err && value) {
+			trackMaxPoints = Number(value);
+			trackMaxPointsInput.value = trackMaxPoints;
+		}
 	});
 
 	[speedUnitKmh, speedUnitMph].forEach((radio) =>
@@ -300,6 +319,78 @@ function onHomeyReady(Homey)
 				}
 				Homey.set('speedUnit', radio.value, (err) => { if (err) Homey.alert(err); });
 			}
+		});
+	});
+
+	trackMinDistanceInput.addEventListener('change', () => {
+		trackMinDistance = Math.min(500, Math.max(10, Math.round(Number(trackMinDistanceInput.value) || 50)));
+		trackMinDistanceInput.value = trackMinDistance;
+		Homey.set('trackMinDistance', trackMinDistance, (err) => { if (err) Homey.alert(err); });
+	});
+
+	trackMaxPointsInput.addEventListener('change', () => {
+		trackMaxPoints = Math.min(5000, Math.max(100, Math.round(Number(trackMaxPointsInput.value) || 1000)));
+		trackMaxPointsInput.value = trackMaxPoints;
+		Homey.set('trackMaxPoints', trackMaxPoints, (err) => { if (err) Homey.alert(err); });
+	});
+
+	function getBackupText()
+	{
+		if (navigator.clipboard && window.isSecureContext)
+		{
+			return navigator.clipboard.readText();
+		}
+		return Promise.reject(new Error('Clipboard read is unavailable'));
+	}
+
+	document.getElementById('backupSettings').addEventListener('click', () =>
+	{
+		Homey.api('GET', '/settings/backup', null, (err, backup) =>
+		{
+			if (err) return Homey.alert(err);
+			copyText(JSON.stringify(backup)).then(() => Homey.alert(Homey.__('settings.backup.copied')))
+				.catch(() => Homey.alert(Homey.__('settings.backup.copyFailed')));
+		});
+	});
+
+	const settingsBackupInput = document.getElementById('settingsBackupInput');
+
+	function restoreSettingsBackup(text)
+	{
+		let backup;
+		try
+		{
+			backup = JSON.parse(text);
+		} catch (err)
+		{
+			Homey.alert(Homey.__('settings.backup.invalid'));
+			return;
+		}
+		Homey.confirm(Homey.__('settings.backup.restoreConfirm'), null, (confirmErr, confirmed) =>
+		{
+			if (confirmErr || !confirmed) return;
+			Homey.api('POST', '/settings/restore', backup, (err, result) =>
+			{
+				if (err) return Homey.alert(err);
+				loadAvatarList();
+				loadZoneList();
+				Homey.alert(Homey.__('settings.backup.restored'), null, () => window.location.reload());
+			});
+		});
+	}
+
+	document.getElementById('restoreSettings').addEventListener('click', () =>
+	{
+		const pastedBackup = settingsBackupInput.value.trim();
+		if (pastedBackup)
+		{
+			restoreSettingsBackup(pastedBackup);
+			return;
+		}
+		getBackupText().then((clipboardBackup) => restoreSettingsBackup(clipboardBackup)).catch(() =>
+		{
+			Homey.alert(Homey.__('settings.backup.clipboardUnavailable'));
+			settingsBackupInput.focus();
 		});
 	});
 

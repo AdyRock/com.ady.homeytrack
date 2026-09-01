@@ -34,8 +34,14 @@ module.exports = class UserDevice extends Homey.Device
 			// First run after pairing: seed the editable userId from the immutable device id.
 			await this.setSettings({ userId: this.getData().id }).catch(this.error);
 		}
+		await this.homey.app.restoreImportedUser(this).catch(this.error);
+		await this._initializeZonesFromLastCoordinates();
 
+		this._loadTrackingSettings();
+		this.onAppSettingsChanged = () => this._loadTrackingSettings();
+		this.homey.settings.on('change', this.onAppSettingsChanged);
 		await this._refreshHttpEndpoint().catch(this.error);
+		this.homey.app.requestUserLocation(this);
 	}
 
 	async onUninit()
@@ -47,6 +53,10 @@ module.exports = class UserDevice extends Homey.Device
 		if (this.locationRequestTimer)
 		{
 			clearTimeout(this.locationRequestTimer);
+		}
+		if (this.onAppSettingsChanged)
+		{
+			this.homey.settings.off('change', this.onAppSettingsChanged);
 		}
 	}
 
@@ -83,6 +93,27 @@ module.exports = class UserDevice extends Homey.Device
 				&& typeof waypoint.lon === 'number'
 				&& distanceMeters(lat, lon, waypoint.lat, waypoint.lon) <= (Number(waypoint.rad) || 100))
 			.map((waypoint) => waypoint.desc);
+	}
+
+	async _initializeZonesFromLastCoordinates()
+	{
+		if (this.getCapabilityValue('zone') !== null && this.getCapabilityValue('alarm_presence') !== null)
+		{
+			return;
+		}
+
+		const coordinates = String(this.getCapabilityValue('last_coordinates') || '').split(',').map(Number);
+		if (coordinates.length !== 2 || !coordinates.every(Number.isFinite))
+		{
+			return;
+		}
+
+		const regions = this._findWaypointZones(coordinates[0], coordinates[1]);
+		const zone = regions.length ? regions.join(', ') : 'Unknown';
+		const isHome = regions.some((region) => this._getPresenceZones().includes(region.toLowerCase()));
+		await this.setCapabilityValue('zone', zone).catch(this.error);
+		await this.setCapabilityValue('alarm_presence', isHome).catch(this.error);
+		this.log(`Initialized zone from last coordinates: ${zone}`);
 	}
 
 	async _checkWaypointZoneFallback()
@@ -274,8 +305,7 @@ module.exports = class UserDevice extends Homey.Device
 
 		this._scheduleLocationRequest(location.velocity);
 		const reportedRegions = Array.isArray(location.regions) ? location.regions : [];
-		const isMoving = typeof location.velocity === 'number' && location.velocity > 0;
-		const regions = !reportedRegions.length && !isMoving
+		const regions = !reportedRegions.length
 			? this._findWaypointZones(location.lat, location.lon)
 			: reportedRegions;
 
@@ -316,9 +346,33 @@ module.exports = class UserDevice extends Homey.Device
 		this.homey.api.realtime('tracks_updated', null);
 	}
 
+	_loadTrackingSettings()
+	{
+		this.trackMinDistance = Number(this.homey.settings.get('trackMinDistance')) || TRACK_MIN_DISTANCE_METERS;
+		const newMaxPoints = Number(this.homey.settings.get('trackMaxPoints')) || TRACK_MAX_POINTS;
+		if (newMaxPoints !== this.trackMaxPoints)
+		{
+			this.trackMaxPoints = newMaxPoints;
+			this._trimTrackToMaxPoints().catch(this.error);
+		} else
+		{
+			this.trackMaxPoints = newMaxPoints;
+		}
+	}
+
+	async _trimTrackToMaxPoints()
+	{
+		const track = this.getStoreValue('track') || [];
+		if (track.length > this.trackMaxPoints)
+		{
+			track.splice(0, track.length - this.trackMaxPoints);
+			await this.setStoreValue('track', track);
+		}
+	}
+
 	/**
 	 * Appends a track point when the user has moved far enough since the last recorded point,
-	 * capping the stored history to TRACK_MAX_POINTS, and pushes a realtime update for the
+	 * capping the stored history to trackMaxPoints, and pushes a realtime update for the
 	 * settings page's Map tab. The required distance grows with speed (base distance plus the
 	 * current speed in km/h), so fast journeys don't flood the track with closely-spaced points.
 	 * @param {{ lat?: number, lon?: number, accuracy?: number, velocity?: number, timestamp?: number }} location
@@ -335,7 +389,7 @@ module.exports = class UserDevice extends Homey.Device
 		const speedKmh = typeof location.velocity === 'number' && Number.isFinite(location.velocity) && location.velocity > 0
 			? location.velocity
 			: 0;
-		const requiredDistance = TRACK_MIN_DISTANCE_METERS + speedKmh;
+		const requiredDistance = this.trackMinDistance + speedKmh;
 		const moved = !last || distanceMeters(last.lat, last.lon, location.lat, location.lon) >= requiredDistance;
 
 		if (!moved)
@@ -350,7 +404,7 @@ module.exports = class UserDevice extends Homey.Device
 			velocity: location.velocity,
 			timestamp: location.timestamp || Date.now(),
 		});
-		while (track.length > TRACK_MAX_POINTS)
+		while (track.length > this.trackMaxPoints)
 		{
 			track.shift();
 		}

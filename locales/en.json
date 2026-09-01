@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Connection",
+			"connection": "Connection",
+			"settings": "Settings",
 			"units": "Units",
 			"avatars": "Avatars",
 			"zones": "Zones",
@@ -10,10 +11,30 @@
 			"logs": "Logs"
 		},
 		"units": {
+			"heading": "Units",
 			"intro": "Choose how speed is shown on user devices.",
 			"speed": "Speed",
 			"kmh": "Kilometres per hour (km/h)",
 			"mph": "Miles per hour (mph)"
+		},
+		"tracking": {
+			"heading": "Tracking",
+			"minDistance": "Minimum distance between track points (meters)",
+			"maxPoints": "Maximum track points to store per user"
+		},
+		"backup": {
+			"heading": "Backup",
+			"intro": "Copy or restore settings for another Homey.",
+			"backup": "Backup",
+			"restore": "Restore",
+			"copied": "Settings backup copied to the clipboard.",
+			"copyFailed": "Could not copy the settings backup.",
+			"pasteLabel": "Paste a backup to restore",
+			"pastePlaceholder": "Paste a backup here",
+			"clipboardUnavailable": "Clipboard access is unavailable. Paste the backup into the field above.",
+			"restoreConfirm": "Restore the copied settings? This replaces connection settings and zones for matching users.",
+			"restored": "Settings restored.",
+			"invalid": "This is not a valid Homey Tracks settings backup."
 		},
 		"subtitle": "Configure how OwnTracks reports locations to Homey. The configuration here needs to match the settings in the OwnTracks app.",
 		"status": {
@@ -186,6 +207,8 @@
 		"addUser": {
 			"title": "Add a user",
 			"subtitle": "Create a device to track a family member's location",
+			"importedUser": "Restored user",
+			"chooseImportedUser": "Choose a restored user",
 			"name": "Name",
 			"namePlaceholder": "e.g. Ady",
 			"userId": "User ID",

@@ -19,9 +19,9 @@
 		<button type="button" class="tab-scroll-arrow tab-scroll-arrow-left" aria-label="Scroll tabs left">&#8249;</button>
 		<nav class="tab-nav">
 		<button type="button" class="tab-nav-button active" id="tabButtonSettings" data-tab="settings"
-			data-i18n="settings.tabs.settings">Connection</button>
+			data-i18n="settings.tabs.connection">Connection</button>
 		<button type="button" class="tab-nav-button" id="tabButtonUnits" data-tab="units"
-			data-i18n="settings.tabs.units">Units</button>
+			data-i18n="settings.tabs.settings">Settings</button>
 		<button type="button" class="tab-nav-button" id="tabButtonAvatars" data-tab="avatars"
 			data-i18n="settings.tabs.avatars">Avatars</button>
 		<button type="button" class="tab-nav-button" id="tabButtonZones" data-tab="zones">
@@ -178,6 +178,7 @@
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelUnits">
+		<h2 class="settings-section-heading" data-i18n="settings.units.heading">Units</h2>
 		<p class="homey-subtitle" data-i18n="settings.units.intro">Choose how speed is shown on user devices.</p>
 		<fieldset class="homey-form-radio-set">
 			<legend class="homey-form-radio-set-title" data-i18n="settings.units.speed">Speed</legend>
@@ -192,6 +193,27 @@
 				<span class="homey-form-radio-text" data-i18n="settings.units.mph">Miles per hour (mph)</span>
 			</label>
 		</fieldset>
+
+		<h2 class="settings-section-heading" data-i18n="settings.tracking.heading">Tracking</h2>
+		<fieldset class="homey-form-fieldset">
+			<label class="homey-form-label">
+				<span data-i18n="settings.tracking.minDistance">Minimum distance between track points (meters)</span>
+				<input class="homey-form-input" type="number" id="trackMinDistance" min="10" max="500" step="10" value="50">
+			</label>
+			<label class="homey-form-label">
+				<span data-i18n="settings.tracking.maxPoints">Maximum track points to store per user</span>
+				<input class="homey-form-input" type="number" id="trackMaxPoints" min="100" max="5000" step="100" value="1000">
+			</label>
+		</fieldset>
+
+		<h2 class="settings-section-heading" data-i18n="settings.backup.heading">Backup</h2>
+		<p class="homey-subtitle" data-i18n="settings.backup.intro">Copy or restore settings for another Homey.</p>
+		<label class="homey-form-label settings-backup-input-label" for="settingsBackupInput" data-i18n="settings.backup.pasteLabel">Paste a backup to restore</label>
+		<textarea id="settingsBackupInput" class="homey-form-input settings-backup-input" rows="4" data-i18n-placeholder="settings.backup.pastePlaceholder" placeholder="Paste a backup here"></textarea>
+		<div class="settings-backup-actions">
+			<button type="button" id="backupSettings" class="homey-button-secondary-shadow-small" data-i18n="settings.backup.backup">Backup</button>
+			<button type="button" id="restoreSettings" class="homey-button-secondary-shadow-small" data-i18n="settings.backup.restore">Restore</button>
+		</div>
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelAvatars">
@@ -234,7 +256,7 @@
 		</div>
 		<div id="trackMap" class="track-map"></div>
 		<div id="trackContextMenu" class="track-context-menu hidden">
-			<button type="button" id="toggleTrackPointStyleMenuItem"></button>
+			<button type="button" id="toggleTrackPointStyleMenuItem" aria-label="Toggle track point style"></button>
 			<hr class="track-context-menu-separator">
 			<div id="trackContextMenuUserItems"></div>
 		</div>
@@ -395,7 +417,7 @@
 						<button type="button" id="closeJourneys" class="journey-close-button" aria-label="Close">&times;</button>
 					</div>
 					<div class="journey-gap-control">
-						<span data-i18n="settings.map.journeyGap">Gap (minutes)</span>
+						<label for="journeyGapMinutes" data-i18n="settings.map.journeyGap">Gap (minutes)</label>
 						<input class="homey-form-input" type="number" id="journeyGapMinutes" min="1" max="999" step="1" value="30">
 					</div>
 					<div class="journey-table-wrap">

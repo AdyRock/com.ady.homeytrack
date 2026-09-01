@@ -165,6 +165,16 @@
 			"path": "/avatar",
 			"public": false
 		},
+		"getSettingsBackup": {
+			"method": "GET",
+			"path": "/settings/backup",
+			"public": false
+		},
+		"restoreSettingsBackup": {
+			"method": "POST",
+			"path": "/settings/restore",
+			"public": false
+		},
 		"getWaypoints": {
 			"method": "GET",
 			"path": "/waypoints",
