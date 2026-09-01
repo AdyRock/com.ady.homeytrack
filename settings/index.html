@@ -856,6 +856,65 @@
 			background: #f0f0f0;
 		}
 
+		.track-context-menu-separator {
+			border: none;
+			border-top: 1px solid #eee;
+			margin: 4px 0;
+		}
+
+		.track-context-user-row {
+			display: flex;
+			align-items: center;
+		}
+
+		.track-context-user-name {
+			flex: 1;
+			text-align: center;
+			font-size: 14px;
+			color: #333;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.track-context-menu button.track-context-icon-button {
+			flex-shrink: 0;
+			width: 32px !important;
+			height: 32px !important;
+			min-width: 32px !important;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: none !important;
+			border: none !important;
+			border-radius: 4px;
+			padding: 0 !important;
+			cursor: pointer;
+			color: #333 !important;
+		}
+
+		.track-context-menu button.track-context-icon-button:hover {
+			background: #f0f0f0;
+		}
+
+		.track-context-menu button.track-context-icon-button.track-context-icon-placeholder {
+			visibility: hidden;
+			cursor: default;
+		}
+
+		.track-context-icon-button svg {
+			display: block !important;
+			visibility: visible !important;
+			opacity: 1 !important;
+			width: 18px !important;
+			height: 18px !important;
+			fill: currentColor !important;
+		}
+
+		.track-context-icon-button svg path {
+			fill: currentColor !important;
+		}
+
 		.track-speed-label {
 			position: absolute;
 			left: 50%;
@@ -1259,6 +1318,8 @@
 		<div id="trackMap" class="track-map"></div>
 		<div id="trackContextMenu" class="track-context-menu hidden">
 			<button type="button" id="toggleTrackPointStyleMenuItem"></button>
+			<hr class="track-context-menu-separator">
+			<div id="trackContextMenuUserItems"></div>
 		</div>
 	</div>
 
@@ -2762,6 +2823,24 @@
 				});
 			}
 
+			// Shared by the Filter checkboxes and the map's right-click/long-press menu, so both
+			// stay in sync when a user is shown or hidden from either place.
+			function setTrackUserVisibility(user, visible, refreshFilterList = true)
+			{
+				if (selectedTrackUserIds === null)
+				{
+					selectedTrackUserIds = new Set(trackUsers.map((item) => item.id));
+				}
+				if (visible) selectedTrackUserIds.add(user.id);
+				else selectedTrackUserIds.delete(user.id);
+				if (!visible && selectedJourney && selectedJourney.userId === user.id) selectedJourney = null;
+				// Showing/hiding a user shouldn't move the map the user is currently looking at.
+				renderTracks(trackUsers, false, false);
+				renderTrackHistory(trackUsers);
+				renderJourneys();
+				if (refreshFilterList) renderTrackFilter(trackUsers);
+			}
+
 			function renderTrackFilter(users)
 			{
 				const filterList = document.getElementById('trackFilterList');
@@ -2787,16 +2866,7 @@
 					checkbox.checked = selectedTrackUserIds === null || selectedTrackUserIds.has(user.id);
 					checkbox.addEventListener('change', () =>
 					{
-						if (selectedTrackUserIds === null)
-						{
-							selectedTrackUserIds = new Set(users.map((item) => item.id));
-						}
-						if (checkbox.checked) selectedTrackUserIds.add(user.id);
-						else selectedTrackUserIds.delete(user.id);
-						if (!checkbox.checked && selectedJourney && selectedJourney.userId === user.id) selectedJourney = null;
-						renderTracks(trackUsers);
-						renderTrackHistory(trackUsers);
-						renderJourneys();
+						setTrackUserVisibility(user, checkbox.checked, false);
 					});
 
 					const checkmark = document.createElement('span');
@@ -3273,15 +3343,75 @@
 
 			const trackContextMenu = document.getElementById('trackContextMenu');
 			const togglePointStyleMenuItem = document.getElementById('toggleTrackPointStyleMenuItem');
+			const trackContextMenuUserItems = document.getElementById('trackContextMenuUserItems');
 
 			function showTrackContextMenu(clientX, clientY)
 			{
 				togglePointStyleMenuItem.textContent = trackPointStyle === 'classic'
 					? Homey.__('settings.map.useTeardropPoints')
 					: Homey.__('settings.map.useClassicPoints');
+
+				trackContextMenuUserItems.textContent = '';
+				trackUsers.forEach((user) =>
+				{
+					const isVisible = selectedTrackUserIds === null || selectedTrackUserIds.has(user.id);
+					const row = document.createElement('div');
+					row.className = 'track-context-user-row';
+
+					const visibilityButton = document.createElement('button');
+					visibilityButton.type = 'button';
+					visibilityButton.className = 'track-context-icon-button';
+					visibilityButton.setAttribute('aria-label', Homey.__(isVisible ? 'settings.map.hideUser' : 'settings.map.showUser').replace('[[user]]', user.name));
+					visibilityButton.innerHTML = isVisible
+						? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>'
+						: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.42-.08.65 0 1.66 1.34 3 3 3 .23 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01zM12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7z"/></svg>';
+					visibilityButton.addEventListener('click', () =>
+					{
+						setTrackUserVisibility(user, !isVisible);
+						hideTrackContextMenu();
+					});
+
+					const name = document.createElement('span');
+					name.className = 'track-context-user-name';
+					name.textContent = user.name;
+
+					const canCenter = isVisible && user.lastLocation
+						&& typeof user.lastLocation.lat === 'number' && typeof user.lastLocation.lon === 'number';
+					const centerButton = document.createElement('button');
+					centerButton.type = 'button';
+					if (canCenter)
+					{
+						centerButton.className = 'track-context-icon-button';
+						centerButton.setAttribute('aria-label', Homey.__('settings.map.centerOnUser').replace('[[user]]', user.name));
+						centerButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>';
+						centerButton.addEventListener('click', () =>
+						{
+							trackMap.panTo([user.lastLocation.lat, user.lastLocation.lon]);
+							hideTrackContextMenu();
+						});
+					} else
+					{
+						centerButton.className = 'track-context-icon-button track-context-icon-placeholder';
+						centerButton.disabled = true;
+						centerButton.setAttribute('aria-hidden', 'true');
+					}
+
+					row.append(visibilityButton, name, centerButton);
+					trackContextMenuUserItems.appendChild(row);
+				});
+
 				trackContextMenu.style.left = `${clientX}px`;
 				trackContextMenu.style.top = `${clientY}px`;
 				trackContextMenu.classList.remove('hidden');
+
+				// Re-measure now that it's visible and clamp it fully inside the viewport,
+				// since it can otherwise open partially off the edge of the screen.
+				const margin = 8;
+				const menuRect = trackContextMenu.getBoundingClientRect();
+				const clampedLeft = Math.max(margin, Math.min(clientX, window.innerWidth - menuRect.width - margin));
+				const clampedTop = Math.max(margin, Math.min(clientY, window.innerHeight - menuRect.height - margin));
+				trackContextMenu.style.left = `${clampedLeft}px`;
+				trackContextMenu.style.top = `${clampedTop}px`;
 			}
 
 			function hideTrackContextMenu()

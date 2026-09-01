@@ -161,7 +161,10 @@
 			"noJourneys": "No journeys in this date range.",
 			"distance": "Distance",
 			"useClassicPoints": "Use classic dots",
-			"useTeardropPoints": "Use teardrop markers"
+			"useTeardropPoints": "Use teardrop markers",
+			"hideUser": "Hide [[user]]",
+			"showUser": "Show [[user]]",
+			"centerOnUser": "Center on [[user]]"
 		},
 		"logs": {
 			"intro": "The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.",
