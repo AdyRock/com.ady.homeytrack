@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Verbindung",
+			"connection": "Verbindung",
+			"settings": "Einstellungen",
 			"units": "Einheiten",
 			"avatars": "Avatare",
 			"zones": "Zonen",
@@ -10,10 +11,30 @@
 			"logs": "Protokolle"
 		},
 		"units": {
+			"heading": "Einheiten",
 			"intro": "Wählen Sie, wie die Geschwindigkeit auf Benutzergeräten angezeigt wird.",
 			"speed": "Geschwindigkeit",
 			"kmh": "Kilometer pro Stunde (km/h)",
 			"mph": "Meilen pro Stunde (mph)"
+		},
+		"tracking": {
+			"heading": "Tracking",
+			"minDistance": "Mindestabstand zwischen Trackpunkten (Meter)",
+			"maxPoints": "Maximale Anzahl gespeicherter Trackpunkte pro Benutzer"
+		},
+		"backup": {
+			"heading": "Sicherung",
+			"intro": "Einstellungen für ein anderes Homey kopieren oder wiederherstellen.",
+			"backup": "Sichern",
+			"restore": "Wiederherstellen",
+			"copied": "Die Einstellungssicherung wurde in die Zwischenablage kopiert.",
+			"copyFailed": "Die Einstellungssicherung konnte nicht kopiert werden.",
+			"pasteLabel": "Sicherung zum Wiederherstellen einfügen",
+			"pastePlaceholder": "Sicherung hier einfügen",
+			"pasteRequired": "Fügen Sie die Sicherungsdaten oben in das Feld ein und wählen Sie dann Wiederherstellen.",
+			"restoreConfirm": "Kopierte Einstellungen wiederherstellen? Dadurch werden Verbindungseinstellungen und Zonen für passende Benutzer ersetzt.",
+			"restored": "Einstellungen wiederhergestellt.",
+			"invalid": "Dies ist keine gültige Homey-Tracks-Einstellungssicherung."
 		},
 		"subtitle": "Konfigurieren Sie, wie OwnTracks Standorte an Homey meldet. Die Einstellungen hier müssen zu den Einstellungen in der OwnTracks-App passen.",
 		"status": {
@@ -32,6 +53,11 @@
 		},
 		"help": {
 			"close": "Schließen",
+			"settings": {
+				"aria": "Hilfe zu Einstellungen und Sicherungen",
+				"title": "Einstellungen und Sicherungen",
+				"body": "Einstellungen speichern\nDie Einheit **Geschwindigkeit** wird sofort nach der Auswahl angewendet. **Mindestabstand** und **Maximale Trackpunkte** werden gespeichert, wenn Sie die Eingabetaste drücken oder das Feld verlassen. Beim Verringern des Maximums werden die ältesten Koordinaten gelöscht und die neuesten behalten. Auch eine Homey-Speicherwarnung kann dieses Limit automatisch reduzieren.\n\nTracking\nDer **Mindestabstand** bestimmt, wie weit sich ein Benutzer bewegen muss, bevor eine weitere Koordinate gespeichert wird. Der erforderliche Abstand steigt außerdem mit der Geschwindigkeit. **Maximale Trackpunkte** begrenzt den gespeicherten Verlauf jedes Benutzers; ein höherer Wert benötigt mehr Speicher.\n\nSicherung erstellen\nWählen Sie **Sichern**, um eine JSON-Sicherung in die Zwischenablage zu kopieren. Sie enthält Verbindungs- und Tracking-Einstellungen einschließlich MQTT-Benutzername und -Passwort sowie Avatare, Benutzer-IDs, Anwesenheitszonen, MQTT-Themen und gemeinsam genutzte/private Zonenkonfigurationen. **Behandeln Sie die Sicherung vertraulich**. Trackkoordinaten und Protokolle sind nicht enthalten.\n\nSicherung wiederherstellen\nFügen Sie die vollständige Sicherung in das Feld ein und wählen Sie **Wiederherstellen**. Bestätigen Sie, dass App-Einstellungen und Zonenkonfiguration ersetzt werden sollen.\n\nBenutzer zuordnen\nVorhandene Benutzer werden anhand ihrer OwnTracks-Benutzer-ID zugeordnet. Einstellungen, Avatar, Thema und Zonen werden wiederhergestellt. Noch nicht gekoppelte Benutzer bleiben als importierte Benutzer erhalten; ihre Daten werden angewendet, sobald ein passendes Benutzergerät gekoppelt wird. Verbindungsänderungen können dazu führen, dass die App die Verbindung neu aufbaut."
+			},
 			"comparison": {
 				"title": "MQTT oder HTTP wählen",
 				"mqtt": "MQTT",

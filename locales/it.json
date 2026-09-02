@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Connessione",
+			"connection": "Connessione",
+			"settings": "Impostazioni",
 			"units": "Unità",
 			"avatars": "Avatar",
 			"zones": "Zone",
@@ -10,10 +11,30 @@
 			"logs": "Log"
 		},
 		"units": {
+			"heading": "Unità",
 			"intro": "Scegli come visualizzare la velocità sui dispositivi utente.",
 			"speed": "Velocità",
 			"kmh": "Chilometri orari (km/h)",
 			"mph": "Miglia orarie (mph)"
+		},
+		"tracking": {
+			"heading": "Tracciamento",
+			"minDistance": "Distanza minima tra i punti del percorso (metri)",
+			"maxPoints": "Numero massimo di punti del percorso da memorizzare per utente"
+		},
+		"backup": {
+			"heading": "Backup",
+			"intro": "Copia o ripristina le impostazioni per un altro Homey.",
+			"backup": "Backup",
+			"restore": "Ripristina",
+			"copied": "Il backup delle impostazioni è stato copiato negli appunti.",
+			"copyFailed": "Impossibile copiare il backup delle impostazioni.",
+			"pasteLabel": "Incolla un backup da ripristinare",
+			"pastePlaceholder": "Incolla qui il backup",
+			"pasteRequired": "Incolla i dati del backup nel campo qui sopra, quindi seleziona Ripristina.",
+			"restoreConfirm": "Ripristinare le impostazioni copiate? Le impostazioni di connessione e le zone degli utenti corrispondenti verranno sostituite.",
+			"restored": "Impostazioni ripristinate.",
+			"invalid": "Questo non è un backup valido delle impostazioni di Homey Tracks."
 		},
 		"subtitle": "Configura come OwnTracks invia le posizioni a Homey. Le impostazioni qui devono corrispondere a quelle nell'app OwnTracks.",
 		"status": {
@@ -32,6 +53,11 @@
 		},
 		"help": {
 			"close": "Chiudi",
+			"settings": {
+				"aria": "Aiuto per impostazioni e backup",
+				"title": "Impostazioni e backup",
+				"body": "Salvataggio delle impostazioni\nL'unità di **Velocità** viene applicata immediatamente dopo la selezione. **Distanza minima** e **Numero massimo di punti del percorso** vengono salvati quando premi Invio o esci dal campo. Riducendo il massimo vengono eliminate le coordinate più vecchie e conservate quelle più recenti. Anche un avviso di memoria di Homey può ridurre automaticamente questo limite.\n\nTracciamento\nLa **Distanza minima** stabilisce quanto deve spostarsi un utente prima di memorizzare un'altra coordinata. La distanza richiesta aumenta anche con la velocità. Il **Numero massimo di punti del percorso** limita la cronologia memorizzata per ogni utente; un valore maggiore usa più memoria.\n\nCreazione di un backup\nSeleziona **Backup** per copiare un backup JSON negli appunti. Contiene le impostazioni di connessione e tracciamento, inclusi nome utente e password MQTT, oltre ad avatar, ID utente, impostazioni delle zone di presenza, argomenti MQTT e configurazione delle zone condivise/private. **Tratta il backup come dato sensibile**. Le coordinate del percorso e i log non sono inclusi.\n\nRipristino di un backup\nIncolla il backup completo nel campo e seleziona **Ripristina**. Conferma la sostituzione delle impostazioni dell'app e della configurazione delle zone.\n\nCorrispondenza degli utenti\nGli utenti esistenti vengono abbinati tramite il loro ID utente OwnTracks. Vengono ripristinati impostazioni, avatar, argomento e zone. Gli utenti non ancora abbinati vengono conservati come utenti importati e i loro dati vengono applicati quando viene abbinato un dispositivo utente corrispondente. Le modifiche alla connessione possono causare la riconnessione dell'app."
+			},
 			"comparison": {
 				"title": "Scegliere MQTT o HTTP",
 				"mqtt": "MQTT",

@@ -31,6 +31,8 @@ const SETTINGS_BACKUP_KEYS = [
 ];
 
 const MAX_LOG_BUFFER_BYTES = 20 * 1024;
+const DEFAULT_TRACK_MAX_POINTS = 1000;
+const MIN_TRACK_MAX_POINTS = 100;
 
 module.exports = class MyApp extends Homey.App
 {
@@ -48,6 +50,7 @@ module.exports = class MyApp extends Homey.App
 		this.mqttActiveTopics = new Set();
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
 		this.logBuffer = [];
+		this.memoryWarningPromise = null;
 		this._migrateWaypointModel();
 
 		// Default "logsEnabled" to false on first run, so its state is explicit and predictable
@@ -61,6 +64,10 @@ module.exports = class MyApp extends Homey.App
 		// crash the whole app process via an uncaught exception or unhandled rejection.
 		process.on('unhandledRejection', (err) => this._logError('Unhandled rejection', err));
 		process.on('uncaughtException', (err) => this._logError('Uncaught exception', err));
+		this.homey.on('mem_warn', () =>
+		{
+			this._onMemoryWarning();
+		});
 
 		await this._reconnect();
 
@@ -84,6 +91,44 @@ module.exports = class MyApp extends Homey.App
 		});
 
 		this._log(`MyApp has been initialized (log messages ${this.homey.settings.get('logsEnabled') ? 'enabled' : 'disabled'})`);
+	}
+
+	_onMemoryWarning()
+	{
+		this._logError('Memory warning received; reducing stored track buffers');
+		if (this.memoryWarningPromise)
+		{
+			this._log('Memory warning handling is already in progress');
+			return;
+		}
+
+		this.memoryWarningPromise = this._reduceTrackBuffers()
+			.catch((err) => this._logError('Failed to reduce track buffers after memory warning', err))
+			.finally(() =>
+			{
+				this.memoryWarningPromise = null;
+			});
+	}
+
+	async _reduceTrackBuffers()
+	{
+		const configuredMaxPoints = Number(this.homey.settings.get('trackMaxPoints')) || DEFAULT_TRACK_MAX_POINTS;
+		const previousMaxPoints = Math.max(1, Math.floor(configuredMaxPoints));
+		const reducedMaxPoints = previousMaxPoints <= MIN_TRACK_MAX_POINTS
+			? previousMaxPoints
+			: Math.max(MIN_TRACK_MAX_POINTS, Math.floor(previousMaxPoints / 2));
+
+		if (reducedMaxPoints !== previousMaxPoints)
+		{
+			await this.homey.settings.set('trackMaxPoints', reducedMaxPoints);
+		}
+
+		const devices = this.homey.drivers.getDriver('user').getDevices();
+		const removedCounts = await Promise.all(devices
+			.map((device) => device.trimTrackToMaxPoints(reducedMaxPoints)));
+		const removedPoints = removedCounts.reduce((total, count) => total + count, 0);
+		this.homey.api.realtime('tracks_updated', null);
+		this._log(`Memory warning resolved: track limit ${previousMaxPoints} -> ${reducedMaxPoints}; trimmed ${removedPoints} point(s) across ${devices.length} user(s)`);
 	}
 
 	/**
@@ -202,8 +247,8 @@ module.exports = class MyApp extends Homey.App
 	}
 
 	/**
-	 * Builds "card" (name/avatar), "location" and "waypoints" (shared zones) entries for every
-	 * paired User device, so an OwnTracks HTTP response can show all family members (with
+	 * Builds "card" (name/avatar), "location" and a "cmd"/setWaypoints (shared zones) entry for
+	 * every paired User device, so an OwnTracks HTTP response can show all family members (with
 	 * avatars) on the same map, and keep everyone's zones in sync.
 	 * @returns {Promise<object[]>}
 	 */
@@ -219,9 +264,15 @@ module.exports = class MyApp extends Homey.App
 
 		const requestingDevice = this._findUserDevice(userId, userId);
 		const waypoints = requestingDevice ? this.listWaypoints(requestingDevice.getData().id) : this.listWaypoints();
+		// OwnTracks HTTP responses only honour location/cmd/card/transition _types; a bare
+		// "waypoints" entry is silently ignored, so zones must be pushed via a "cmd"/setWaypoints.
 		entries.push({
-			_type: 'waypoints',
-			waypoints: waypoints.map((wp) => ({ _type: 'waypoint', ...wp })),
+			_type: 'cmd',
+			action: 'setWaypoints',
+			waypoints: {
+				_type: 'waypoints',
+				waypoints: waypoints.map((wp) => ({ _type: 'waypoint', ...wp })),
+			},
 		});
 		if (requestingDevice)
 		{
@@ -271,7 +322,8 @@ module.exports = class MyApp extends Homey.App
 			})),
 			zones: {
 				shared: this._getSharedWaypoints(),
-				users: devices.map((device) => {
+				users: devices.map((device) =>
+				{
 					const deviceId = device.getData().id;
 					return {
 						userId: device.getUserId(),
@@ -314,7 +366,8 @@ module.exports = class MyApp extends Homey.App
 		const exclusions = this._getSharedExclusions();
 		let restoredUsers = 0;
 
-		backup.zones.users.forEach((user) => {
+		backup.zones.users.forEach((user) =>
+		{
 			const device = findDeviceByUserId(user.userId);
 			if (!device || !Array.isArray(user.private) || !Array.isArray(user.disabledSharedWaypointIds)) return;
 			const deviceId = device.getData().id;

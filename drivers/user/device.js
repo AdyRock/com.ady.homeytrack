@@ -39,7 +39,7 @@ module.exports = class UserDevice extends Homey.Device
 
 		this._loadTrackingSettings();
 		this.onAppSettingsChanged = () => this._loadTrackingSettings();
-		this.homey.settings.on('change', this.onAppSettingsChanged);
+		this.homey.settings.on('set', this.onAppSettingsChanged);
 		await this._refreshHttpEndpoint().catch(this.error);
 		this.homey.app.requestUserLocation(this);
 	}
@@ -56,7 +56,7 @@ module.exports = class UserDevice extends Homey.Device
 		}
 		if (this.onAppSettingsChanged)
 		{
-			this.homey.settings.off('change', this.onAppSettingsChanged);
+			this.homey.settings.off('set', this.onAppSettingsChanged);
 		}
 	}
 
@@ -353,21 +353,33 @@ module.exports = class UserDevice extends Homey.Device
 		if (newMaxPoints !== this.trackMaxPoints)
 		{
 			this.trackMaxPoints = newMaxPoints;
-			this._trimTrackToMaxPoints().catch(this.error);
+			this.trimTrackToMaxPoints().catch(this.error);
 		} else
 		{
 			this.trackMaxPoints = newMaxPoints;
 		}
 	}
 
-	async _trimTrackToMaxPoints()
+	async trimTrackToMaxPoints(maxPoints = this.trackMaxPoints)
 	{
 		const track = this.getStoreValue('track') || [];
-		if (track.length > this.trackMaxPoints)
+		const removedPoints = Math.max(0, track.length - maxPoints);
+		if (removedPoints > 0)
 		{
-			track.splice(0, track.length - this.trackMaxPoints);
-			await this.setStoreValue('track', track);
+			const retainedTrack = track
+				.map((point, index) => ({ point, index }))
+				.sort((first, second) =>
+				{
+					const firstTimestamp = Number.isFinite(first.point.timestamp) ? first.point.timestamp : 0;
+					const secondTimestamp = Number.isFinite(second.point.timestamp) ? second.point.timestamp : 0;
+					return firstTimestamp - secondTimestamp || first.index - second.index;
+				})
+				.slice(-maxPoints)
+				.map(({ point }) => point);
+			await this.setStoreValue('track', retainedTrack);
+			this.homey.api.realtime('tracks_updated', null);
 		}
+		return removedPoints;
 	}
 
 	/**

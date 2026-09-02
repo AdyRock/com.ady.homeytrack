@@ -31,7 +31,7 @@
 			"copyFailed": "Could not copy the settings backup.",
 			"pasteLabel": "Paste a backup to restore",
 			"pastePlaceholder": "Paste a backup here",
-			"clipboardUnavailable": "Clipboard access is unavailable. Paste the backup into the field above.",
+			"pasteRequired": "Paste the backup data into the field above, then select Restore.",
 			"restoreConfirm": "Restore the copied settings? This replaces connection settings and zones for matching users.",
 			"restored": "Settings restored.",
 			"invalid": "This is not a valid Homey Tracks settings backup."
@@ -53,6 +53,11 @@
 		},
 		"help": {
 			"close": "Close",
+			"settings": {
+				"aria": "Help with settings and backups",
+				"title": "Settings and backups",
+				"body": "Saving settings\nThe **Speed** unit applies immediately when selected.\n**Minimum distance** and **Maximum track points** are saved when you press Enter or leave their fields. Reducing the maximum deletes the oldest coordinates and keeps the newest ones. A Homey memory warning can also reduce this limit automatically.\n\nTracking\n**Minimum distance** controls how far a user must move before another coordinate is stored. The required distance also increases with speed.\n**Maximum track points** limits each user's stored history; a larger value uses more memory.\n\nCreating a backup\nSelect **Backup** to copy a JSON backup to the clipboard. It contains connection and tracking settings, including the MQTT username and password, plus user avatars, user IDs and presence-zone settings, MQTT topics, and shared/private zone configuration. **Treat the backup as sensitive**. Track coordinates and logs are not included.\n\nRestoring a backup\nPaste the complete backup into the field and select **Restore**. Confirm the prompt to replace the app settings and zone configuration.\n\nMatching users\nExisting users are matched by their OwnTracks user ID. Their settings, avatar, topic, and zones are restored. Users not yet paired are retained as imported users and their saved details are available to select when a user device is paired later. Connection changes may cause the app to reconnect."
+			},
 			"comparison": {
 				"title": "Choosing MQTT or HTTP",
 				"mqtt": "MQTT",

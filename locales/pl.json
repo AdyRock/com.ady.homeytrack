@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Połączenie",
+			"connection": "Połączenie",
+			"settings": "Ustawienia",
 			"units": "Jednostki",
 			"avatars": "Awatary",
 			"zones": "Strefy",
@@ -10,10 +11,30 @@
 			"logs": "Logi"
 		},
 		"units": {
+			"heading": "Jednostki",
 			"intro": "Wybierz sposób wyświetlania prędkości na urządzeniach użytkowników.",
 			"speed": "Prędkość",
 			"kmh": "Kilometry na godzinę (km/h)",
 			"mph": "Mile na godzinę (mph)"
+		},
+		"tracking": {
+			"heading": "Śledzenie",
+			"minDistance": "Minimalna odległość między punktami trasy (metry)",
+			"maxPoints": "Maksymalna liczba punktów trasy zapisywanych dla użytkownika"
+		},
+		"backup": {
+			"heading": "Kopia zapasowa",
+			"intro": "Skopiuj lub przywróć ustawienia dla innego Homey.",
+			"backup": "Utwórz kopię",
+			"restore": "Przywróć",
+			"copied": "Kopia zapasowa ustawień została skopiowana do schowka.",
+			"copyFailed": "Nie udało się skopiować kopii zapasowej ustawień.",
+			"pasteLabel": "Wklej kopię zapasową do przywrócenia",
+			"pastePlaceholder": "Wklej tutaj kopię zapasową",
+			"pasteRequired": "Wklej dane kopii zapasowej w polu powyżej, a następnie wybierz Przywróć.",
+			"restoreConfirm": "Przywrócić skopiowane ustawienia? Spowoduje to zastąpienie ustawień połączenia i stref pasujących użytkowników.",
+			"restored": "Ustawienia zostały przywrócone.",
+			"invalid": "To nie jest prawidłowa kopia zapasowa ustawień Homey Tracks."
 		},
 		"subtitle": "Skonfiguruj sposób raportowania lokalizacji do Homey przez OwnTracks. Ustawienia tutaj muszą odpowiadać ustawieniom w aplikacji OwnTracks.",
 		"status": {
@@ -32,6 +53,11 @@
 		},
 		"help": {
 			"close": "Zamknij",
+			"settings": {
+				"aria": "Pomoc dotycząca ustawień i kopii zapasowych",
+				"title": "Ustawienia i kopie zapasowe",
+				"body": "Zapisywanie ustawień\nJednostka **Prędkości** jest stosowana natychmiast po wybraniu. **Minimalna odległość** i **Maksymalna liczba punktów trasy** są zapisywane po naciśnięciu Enter lub opuszczeniu pola. Zmniejszenie limitu usuwa najstarsze współrzędne i zachowuje najnowsze. Ostrzeżenie Homey o pamięci może również automatycznie zmniejszyć ten limit.\n\nŚledzenie\n**Minimalna odległość** określa, jak daleko użytkownik musi się przemieścić przed zapisaniem kolejnej współrzędnej. Wymagana odległość zwiększa się również wraz z prędkością. **Maksymalna liczba punktów trasy** ogranicza historię zapisywaną dla każdego użytkownika; wyższa wartość zużywa więcej pamięci.\n\nTworzenie kopii zapasowej\nWybierz **Utwórz kopię**, aby skopiować kopię JSON do schowka. Zawiera ona ustawienia połączenia i śledzenia, w tym nazwę użytkownika i hasło MQTT, a także awatary, identyfikatory użytkowników, ustawienia stref obecności, tematy MQTT oraz konfigurację stref wspólnych i prywatnych. **Traktuj kopię zapasową jako dane poufne**. Współrzędne tras i logi nie są uwzględniane.\n\nPrzywracanie kopii zapasowej\nWklej pełną kopię zapasową w polu i wybierz **Przywróć**. Potwierdź zastąpienie ustawień aplikacji i konfiguracji stref.\n\nDopasowywanie użytkowników\nIstniejący użytkownicy są dopasowywani według identyfikatora użytkownika OwnTracks. Ich ustawienia, awatar, temat i strefy zostaną przywrócone. Użytkownicy, którzy nie są jeszcze sparowani, są zachowywani jako użytkownicy zaimportowani, a ich dane zostaną zastosowane po późniejszym sparowaniu pasującego urządzenia użytkownika. Zmiany połączenia mogą spowodować ponowne połączenie aplikacji."
+			},
 			"comparison": {
 				"title": "Wybór MQTT lub HTTP",
 				"mqtt": "MQTT",

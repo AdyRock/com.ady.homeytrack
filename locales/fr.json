@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Connexion",
+			"connection": "Connexion",
+			"settings": "Paramètres",
 			"units": "Unités",
 			"avatars": "Avatars",
 			"zones": "Zones",
@@ -10,10 +11,30 @@
 			"logs": "Journaux"
 		},
 		"units": {
+			"heading": "Unités",
 			"intro": "Choisissez comment la vitesse est affichée sur les appareils utilisateur.",
 			"speed": "Vitesse",
 			"kmh": "Kilomètres par heure (km/h)",
 			"mph": "Miles par heure (mph)"
+		},
+		"tracking": {
+			"heading": "Suivi",
+			"minDistance": "Distance minimale entre les points de trajet (mètres)",
+			"maxPoints": "Nombre maximal de points de trajet à conserver par utilisateur"
+		},
+		"backup": {
+			"heading": "Sauvegarde",
+			"intro": "Copiez ou restaurez les paramètres pour un autre Homey.",
+			"backup": "Sauvegarder",
+			"restore": "Restaurer",
+			"copied": "La sauvegarde des paramètres a été copiée dans le presse-papiers.",
+			"copyFailed": "Impossible de copier la sauvegarde des paramètres.",
+			"pasteLabel": "Collez une sauvegarde à restaurer",
+			"pastePlaceholder": "Collez la sauvegarde ici",
+			"pasteRequired": "Collez les données de sauvegarde dans le champ ci-dessus, puis sélectionnez Restaurer.",
+			"restoreConfirm": "Restaurer les paramètres copiés ? Cela remplacera les paramètres de connexion et les zones des utilisateurs correspondants.",
+			"restored": "Paramètres restaurés.",
+			"invalid": "Cette sauvegarde des paramètres Homey Tracks n'est pas valide."
 		},
 		"subtitle": "Configurez la manière dont OwnTracks envoie les positions à Homey. La configuration ici doit correspondre aux réglages de l'application OwnTracks.",
 		"status": {
@@ -32,6 +53,11 @@
 		},
 		"help": {
 			"close": "Fermer",
+			"settings": {
+				"aria": "Aide sur les paramètres et les sauvegardes",
+				"title": "Paramètres et sauvegardes",
+				"body": "Enregistrement des paramètres\nL'unité de **Vitesse** s'applique immédiatement après sa sélection. **Distance minimale** et **Nombre maximal de points de trajet** sont enregistrés lorsque vous appuyez sur Entrée ou quittez le champ. Réduire le maximum supprime les coordonnées les plus anciennes et conserve les plus récentes. Un avertissement de mémoire Homey peut également réduire automatiquement cette limite.\n\nSuivi\nLa **Distance minimale** détermine la distance qu'un utilisateur doit parcourir avant qu'une nouvelle coordonnée soit enregistrée. La distance requise augmente également avec la vitesse. Le **Nombre maximal de points de trajet** limite l'historique enregistré de chaque utilisateur ; une valeur plus élevée utilise davantage de mémoire.\n\nCréer une sauvegarde\nSélectionnez **Sauvegarder** pour copier une sauvegarde JSON dans le presse-papiers. Elle contient les paramètres de connexion et de suivi, notamment le nom d'utilisateur et le mot de passe MQTT, ainsi que les avatars, ID utilisateur, paramètres des zones de présence, sujets MQTT et configurations des zones partagées et privées. **Traitez cette sauvegarde comme confidentielle**. Les coordonnées de trajet et les journaux ne sont pas inclus.\n\nRestaurer une sauvegarde\nCollez la sauvegarde complète dans le champ et sélectionnez **Restaurer**. Confirmez le remplacement des paramètres de l'application et de la configuration des zones.\n\nCorrespondance des utilisateurs\nLes utilisateurs existants sont identifiés par leur ID utilisateur OwnTracks. Leurs paramètres, avatar, sujet et zones sont restaurés. Les utilisateurs non encore associés sont conservés comme utilisateurs importés et leurs données sont appliquées lorsqu'un appareil utilisateur correspondant est associé. Les changements de connexion peuvent entraîner une reconnexion de l'application."
+			},
 			"comparison": {
 				"title": "Choisir MQTT ou HTTP",
 				"mqtt": "MQTT",

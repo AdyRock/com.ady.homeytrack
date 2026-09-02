@@ -187,6 +187,12 @@ function onHomeyReady(Homey)
 	wireHelpModal('helpHttp', 'helpModalHttp', 'closeHelpHttp');
 	document.getElementById('helpMethodComparison').appendChild(document.querySelector('#helpMqtt svg').cloneNode(true));
 	wireHelpModal('helpMethodComparison', 'helpModalMethodComparison', 'closeHelpMethodComparison');
+	const helpSettings = document.getElementById('helpSettings');
+	const helpSettingsLabel = Homey.__('settings.help.settings.aria');
+	helpSettings.setAttribute('aria-label', helpSettingsLabel);
+	helpSettings.setAttribute('title', helpSettingsLabel);
+	helpSettings.appendChild(document.querySelector('#helpMqtt svg').cloneNode(true));
+	wireHelpModal('helpSettings', 'helpModalSettings', 'closeHelpSettings');
 	const helpZones = document.getElementById('helpZones');
 	const helpZonesLabel = Homey.__('settings.zones.helpAria');
 	helpZones.setAttribute('aria-label', helpZonesLabel);
@@ -334,15 +340,6 @@ function onHomeyReady(Homey)
 		Homey.set('trackMaxPoints', trackMaxPoints, (err) => { if (err) Homey.alert(err); });
 	});
 
-	function getBackupText()
-	{
-		if (navigator.clipboard && window.isSecureContext)
-		{
-			return navigator.clipboard.readText();
-		}
-		return Promise.reject(new Error('Clipboard read is unavailable'));
-	}
-
 	document.getElementById('backupSettings').addEventListener('click', () =>
 	{
 		Homey.api('GET', '/settings/backup', null, (err, backup) =>
@@ -387,11 +384,7 @@ function onHomeyReady(Homey)
 			restoreSettingsBackup(pastedBackup);
 			return;
 		}
-		getBackupText().then((clipboardBackup) => restoreSettingsBackup(clipboardBackup)).catch(() =>
-		{
-			Homey.alert(Homey.__('settings.backup.clipboardUnavailable'));
-			settingsBackupInput.focus();
-		});
+		Homey.alert(Homey.__('settings.backup.pasteRequired'), null, () => settingsBackupInput.focus());
 	});
 
 	function translateStatus(key, status)
@@ -1731,7 +1724,10 @@ function onHomeyReady(Homey)
 			collapseIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
 			const headingLabel = document.createElement('span');
 			headingLabel.textContent = user.name;
-			heading.append(collapseIcon, headingLabel);
+			const headingCount = document.createElement('span');
+			headingCount.className = 'track-history-count';
+			headingCount.textContent = `(${points.length})`;
+			heading.append(collapseIcon, headingLabel, headingCount);
 			const table = document.createElement('table');
 			table.className = 'track-history-table';
 

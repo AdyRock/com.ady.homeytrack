@@ -178,7 +178,10 @@
 	</div>
 
 	<div class="tab-panel hidden" id="tabPanelUnits">
-		<h2 class="settings-section-heading" data-i18n="settings.units.heading">Units</h2>
+		<div class="settings-help-header">
+			<h2 class="settings-section-heading" data-i18n="settings.units.heading">Units</h2>
+			<button type="button" id="helpSettings" class="help-button" aria-label="Settings help"></button>
+		</div>
 		<p class="homey-subtitle" data-i18n="settings.units.intro">Choose how speed is shown on user devices.</p>
 		<fieldset class="homey-form-radio-set">
 			<legend class="homey-form-radio-set-title" data-i18n="settings.units.speed">Speed</legend>
@@ -317,6 +320,15 @@
 			<p><strong class="method-comparison-label" data-i18n="settings.help.comparison.cons">Cons</strong>: <span
 					data-i18n="settings.help.comparison.httpCons"></span></p>
 			<button type="button" id="closeHelpMethodComparison" class="homey-button-primary-full"
+				data-i18n="settings.help.close">Close</button>
+		</div>
+	</div>
+
+	<div class="modal-overlay hidden" id="helpModalSettings">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.help.settings.title">Settings and backups</h2>
+			<p class="help-body" data-i18n="settings.help.settings.body"></p>
+			<button type="button" id="closeHelpSettings" class="homey-button-primary-full"
 				data-i18n="settings.help.close">Close</button>
 		</div>
 	</div>

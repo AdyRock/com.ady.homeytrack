@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Tilkobling",
+			"connection": "Tilkobling",
+			"settings": "Innstillinger",
 			"units": "Enheter",
 			"avatars": "Avatarer",
 			"zones": "Soner",
@@ -10,10 +11,30 @@
 			"logs": "Logger"
 		},
 		"units": {
+			"heading": "Enheter",
 			"intro": "Velg hvordan hastighet vises på brukerenhetene.",
 			"speed": "Hastighet",
 			"kmh": "Kilometer per time (km/t)",
 			"mph": "Miles per time (mph)"
+		},
+		"tracking": {
+			"heading": "Sporing",
+			"minDistance": "Minste avstand mellom sporpunkter (meter)",
+			"maxPoints": "Maksimalt antall sporpunkter som lagres per bruker"
+		},
+		"backup": {
+			"heading": "Sikkerhetskopi",
+			"intro": "Kopier eller gjenopprett innstillinger for en annen Homey.",
+			"backup": "Sikkerhetskopier",
+			"restore": "Gjenopprett",
+			"copied": "Sikkerhetskopien av innstillingene er kopiert til utklippstavlen.",
+			"copyFailed": "Kunne ikke kopiere sikkerhetskopien av innstillingene.",
+			"pasteLabel": "Lim inn en sikkerhetskopi for å gjenopprette",
+			"pastePlaceholder": "Lim inn sikkerhetskopien her",
+			"pasteRequired": "Lim inn sikkerhetskopidataene i feltet ovenfor, og velg deretter Gjenopprett.",
+			"restoreConfirm": "Gjenopprette de kopierte innstillingene? Dette erstatter tilkoblingsinnstillinger og soner for samsvarende brukere.",
+			"restored": "Innstillingene er gjenopprettet.",
+			"invalid": "Dette er ikke en gyldig sikkerhetskopi av Homey Tracks-innstillinger."
 		},
 		"subtitle": "Konfigurer hvordan OwnTracks rapporterer posisjoner til Homey. Denne konfigurasjonen må samsvare med innstillingene i OwnTracks-appen.",
 		"status": {
@@ -32,6 +53,11 @@
 		},
 		"help": {
 			"close": "Lukk",
+			"settings": {
+				"aria": "Hjelp med innstillinger og sikkerhetskopier",
+				"title": "Innstillinger og sikkerhetskopier",
+				"body": "Lagre innstillinger\nEnheten for **Hastighet** brukes umiddelbart etter at den er valgt. **Minste avstand** og **Maksimalt antall sporpunkter** lagres når du trykker Enter eller forlater feltet. Når maksimumsverdien reduseres, slettes de eldste koordinatene og de nyeste beholdes. Et Homey-minnevarsel kan også redusere denne grensen automatisk.\n\nSporing\n**Minste avstand** bestemmer hvor langt en bruker må bevege seg før en ny koordinat lagres. Den nødvendige avstanden øker også med hastigheten. **Maksimalt antall sporpunkter** begrenser den lagrede historikken per bruker; en høyere verdi bruker mer minne.\n\nOpprette en sikkerhetskopi\nVelg **Sikkerhetskopier** for å kopiere en JSON-sikkerhetskopi til utklippstavlen. Den inneholder tilkoblings- og sporingsinnstillinger, inkludert MQTT-brukernavn og -passord, samt avatarer, bruker-ID-er, innstillinger for tilstedeværelsessoner, MQTT-emner og konfigurasjon av delte/private soner. **Behandle sikkerhetskopien som sensitiv informasjon**. Sporkoordinater og logger er ikke inkludert.\n\nGjenopprette en sikkerhetskopi\nLim inn hele sikkerhetskopien i feltet og velg **Gjenopprett**. Bekreft at appinnstillingene og sonekonfigurasjonen skal erstattes.\n\nSamsvarende brukere\nEksisterende brukere samsvarer via OwnTracks-bruker-ID-en. Innstillinger, avatar, emne og soner gjenopprettes. Brukere som ennå ikke er koblet til, beholdes som importerte brukere, og dataene deres brukes når en samsvarende brukerenhet kobles til senere. Tilkoblingsendringer kan føre til at appen kobler til på nytt."
+			},
 			"comparison": {
 				"title": "Velg MQTT eller HTTP",
 				"mqtt": "MQTT",

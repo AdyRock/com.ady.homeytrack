@@ -1,24 +1,37 @@
 {
-  "1.0.0": {
-    "en": "First version!"
-  },
-  "1.0.1": {
-    "en": "First publish"
-  },
-  "1.0.2": {
-    "en": "Updated store information"
-  },
-  "1.0.3": {
-    "en": "Added translations. Added Speed capability, Added Journeys to the map filters. Added filtering for rogue GPS reports to prevent a user jumping in and out of a zone.",
-    "nl": "Vertalingen toegevoegd. Snelheidsmogelijkheid toegevoegd, Reizen toegevoegd aan de kaartfilters. Filteren van rogue GPS-rapporten toegevoegd om te voorkomen dat een gebruiker in en uit een zone springt.",
-    "fr": "Traductions ajoutées. Capacité de vitesse ajoutée, Voyages ajoutés aux filtres de la carte. Filtrage des rapports GPS erronés pour éviter qu'un utilisateur ne saute dans et hors d'une zone.",
-    "de": "Übersetzungen hinzugefügt. Geschwindigkeitsfunktion hinzugefügt, Reisen zu den Kartenfiltern hinzugefügt. Filterung von fehlerhaften GPS-Berichten hinzugefügt, um zu verhindern, dass ein Benutzer in und aus einer Zone springt.",
-    "es": "Traducciones añadidas. Capacidad de velocidad añadida, Viajes añadidos a los filtros del mapa. Filtrado de informes de GPS erróneos para evitar que un usuario salte dentro y fuera de una zona.",
-    "it": "Traduzioni aggiunte. Aggiunta la capacità di velocità, Aggiunti i viaggi ai filtri della mappa. Filtraggio dei rapporti GPS errati per evitare che un utente salti dentro e fuori da una zona.",
-    "pt": "Traduções adicionadas. Capacidade de velocidade adicionada, Jornadas adicionadas aos filtros do mapa. Filtragem de relatórios de GPS incorretos para evitar que um usuário entre e saia de uma zona.",
-    "ru": "Добавлены переводы. Добавлена возможность скорости, Добавлены путешествия в фильтры карты. Фильтрация ложных GPS-отчетов, чтобы предотвратить прыжки пользователя в зону и из нее.",
-    "zh": "已添加翻译。添加了速度功能，添加了地图过滤器中的行程。添加了对错误 GPS 报告的过滤，以防止用户在区域内外跳动。",
-    "ja": "翻訳が追加されました。速度機能が追加され、地図フィルターに旅行が追加されました。ユーザーがゾーン内外にジャンプするのを防ぐために、誤った GPS レポートのフィルタリングが追加されました。",
-    "ko": "번역이 추가되었습니다. 속도 기능이 추가되었고, 지도 필터에 여행이 추가되었습니다. 사용자가 영역 안팎으로 이동하는 것을 방지하기 위해 잘못된 GPS 보고서를 필터링하는 기능이 추가되었습니다."
-  }
+	"1.0.0": {
+		"en": "First version!"
+	},
+	"1.0.1": {
+		"en": "First publish"
+	},
+	"1.0.2": {
+		"en": "Updated store information"
+	},
+	"1.0.3": {
+		"en": "Added translations. Added Speed capability, Added Journeys to the map filters. Added filtering for rogue GPS reports to prevent a user jumping in and out of a zone.",
+		"nl": "Vertalingen toegevoegd. Snelheidsmogelijkheid toegevoegd, Reizen toegevoegd aan de kaartfilters. Filteren van rogue GPS-rapporten toegevoegd om te voorkomen dat een gebruiker in en uit een zone springt.",
+		"fr": "Traductions ajoutées. Capacité de vitesse ajoutée, Voyages ajoutés aux filtres de la carte. Filtrage des rapports GPS erronés pour éviter qu'un utilisateur ne saute dans et hors d'une zone.",
+		"de": "Übersetzungen hinzugefügt. Geschwindigkeitsfunktion hinzugefügt, Reisen zu den Kartenfiltern hinzugefügt. Filterung von fehlerhaften GPS-Berichten hinzugefügt, um zu verhindern, dass ein Benutzer in und aus einer Zone springt.",
+		"es": "Traducciones añadidas. Capacidad de velocidad añadida, Viajes añadidos a los filtros del mapa. Filtrado de informes de GPS erróneos para evitar que un usuario salte dentro y fuera de una zona.",
+		"it": "Traduzioni aggiunte. Aggiunta la capacità di velocità, Aggiunti i viaggi ai filtri della mappa. Filtraggio dei rapporti GPS errati per evitare che un utente salti dentro e fuori da una zona.",
+		"pt": "Traduções adicionadas. Capacidade de velocidade adicionada, Jornadas adicionadas aos filtros do mapa. Filtragem de relatórios de GPS incorretos para evitar que um usuário entre e saia de uma zona.",
+		"ru": "Добавлены переводы. Добавлена возможность скорости, Добавлены путешествия в фильтры карты. Фильтрация ложных GPS-отчетов, чтобы предотвратить прыжки пользователя в зону и из нее.",
+		"zh": "已添加翻译。添加了速度功能，添加了地图过滤器中的行程。添加了对错误 GPS 报告的过滤，以防止用户在区域内外跳动。",
+		"ja": "翻訳が追加されました。速度機能が追加され、地図フィルターに旅行が追加されました。ユーザーがゾーン内外にジャンプするのを防ぐために、誤った GPS レポートのフィルタリングが追加されました。",
+		"ko": "번역이 추가되었습니다. 속도 기능이 추가되었고, 지도 필터에 여행이 추가되었습니다. 사용자가 영역 안팎으로 이동하는 것을 방지하기 위해 잘못된 GPS 보고서를 필터링하는 기능이 추가되었습니다."
+	},
+	"1.0.4": {
+		"en": "Added memory warning handler that reduces the tracks buffer size. Fix Zone transfer issue.",
+		"nl": "Toegevoegd geheugenwaarschuwing handler die de grootte van de tracks buffer vermindert. Opgelost Zone overdrachtsprobleem.",
+		"fr": "Ajout d'un gestionnaire d'avertissement de mémoire qui réduit la taille du tampon des pistes. Correction du problème de transfert de zone.",
+		"de": "Speicherwarnungs-Handler hinzugefügt, der die Größe des Track-Puffers reduziert. Behebt das Problem mit der Zonentransfer.",
+		"es": "Se agregó un controlador de advertencia de memoria que reduce el tamaño del búfer de pistas. Soluciona el problema de transferencia de zona.",
+		"it": "Aggiunto gestore di avviso di memoria che riduce la dimensione del buffer delle tracce. Risolto il problema del trasferimento della zona.",
+		"pt": "Adicionado manipulador de aviso de memória que reduz o tamanho do buffer de faixas. Corrige o problema de transferência de zona.",
+		"ru": "Добавлен обработчик предупреждений о памяти, который уменьшает размер буфера треков. Исправлена проблема передачи зоны.",
+		"zh": "添加了内存警告处理程序，该处理程序会减少轨迹缓冲区的大小。修复了区域传输问题。",
+		"ja": "メモリ警告ハンドラーを追加し、トラックバッファのサイズを縮小しました。ゾーン転送の問題を修正しました。",
+		"ko": "트랙 버퍼 크기를 줄이는 메모리 경고 처리기가 추가되었습니다. 영역 전송 문제를 수정했습니다."
+	}
 }

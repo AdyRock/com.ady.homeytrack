@@ -1,7 +1,8 @@
 {
 	"settings": {
 		"tabs": {
-			"settings": "Verbinding",
+			"connection": "Verbinding",
+			"settings": "Instellingen",
 			"units": "Eenheden",
 			"avatars": "Avatars",
 			"zones": "Zones",
@@ -10,10 +11,30 @@
 			"logs": "Logboeken"
 		},
 		"units": {
+			"heading": "Eenheden",
 			"intro": "Kies hoe snelheid op gebruikersapparaten wordt weergegeven.",
 			"speed": "Snelheid",
 			"kmh": "Kilometer per uur (km/u)",
 			"mph": "Mijl per uur (mph)"
+		},
+		"tracking": {
+			"heading": "Tracking",
+			"minDistance": "Minimale afstand tussen trackpunten (meter)",
+			"maxPoints": "Maximaal aantal trackpunten per gebruiker"
+		},
+		"backup": {
+			"heading": "Back-up",
+			"intro": "Kopieer of herstel instellingen voor een andere Homey.",
+			"backup": "Back-up",
+			"restore": "Herstellen",
+			"copied": "De back-up van de instellingen is naar het klembord gekopieerd.",
+			"copyFailed": "De back-up van de instellingen kon niet worden gekopieerd.",
+			"pasteLabel": "Plak een back-up om te herstellen",
+			"pastePlaceholder": "Plak de back-up hier",
+			"pasteRequired": "Plak de back-upgegevens in het veld hierboven en selecteer daarna Herstellen.",
+			"restoreConfirm": "De gekopieerde instellingen herstellen? Dit vervangt de verbindingsinstellingen en zones voor overeenkomende gebruikers.",
+			"restored": "Instellingen hersteld.",
+			"invalid": "Dit is geen geldige back-up van Homey Tracks-instellingen."
 		},
 		"subtitle": "Configureer hoe OwnTracks locaties naar Homey stuurt. Deze configuratie moet overeenkomen met de instellingen in de OwnTracks-app.",
 		"status": {
@@ -32,6 +53,11 @@
 		},
 		"help": {
 			"close": "Sluiten",
+			"settings": {
+				"aria": "Hulp bij instellingen en back-ups",
+				"title": "Instellingen en back-ups",
+				"body": "Instellingen opslaan\nDe eenheid voor **Snelheid** wordt direct na selectie toegepast. **Minimale afstand** en **Maximaal aantal trackpunten** worden opgeslagen wanneer je op Enter drukt of het veld verlaat. Bij het verlagen van het maximum worden de oudste coördinaten verwijderd en de nieuwste behouden. Een Homey-geheugenwaarschuwing kan deze limiet ook automatisch verlagen.\n\nTracking\n**Minimale afstand** bepaalt hoe ver een gebruiker moet bewegen voordat een nieuwe coördinaat wordt opgeslagen. De vereiste afstand neemt ook toe met de snelheid. **Maximaal aantal trackpunten** beperkt de opgeslagen geschiedenis per gebruiker; een hogere waarde gebruikt meer geheugen.\n\nEen back-up maken\nSelecteer **Back-up** om een JSON-back-up naar het klembord te kopiëren. Deze bevat verbindings- en trackinginstellingen, waaronder de MQTT-gebruikersnaam en het wachtwoord, plus avatars, gebruikers-ID's, instellingen voor aanwezigheidszones, MQTT-topics en configuraties van gedeelde en privézones. **Behandel de back-up als gevoelige informatie**. Trackcoördinaten en logboeken zijn niet inbegrepen.\n\nEen back-up herstellen\nPlak de volledige back-up in het veld en selecteer **Herstellen**. Bevestig dat de appinstellingen en zoneconfiguratie mogen worden vervangen.\n\nGebruikers koppelen\nBestaande gebruikers worden gekoppeld op basis van hun OwnTracks-gebruikers-ID. Hun instellingen, avatar, topic en zones worden hersteld. Nog niet gekoppelde gebruikers blijven bewaard als geïmporteerde gebruikers; hun gegevens worden toegepast wanneer later een overeenkomend gebruikersapparaat wordt gekoppeld. Door verbindingswijzigingen kan de app opnieuw verbinding maken."
+			},
 			"comparison": {
 				"title": "MQTT of HTTP kiezen",
 				"mqtt": "MQTT",

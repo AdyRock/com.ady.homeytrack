@@ -97,6 +97,17 @@ body {
 	overflow-y: auto;
 }
 
+.settings-help-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.settings-help-header .settings-section-heading {
+	margin-bottom: 0;
+}
+
 .track-map {
 	flex: 1;
 	min-height: 200px;
@@ -394,6 +405,11 @@ button.track-date-shortcut {
 	cursor: pointer;
 	text-align: left;
 	color: inherit;
+}
+
+.track-history-count {
+	margin-left: auto;
+	flex-shrink: 0;
 }
 
 .track-history-collapse-icon {
