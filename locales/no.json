@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Ingen brukere er parkoblet ennå.",
+			"noLocations": "Ingen posisjoner å vise.",
+			"loadFailed": "Kunne ikke laste kartet.",
+			"hideUser": "Skjul [[user]]",
+			"showUser": "Vis [[user]]",
+			"centerOnUser": "Sentrer på [[user]], trykk og hold for å skjule",
+			"journeyEnd": "Slutt på reisen",
+			"hideTracks": "Skjul spor",
+			"showTracks": "Vis spor",
+			"panUp": "Panorer opp",
+			"panDown": "Panorer ned",
+			"panLeft": "Panorer til venstre",
+			"panRight": "Panorer til høyre",
+			"zoomIn": "Zoom inn",
+			"zoomOut": "Zoom ut"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Tilkobling",
@@ -177,6 +196,7 @@
 			"journeyStart": "Starttid",
 			"journeyDuration": "Varighet",
 			"journeyAverageSpeed": "Gjennomsnittsfart",
+			"journeyEndFlag": "Slutt på reisen",
 			"deleteJourneyAria": "Slett reise",
 			"deleteJourneyConfirm": "Slette alle punktene i denne reisen? Dette kan ikke angres.",
 			"deletePoint": "Slett punkt",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Kopier sporpunkter",
 			"trackPointsCopied": "Sporpunkter kopiert",
 			"noTrackPoints": "Ingen sporpunkter å kopiere.",
-			"noJourneys": "Ingen reiser i dette datointervallet."
+			"noJourneys": "Ingen reiser i dette datointervallet.",
+			"contextHelpAria": "Hjelp med kartkontroller",
+			"contextHelpTitle": "Kartkontroller",
+			"contextHelpBody": "Åpne menyen\nHøyreklikk på kartet med en mus, eller trykk og hold på en berøringsskjerm, for å åpne kartmenyen. Den første kommandoen bytter registrerte punkter mellom klassiske prikker og dråpeformede retningsmarkører.\n\nIkoner per bruker\n**Øye** betyr at brukeren er synlig. Velg det for å skjule brukerens avatar, posisjon og spor. **Overstreket øye** betyr at brukeren er skjult; velg det for å vise brukeren igjen.\n\n**Rute** betyr at brukerens registrerte spor er synlig. Velg den for å skjule bare sporet og fortsatt vise den nyeste posisjonen. **Overstreket rute** betyr at sporet er skjult; velg den for å vise sporet igjen. Denne kontrollen er deaktivert når brukeren er skjult.\n\n**Mål** sentrerer kartet på brukerens faktiske nyeste posisjon. Det er deaktivert når brukeren er skjult eller ikke har noen rapportert posisjon."
 		},
 		"logs": {
 			"intro": "De siste ~20 KB med loggmeddelelser, nyeste nederst (ikke lagret når appen startes på nytt). Feil blir alltid fanget opp.",

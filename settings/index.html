@@ -251,6 +251,7 @@
 					data-i18n="settings.map.showHistory">Show coordinates</button>
 				<button type="button" id="openTrackFilter" class="homey-button-secondary-shadow-small"
 					data-i18n="settings.map.filter">Filter</button>
+				<button type="button" id="helpMap" class="help-button" aria-label="Map help"></button>
 			</div>
 		</div>
 		<div class="track-history">
@@ -350,6 +351,15 @@
 			<p id="mapFilterHelpBody" class="help-body"></p>
 			<p id="mapFilterHelpBack" class="help-body hidden"></p>
 			<button type="button" id="closeHelpJourneys" class="homey-button-primary-full"
+				data-i18n="settings.help.close">Close</button>
+		</div>
+	</div>
+
+	<div class="modal-overlay hidden" id="helpModalMap">
+		<div class="modal-content">
+			<h2 class="homey-title" data-i18n="settings.map.contextHelpTitle">Map controls</h2>
+			<p class="help-body" data-i18n="settings.map.contextHelpBody"></p>
+			<button type="button" id="closeHelpMap" class="homey-button-primary-full"
 				data-i18n="settings.help.close">Close</button>
 		</div>
 	</div>

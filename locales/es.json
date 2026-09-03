@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Aún no hay usuarios emparejados.",
+			"noLocations": "No hay ubicaciones que mostrar.",
+			"loadFailed": "No se pudo cargar el mapa.",
+			"hideUser": "Ocultar a [[user]]",
+			"showUser": "Mostrar a [[user]]",
+			"centerOnUser": "Centrar en [[user]], mantén pulsado para ocultar",
+			"journeyEnd": "Fin del trayecto",
+			"hideTracks": "Ocultar rutas",
+			"showTracks": "Mostrar rutas",
+			"panUp": "Desplazar arriba",
+			"panDown": "Desplazar abajo",
+			"panLeft": "Desplazar a la izquierda",
+			"panRight": "Desplazar a la derecha",
+			"zoomIn": "Acercar",
+			"zoomOut": "Alejar"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Conexión",
@@ -177,6 +196,7 @@
 			"journeyStart": "Hora de inicio",
 			"journeyDuration": "Duración",
 			"journeyAverageSpeed": "Velocidad media",
+			"journeyEndFlag": "Fin del trayecto",
 			"deleteJourneyAria": "Eliminar trayecto",
 			"deleteJourneyConfirm": "¿Eliminar todos los puntos de este trayecto? Esta acción no se puede deshacer.",
 			"deletePoint": "Eliminar punto",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Copiar puntos de ruta",
 			"trackPointsCopied": "Puntos de ruta copiados",
 			"noTrackPoints": "No hay puntos de ruta para copiar.",
-			"noJourneys": "No hay trayectos en este intervalo de fechas."
+			"noJourneys": "No hay trayectos en este intervalo de fechas.",
+			"contextHelpAria": "Ayuda sobre los controles del mapa",
+			"contextHelpTitle": "Controles del mapa",
+			"contextHelpBody": "Abrir el menú\nHaz clic con el botón derecho en el mapa o mantenlo pulsado en una pantalla táctil para abrir el menú. El primer comando alterna los puntos registrados entre puntos clásicos y marcadores de dirección con forma de gota.\n\nIconos por usuario\n**Ojo** indica que el usuario está visible. Selecciónalo para ocultar su avatar, ubicación y ruta. **Ojo tachado** indica que está oculto; selecciónalo para volver a mostrarlo.\n\n**Ruta** indica que la ruta registrada está visible. Selecciónala para ocultar solo la ruta y mantener visible la última ubicación. **Ruta tachada** indica que la ruta está oculta; selecciónala para volver a mostrarla. Este control está desactivado cuando el usuario está oculto.\n\n**Objetivo** centra el mapa en la última ubicación real del usuario. Está desactivado si el usuario está oculto o no tiene una ubicación registrada."
 		},
 		"logs": {
 			"intro": "Los últimos ~20 KB de mensajes registrados, con los más recientes abajo (no se conservan al reiniciar la aplicación). Los errores siempre se registran.",

@@ -1,0 +1,347 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	overflow: hidden;
+	/* Stops the host dashboard from scrolling when a gesture starts inside the widget. */
+	overscroll-behavior: none;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.widget {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+.avatar-strip {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+	padding: 8px 10px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	flex: 0 0 auto;
+	scrollbar-width: none;
+	/* Only sideways scrolling belongs to the strip; vertical drags stay with the host. */
+	touch-action: pan-x;
+}
+
+.avatar-strip::-webkit-scrollbar {
+	display: none;
+}
+
+.avatar-strip.hidden {
+	display: none;
+}
+
+/* Homey's widget stylesheet styles bare <button> elements, so the avatar buttons have to
+   force their own box model back. */
+.avatar-strip button.avatar-button {
+	flex: 0 0 auto;
+	/* Sized to the zone name so neighbouring labels can't run into each other. */
+	width: auto !important;
+	min-width: 44px !important;
+	max-width: 84px !important;
+	height: 60px !important;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 1px;
+	padding: 0 2px !important;
+	margin: 0 !important;
+	background: none !important;
+	border: none !important;
+	border-radius: 0 !important;
+	cursor: pointer;
+	/* Touches are handled in script (tap, long press and strip scrolling). */
+	touch-action: none;
+	/* Keeps a long press from raising the native selection callout instead. */
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+
+.avatar-battery {
+	height: 13px;
+	line-height: 13px;
+	font-size: 10px;
+	font-weight: 600;
+	color: #555;
+	white-space: nowrap;
+}
+
+.avatar-battery.battery-low {
+	color: #d33;
+}
+
+.avatar-zone {
+	max-width: 100%;
+	height: 12px;
+	line-height: 12px;
+	font-size: 9px;
+	color: #555;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.avatar-zone.avatar-moving {
+	font-weight: 600;
+	color: #0091ff;
+}
+
+.avatar-button img,
+.avatar-button .avatar-fallback {
+	display: block;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: 2px solid #999;
+	object-fit: cover;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+	transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.avatar-button .avatar-fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+	box-sizing: border-box;
+}
+
+/* Only the avatar dims - the battery and zone/speed labels stay readable. */
+.avatar-button.hidden-user img,
+.avatar-button.hidden-user .avatar-fallback {
+	opacity: 0.35;
+	filter: grayscale(1);
+}
+
+/* Pushed to the far right of the strip, away from the avatars. */
+.avatar-strip button.track-toggle-button {
+	flex: 0 0 auto;
+	margin-left: auto !important;
+	/* Lines the icon up with the avatar circles rather than the zone labels. */
+	margin-bottom: 13px !important;
+	width: 32px !important;
+	height: 32px !important;
+	min-width: 32px !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 !important;
+	background: none !important;
+	border: none !important;
+	border-radius: 50% !important;
+	color: #333 !important;
+	cursor: pointer;
+}
+
+.track-toggle-button svg {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	width: 20px !important;
+	height: 20px !important;
+	fill: currentColor !important;
+}
+
+.track-toggle-button.tracks-off {
+	opacity: 0.45;
+}
+
+.map-shell {
+	position: relative;
+	flex: 1 1 auto;
+	min-height: 0;
+	touch-action: none;
+}
+
+#map {
+	width: 100%;
+	height: 100%;
+	background: #e8e8e8;
+	touch-action: none;
+}
+
+.map-controls {
+	position: absolute;
+	inset: 0;
+	z-index: 900;
+	pointer-events: none;
+}
+
+.map-controls button.map-control {
+	position: absolute;
+	pointer-events: auto;
+	width: 26px !important;
+	height: 26px !important;
+	min-width: 26px !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 !important;
+	margin: 0 !important;
+	background: rgba(255, 255, 255, 0.85) !important;
+	border: none !important;
+	border-radius: 50% !important;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+	color: #333 !important;
+	cursor: pointer;
+}
+
+.map-controls button.map-control svg {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	width: 18px !important;
+	height: 18px !important;
+	fill: currentColor !important;
+}
+
+.map-control.pan-left {
+	left: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.map-control.pan-right {
+	right: 6px;
+	top: 50%;
+	transform: translateY(-50%) rotate(180deg);
+}
+
+.map-control.pan-up {
+	top: 6px;
+	left: 50%;
+	transform: translateX(-50%) rotate(90deg);
+}
+
+.map-control.pan-down {
+	bottom: 6px;
+	left: 50%;
+	transform: translateX(-50%) rotate(-90deg);
+}
+
+.zoom-controls {
+	position: absolute;
+	right: 6px;
+	top: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.zoom-controls button.map-control {
+	position: relative;
+}
+
+.map-message {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px;
+	text-align: center;
+	background: rgba(255, 255, 255, 0.85);
+	color: #333;
+	font-size: 13px;
+	z-index: 1000;
+}
+
+.map-message.hidden {
+	display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+	#map {
+		background: #33322f;
+	}
+
+	.map-message {
+		background: rgba(28, 28, 30, 0.85);
+		color: #e5e5e5;
+	}
+
+	.avatar-strip button.track-toggle-button {
+		color: #e5e5e5 !important;
+	}
+
+	.avatar-battery {
+		color: #b9b9b9;
+	}
+
+	.avatar-zone {
+		color: #b9b9b9;
+	}
+
+	.avatar-zone.avatar-moving {
+		color: #4aa8ff;
+	}
+
+	.avatar-battery.battery-low {
+		color: #ff6b6b;
+	}
+}
+
+.journey-flag {
+	background: none;
+	border: none;
+}
+
+.journey-flag svg {
+	display: block;
+	width: 20px;
+	height: 20px;
+	filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
+}
+
+.marker-avatar {
+	background: none;
+	border: none;
+	overflow: visible;
+}
+
+.marker-avatar img,
+.marker-avatar .marker-fallback {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	border: 2px solid #999;
+	object-fit: cover;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+	box-sizing: border-box;
+}
+
+.marker-avatar .marker-fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.marker-speed {
+	position: absolute;
+	left: 50%;
+	bottom: 36px;
+	transform: translateX(-50%);
+	padding: 1px 4px;
+	border-radius: 4px;
+	background: rgba(255, 255, 255, 0.95);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	color: #222;
+	font-size: 10px;
+	font-weight: bold;
+	line-height: 1.2;
+	white-space: nowrap;
+}

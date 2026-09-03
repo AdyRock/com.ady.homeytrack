@@ -33,5 +33,18 @@
 		"zh": "添加了内存警告处理程序，该处理程序会减少轨迹缓冲区的大小。修复了区域传输问题。",
 		"ja": "メモリ警告ハンドラーを追加し、トラックバッファのサイズを縮小しました。ゾーン転送の問題を修正しました。",
 		"ko": "트랙 버퍼 크기를 줄이는 메모리 경고 처리기가 추가되었습니다. 영역 전송 문제를 수정했습니다."
+	},
+	"1.0.5": {
+		"en": "Added a map widget for displaying user tracks. Added a help button to the settings tab.",
+		"nl": "Toegevoegd een kaartwidget voor het weergeven van gebruikerssporen. Toegevoegd een helpknop aan het instellingen tabblad.",
+		"fr": "Ajout d'un widget de carte pour afficher les pistes des utilisateurs. Ajout d'un bouton d'aide à l'onglet des paramètres.",
+		"de": "Hinzufügen eines Karten-Widgets zur Anzeige von Benutzertracks. Hinzufügen einer Hilfeschaltfläche zur Einstellungsregisterkarte.",
+		"es": "Se agregó un widget de mapa para mostrar las pistas de los usuarios. Se agregó un botón de ayuda a la pestaña de configuración.",
+		"it": "Aggiunto un widget mappa per visualizzare i percorsi degli utenti. Aggiunto un pulsante di aiuto alla scheda delle impostazioni.",
+		"pt": "Adicionado um widget de mapa para exibir as trilhas dos usuários. Adicionado um botão de ajuda à guia de configurações.",
+		"ru": "Добавлен виджет карты для отображения треков пользователей. Добавлена кнопка помощи на вкладке настроек.",
+		"zh": "添加了用于显示用户轨迹的地图小部件。 在设置选项卡中添加了帮助按钮。",
+		"ja": "ユーザートラックを表示するためのマップウィジェットを追加しました。 設定タブにヘルプボタンを追加しました。",
+		"ko": "사용자 트랙을 표시하기 위한 지도 위젯이 추가되었습니다. 설정 탭에 도움말 버튼이 추가되었습니다."
 	}
 }

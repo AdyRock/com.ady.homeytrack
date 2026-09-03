@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Nie sparowano jeszcze żadnych użytkowników.",
+			"noLocations": "Brak lokalizacji do wyświetlenia.",
+			"loadFailed": "Nie można załadować mapy.",
+			"hideUser": "Ukryj [[user]]",
+			"showUser": "Pokaż [[user]]",
+			"centerOnUser": "Wyśrodkuj na [[user]], przytrzymaj, aby ukryć",
+			"journeyEnd": "Koniec trasy",
+			"hideTracks": "Ukryj trasy",
+			"showTracks": "Pokaż trasy",
+			"panUp": "Przesuń w górę",
+			"panDown": "Przesuń w dół",
+			"panLeft": "Przesuń w lewo",
+			"panRight": "Przesuń w prawo",
+			"zoomIn": "Powiększ",
+			"zoomOut": "Pomniejsz"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Połączenie",
@@ -177,6 +196,7 @@
 			"journeyStart": "Czas rozpoczęcia",
 			"journeyDuration": "Czas trwania",
 			"journeyAverageSpeed": "Średnia prędkość",
+			"journeyEndFlag": "Koniec trasy",
 			"deleteJourneyAria": "Usuń podróż",
 			"deleteJourneyConfirm": "Usunąć wszystkie punkty tej podróży? Tej operacji nie można cofnąć.",
 			"deletePoint": "Usuń punkt",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Kopiuj punkty trasy",
 			"trackPointsCopied": "Punkty trasy skopiowane",
 			"noTrackPoints": "Brak punktów trasy do skopiowania.",
-			"noJourneys": "Brak podróży w tym zakresie dat."
+			"noJourneys": "Brak podróży w tym zakresie dat.",
+			"contextHelpAria": "Pomoc dotycząca sterowania mapą",
+			"contextHelpTitle": "Sterowanie mapą",
+			"contextHelpBody": "Otwieranie menu\nKliknij mapę prawym przyciskiem myszy lub naciśnij ją i przytrzymaj na ekranie dotykowym, aby otworzyć menu mapy. Pierwsze polecenie przełącza zapisane punkty między klasycznymi kropkami a znacznikami kierunku w kształcie kropli.\n\nIkony użytkownika\n**Oko** oznacza, że użytkownik jest widoczny. Wybierz je, aby ukryć awatar, lokalizację i trasę użytkownika. **Przekreślone oko** oznacza, że użytkownik jest ukryty; wybierz je, aby ponownie go wyświetlić.\n\n**Trasa** oznacza, że zapisana trasa użytkownika jest widoczna. Wybierz ją, aby ukryć tylko trasę i pozostawić widoczną najnowszą lokalizację. **Przekreślona trasa** oznacza, że trasa jest ukryta; wybierz ją, aby ponownie ją wyświetlić. Ta kontrolka jest wyłączona, gdy użytkownik jest ukryty.\n\n**Cel** centruje mapę na rzeczywistej najnowszej lokalizacji użytkownika. Jest wyłączony, gdy użytkownik jest ukryty lub nie ma zgłoszonej lokalizacji."
 		},
 		"logs": {
 			"intro": "Ostatnie ~20 KB zarejestrowanych komunikatów, najnowsze na dole (nie są zachowywane po ponownym uruchomieniu aplikacji). Błędy są zawsze rejestrowane.",

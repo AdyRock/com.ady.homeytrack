@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "No users paired yet.",
+			"noLocations": "No locations to show.",
+			"loadFailed": "Could not load the map.",
+			"hideUser": "Hide [[user]]",
+			"showUser": "Show [[user]]",
+			"centerOnUser": "Center on [[user]], press and hold to hide",
+			"journeyEnd": "End of journey",
+			"hideTracks": "Hide tracks",
+			"showTracks": "Show tracks",
+			"panUp": "Pan up",
+			"panDown": "Pan down",
+			"panLeft": "Pan left",
+			"panRight": "Pan right",
+			"zoomIn": "Zoom in",
+			"zoomOut": "Zoom out"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Connection",
@@ -177,6 +196,7 @@
 			"journeyStart": "Start time",
 			"journeyDuration": "Duration",
 			"journeyAverageSpeed": "Average speed",
+			"journeyEndFlag": "End of journey",
 			"deleteJourneyAria": "Delete journey",
 			"deleteJourneyConfirm": "Delete all points in this journey? This cannot be undone.",
 			"deletePoint": "Delete point",
@@ -192,7 +212,10 @@
 			"showUser": "Show [[user]]",
 			"centerOnUser": "Center on [[user]]",
 			"hideTrackForUser": "Hide track for [[user]]",
-			"showTrackForUser": "Show track for [[user]]"
+			"showTrackForUser": "Show track for [[user]]",
+			"contextHelpAria": "Help with map controls",
+			"contextHelpTitle": "Map controls",
+			"contextHelpBody": "Opening the menu\nRight-click the map with a mouse, or press and hold it on a touchscreen, to open the map menu. The first command switches recorded points between classic dots and teardrop direction markers.\n\nPer-user icons\n**Eye** shows that the user is visible. Select it to hide the user's avatar, location and track. **Crossed-out eye** shows that the user is hidden; select it to show the user again.\n\n**Route** shows that the user's recorded track is visible. Select it to hide only the track while keeping the user's latest location visible. **Crossed-out route** shows that the track is hidden; select it to show the track again. This control is disabled while the user is hidden.\n\n**Target** centres the map on the user's real latest location. It is disabled when the user is hidden or has no reported location."
 		},
 		"logs": {
 			"intro": "The last ~20KB of logged messages, newest at the bottom (not persisted across app restarts). Errors are always captured.",

@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Noch keine Benutzer gekoppelt.",
+			"noLocations": "Keine Standorte zum Anzeigen.",
+			"loadFailed": "Karte konnte nicht geladen werden.",
+			"hideUser": "[[user]] ausblenden",
+			"showUser": "[[user]] anzeigen",
+			"centerOnUser": "Auf [[user]] zentrieren, zum Ausblenden gedrückt halten",
+			"journeyEnd": "Ende der Fahrt",
+			"hideTracks": "Routen ausblenden",
+			"showTracks": "Routen anzeigen",
+			"panUp": "Nach oben verschieben",
+			"panDown": "Nach unten verschieben",
+			"panLeft": "Nach links verschieben",
+			"panRight": "Nach rechts verschieben",
+			"zoomIn": "Vergrößern",
+			"zoomOut": "Verkleinern"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Verbindung",
@@ -177,6 +196,7 @@
 			"journeyStart": "Startzeit",
 			"journeyDuration": "Dauer",
 			"journeyAverageSpeed": "Durchschnittsgeschwindigkeit",
+			"journeyEndFlag": "Ende der Fahrt",
 			"deleteJourneyAria": "Fahrt löschen",
 			"deleteJourneyConfirm": "Alle Punkte dieser Fahrt löschen? Dies kann nicht rückgängig gemacht werden.",
 			"deletePoint": "Punkt löschen",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Trackpunkte kopieren",
 			"trackPointsCopied": "Trackpunkte kopiert",
 			"noTrackPoints": "Keine Trackpunkte zum Kopieren.",
-			"noJourneys": "Keine Fahrten in diesem Zeitraum."
+			"noJourneys": "Keine Fahrten in diesem Zeitraum.",
+			"contextHelpAria": "Hilfe zur Kartensteuerung",
+			"contextHelpTitle": "Kartensteuerung",
+			"contextHelpBody": "Menü öffnen\nKlicken Sie mit der rechten Maustaste auf die Karte oder halten Sie sie auf einem Touchscreen gedrückt, um das Kartenmenü zu öffnen. Der erste Befehl wechselt bei aufgezeichneten Punkten zwischen klassischen Punkten und tropfenförmigen Richtungsmarkern.\n\nSymbole pro Benutzer\n**Auge** bedeutet, dass der Benutzer sichtbar ist. Wählen Sie es, um Avatar, Standort und Track auszublenden. **Durchgestrichenes Auge** bedeutet, dass der Benutzer ausgeblendet ist; wählen Sie es, um ihn wieder einzublenden.\n\n**Route** bedeutet, dass der aufgezeichnete Track sichtbar ist. Wählen Sie sie, um nur den Track auszublenden und den neuesten Standort sichtbar zu lassen. **Durchgestrichene Route** bedeutet, dass der Track ausgeblendet ist; wählen Sie sie, um ihn wieder einzublenden. Diese Steuerung ist deaktiviert, wenn der Benutzer ausgeblendet ist.\n\n**Ziel** zentriert die Karte auf den tatsächlichen neuesten Standort des Benutzers. Es ist deaktiviert, wenn der Benutzer ausgeblendet ist oder keinen gemeldeten Standort hat."
 		},
 		"logs": {
 			"intro": "Die letzten ~20 KB protokollierter Meldungen, neueste unten (nicht bei App-Neustarts erhalten). Fehler werden immer erfasst.",

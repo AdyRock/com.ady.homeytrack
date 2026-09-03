@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Aucun utilisateur associé pour le moment.",
+			"noLocations": "Aucune position à afficher.",
+			"loadFailed": "Impossible de charger la carte.",
+			"hideUser": "Masquer [[user]]",
+			"showUser": "Afficher [[user]]",
+			"centerOnUser": "Centrer sur [[user]], appuyer longuement pour masquer",
+			"journeyEnd": "Fin du trajet",
+			"hideTracks": "Masquer les trajets",
+			"showTracks": "Afficher les trajets",
+			"panUp": "Déplacer vers le haut",
+			"panDown": "Déplacer vers le bas",
+			"panLeft": "Déplacer vers la gauche",
+			"panRight": "Déplacer vers la droite",
+			"zoomIn": "Zoom avant",
+			"zoomOut": "Zoom arrière"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Connexion",
@@ -177,6 +196,7 @@
 			"journeyStart": "Heure de départ",
 			"journeyDuration": "Durée",
 			"journeyAverageSpeed": "Vitesse moyenne",
+			"journeyEndFlag": "Fin du trajet",
 			"deleteJourneyAria": "Supprimer le trajet",
 			"deleteJourneyConfirm": "Supprimer tous les points de ce trajet ? Cette action est irréversible.",
 			"deletePoint": "Supprimer le point",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Copier les points du trajet",
 			"trackPointsCopied": "Points du trajet copiés",
 			"noTrackPoints": "Aucun point de trajet à copier.",
-			"noJourneys": "Aucun trajet dans cette période."
+			"noJourneys": "Aucun trajet dans cette période.",
+			"contextHelpAria": "Aide sur les commandes de la carte",
+			"contextHelpTitle": "Commandes de la carte",
+			"contextHelpBody": "Ouvrir le menu\nFaites un clic droit sur la carte ou maintenez votre doigt appuyé sur un écran tactile pour ouvrir le menu. La première commande fait alterner les points enregistrés entre des points classiques et des marqueurs directionnels en forme de goutte.\n\nIcônes par utilisateur\n**Œil** indique que l'utilisateur est visible. Sélectionnez-le pour masquer son avatar, sa position et son trajet. **Œil barré** indique que l'utilisateur est masqué ; sélectionnez-le pour l'afficher de nouveau.\n\n**Trajet** indique que le trajet enregistré est visible. Sélectionnez-le pour masquer uniquement le trajet tout en conservant la dernière position visible. **Trajet barré** indique que le trajet est masqué ; sélectionnez-le pour l'afficher de nouveau. Cette commande est désactivée lorsque l'utilisateur est masqué.\n\n**Cible** centre la carte sur la dernière position réelle de l'utilisateur. Elle est désactivée si l'utilisateur est masqué ou n'a signalé aucune position."
 		},
 		"logs": {
 			"intro": "Les derniers ~20 Ko de messages enregistrés, les plus récents en bas (non conservés lors du redémarrage de l'application). Les erreurs sont toujours capturées.",

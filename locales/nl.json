@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Nog geen gebruikers gekoppeld.",
+			"noLocations": "Geen locaties om te tonen.",
+			"loadFailed": "Kan de kaart niet laden.",
+			"hideUser": "[[user]] verbergen",
+			"showUser": "[[user]] tonen",
+			"centerOnUser": "Centreer op [[user]], houd ingedrukt om te verbergen",
+			"journeyEnd": "Einde van de rit",
+			"hideTracks": "Routes verbergen",
+			"showTracks": "Routes tonen",
+			"panUp": "Omhoog verschuiven",
+			"panDown": "Omlaag verschuiven",
+			"panLeft": "Naar links verschuiven",
+			"panRight": "Naar rechts verschuiven",
+			"zoomIn": "Inzoomen",
+			"zoomOut": "Uitzoomen"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Verbinding",
@@ -177,6 +196,7 @@
 			"journeyStart": "Starttijd",
 			"journeyDuration": "Duur",
 			"journeyAverageSpeed": "Gemiddelde snelheid",
+			"journeyEndFlag": "Einde van de rit",
 			"deleteJourneyAria": "Reis verwijderen",
 			"deleteJourneyConfirm": "Alle punten van deze reis verwijderen? Dit kan niet ongedaan worden gemaakt.",
 			"deletePoint": "Punt verwijderen",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Trackpunten kopiëren",
 			"trackPointsCopied": "Trackpunten gekopieerd",
 			"noTrackPoints": "Geen trackpunten om te kopiëren.",
-			"noJourneys": "Geen ritten in dit datumbereik."
+			"noJourneys": "Geen ritten in dit datumbereik.",
+			"contextHelpAria": "Hulp bij kaartbediening",
+			"contextHelpTitle": "Kaartbediening",
+			"contextHelpBody": "Het menu openen\nKlik met de rechtermuisknop op de kaart of houd de kaart ingedrukt op een touchscreen om het kaartmenu te openen. Met de eerste opdracht wissel je geregistreerde punten tussen klassieke stippen en druppelvormige richtingsmarkeringen.\n\nPictogrammen per gebruiker\n**Oog** betekent dat de gebruiker zichtbaar is. Selecteer het om de avatar, locatie en track te verbergen. **Doorgestreept oog** betekent dat de gebruiker verborgen is; selecteer het om de gebruiker weer te tonen.\n\n**Route** betekent dat de geregistreerde track zichtbaar is. Selecteer deze om alleen de track te verbergen en de nieuwste locatie zichtbaar te houden. **Doorgestreepte route** betekent dat de track verborgen is; selecteer deze om de track weer te tonen. Deze bediening is uitgeschakeld wanneer de gebruiker verborgen is.\n\n**Doel** centreert de kaart op de werkelijke nieuwste locatie van de gebruiker. Het is uitgeschakeld wanneer de gebruiker verborgen is of geen gemelde locatie heeft."
 		},
 		"logs": {
 			"intro": "De laatste ~20 KB aan gelogde berichten, nieuwste onderaan (niet bewaard bij opnieuw opstarten van de app). Fouten worden altijd vastgelegd.",

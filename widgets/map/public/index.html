@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Homey Tracks map</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+	<script type="text/javascript" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<div class="widget">
+		<div class="avatar-strip" id="avatarStrip"></div>
+		<div class="map-shell">
+			<div id="map"></div>
+			<div class="map-controls" id="mapControls">
+				<button type="button" class="map-control pan-up" data-pan="up" aria-label="Pan up"></button>
+				<button type="button" class="map-control pan-down" data-pan="down" aria-label="Pan down"></button>
+				<button type="button" class="map-control pan-left" data-pan="left" aria-label="Pan left"></button>
+				<button type="button" class="map-control pan-right" data-pan="right" aria-label="Pan right"></button>
+				<div class="zoom-controls">
+					<button type="button" class="map-control" data-zoom="in" aria-label="Zoom in"></button>
+					<button type="button" class="map-control" data-zoom="out" aria-label="Zoom out"></button>
+				</div>
+			</div>
+			<div class="map-message hidden" id="mapMessage"></div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		const USER_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c'];
+		const REFRESH_INTERVAL_MS = 60 * 1000;
+		const FLAG_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+			+ '<rect x="5" y="2" width="15" height="10" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>'
+			+ '<g fill="#1a1a1a"><rect x="5" y="2" width="5" height="5"/><rect x="15" y="2" width="5" height="5"/>'
+			+ '<rect x="10" y="7" width="5" height="5"/></g>'
+			+ '<rect x="3" y="2" width="2" height="20" fill="#1a1a1a"/></svg>';
+		const ROUTE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+			+ '<path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/></svg>';
+		const ROUTE_OFF_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+			+ '<path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/>'
+			+ '<line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>';
+		const CHEVRON_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4-4.6-4.6z"/></svg>';
+		const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>';
+		const MINUS_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11h14v2H5z"/></svg>';
+		const PAN_OFFSETS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+		const LONG_PRESS_MS = 500;
+
+		function onHomeyReady(Homey)
+		{
+			const settings = Homey.getSettings() || {};
+			const instanceId = Homey.getWidgetInstanceId();
+			const showZones = settings.showZones !== false;
+			const tracksEnabled = settings.showTracks !== false;
+			const trackHours = tracksEnabled ? Math.max(1, Number(settings.trackHours) || 12) : 0;
+
+			const avatarStrip = document.getElementById('avatarStrip');
+			const mapMessage = document.getElementById('mapMessage');
+
+			let map = null;
+			let layers = [];
+			let users = [];
+			let waypoints = [];
+			let speedUnit = 'kmh';
+			let journeyGapMinutes = 30;
+			let hiddenUserIds = new Set();
+			let tracksVisible = tracksEnabled;
+			// The map is only re-centred when the set of visible users changes, so a user who has
+			// panned or zoomed isn't yanked back on every background refresh.
+			let lastFittedKey = null;
+			let refreshTimer = null;
+			let lastTouchEndAt = 0;
+
+			/** Homey only allows haptics briefly after a touch, so a refusal must never break the action. */
+			function hapticFeedback()
+			{
+				try
+				{
+					Homey.hapticFeedback();
+				}
+				catch (err)
+				{
+					console.warn(err);
+				}
+			}
+
+			function ensureMap()
+			{
+				if (map) return;
+				map = L.map('map', { attributionControl: false, zoomControl: false }).setView([51.5074, -0.1278], 13);
+				// Journey flags sit above the avatar markers so they stay readable where a
+				// journey ends at a user's current position.
+				map.createPane('journeyFlags');
+				map.getPane('journeyFlags').style.zIndex = 650;
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+				L.control.scale({
+					position: 'bottomleft',
+					metric: speedUnit !== 'mph',
+					imperial: speedUnit === 'mph',
+				}).addTo(map);
+				claimMapTouches();
+				setupMapControls();
+			}
+
+			/**
+			 * Homey's dashboard scrolls itself whenever a touch gesture isn't consumed by the
+			 * widget, which steals drags and pinches from the map. Cancelling the native gesture
+			 * on the map container tells the host the widget is handling it.
+			 */
+			function claimMapTouches()
+			{
+				const container = map.getContainer();
+				container.addEventListener('touchstart', (event) => event.stopPropagation(), { passive: false });
+				container.addEventListener('touchmove', (event) =>
+				{
+					event.stopPropagation();
+					if (event.cancelable) event.preventDefault();
+				}, { passive: false });
+				container.addEventListener('touchend', (event) => event.stopPropagation(), { passive: false });
+			}
+
+			function setupMapControls()
+			{
+				const controls = document.getElementById('mapControls');
+				L.DomEvent.disableClickPropagation(controls);
+				L.DomEvent.disableScrollPropagation(controls);
+
+				controls.querySelectorAll('[data-pan]').forEach((button) =>
+				{
+					const direction = button.dataset.pan;
+					button.innerHTML = CHEVRON_SVG;
+					button.title = Homey.__(`widget.map.pan${direction.charAt(0).toUpperCase()}${direction.slice(1)}`);
+					button.setAttribute('aria-label', button.title);
+					button.addEventListener('click', () =>
+					{
+						hapticFeedback();
+						const size = map.getSize();
+						const [x, y] = PAN_OFFSETS[direction];
+						map.panBy([Math.round(x * size.x * 0.4), Math.round(y * size.y * 0.4)]);
+					});
+				});
+
+				controls.querySelectorAll('[data-zoom]').forEach((button) =>
+				{
+					const zoomIn = button.dataset.zoom === 'in';
+					button.innerHTML = zoomIn ? PLUS_SVG : MINUS_SVG;
+					button.title = Homey.__(zoomIn ? 'widget.map.zoomIn' : 'widget.map.zoomOut');
+					button.setAttribute('aria-label', button.title);
+					button.addEventListener('click', () =>
+					{
+						hapticFeedback();
+						if (zoomIn) map.zoomIn();
+						else map.zoomOut();
+					});
+				});
+			}
+
+			/** Splits a track into journeys, a new one starting after a gap longer than the app's setting. */
+			function buildJourneys(track)
+			{
+				const gapMilliseconds = journeyGapMinutes * 60 * 1000;
+				const journeys = [];
+				track
+					.filter((point) => Number.isFinite(point.timestamp))
+					.sort((first, second) => first.timestamp - second.timestamp)
+					.forEach((point) =>
+					{
+						const current = journeys[journeys.length - 1];
+						if (!current || point.timestamp - current.end > gapMilliseconds)
+						{
+							journeys.push({ end: point.timestamp, points: [point] });
+						}
+						else
+						{
+							current.end = point.timestamp;
+							current.points.push(point);
+						}
+					});
+				return journeys;
+			}
+
+			function colorForUser(userId)
+			{
+				const index = users.findIndex((user) => user.id === userId);
+				return USER_COLORS[(index < 0 ? 0 : index) % USER_COLORS.length];
+			}
+
+			function formatSpeed(location)
+			{
+				const receivedAt = location.receivedAt || location.timestamp;
+				const fresh = receivedAt && Date.now() - receivedAt < 60 * 1000;
+				if (!fresh || typeof location.velocity !== 'number' || location.velocity <= 2) return null;
+				const speed = speedUnit === 'mph' ? location.velocity * 0.621371 : location.velocity;
+				return `${speed.toFixed(1)} ${speedUnit === 'mph' ? 'mph' : 'km/h'}`;
+			}
+
+			function escapeHtml(value)
+			{
+				return String(value).replace(/[&<>"']/g, (character) => ({
+					'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+				}[character]));
+			}
+
+			function renderAvatars()
+			{
+				avatarStrip.textContent = '';
+				if (!users.length)
+				{
+					avatarStrip.classList.add('hidden');
+					return;
+				}
+
+				avatarStrip.classList.remove('hidden');
+				users.forEach((user) =>
+				{
+					const visible = !hiddenUserIds.has(user.id);
+					// The capability reads "Unknown" when the user isn't inside any zone; someone
+					// on the move outside a zone gets their speed in the same spot instead.
+					const zone = user.zone && user.zone !== 'Unknown' ? user.zone : '';
+					const status = zone || (user.lastLocation ? formatSpeed(user.lastLocation) : null) || '';
+					const button = document.createElement('button');
+					button.type = 'button';
+					button.className = `avatar-button${visible ? '' : ' hidden-user'}`;
+					button.title = status ? `${user.name} - ${status}` : user.name;
+					button.setAttribute('aria-pressed', String(visible));
+					button.setAttribute('aria-label', Homey.__(visible ? 'widget.map.centerOnUser' : 'widget.map.showUser').replace('[[user]]', user.name));
+
+					const battery = document.createElement('span');
+					battery.className = 'avatar-battery';
+					// Kept in the DOM even when unknown so every avatar lines up.
+					battery.textContent = typeof user.battery === 'number' ? `${Math.round(user.battery)}%` : '';
+					if (typeof user.battery === 'number' && user.battery <= 20) battery.classList.add('battery-low');
+					button.appendChild(battery);
+
+					if (user.avatarBase64)
+					{
+						const image = document.createElement('img');
+						image.src = `data:image/jpeg;base64,${user.avatarBase64}`;
+						image.alt = '';
+						image.style.borderColor = colorForUser(user.id);
+						button.appendChild(image);
+					}
+					else
+					{
+						const fallback = document.createElement('span');
+						fallback.className = 'avatar-fallback';
+						fallback.style.background = colorForUser(user.id);
+						fallback.textContent = (user.name || '?').trim().charAt(0).toUpperCase();
+						button.appendChild(fallback);
+					}
+
+					const zoneLabel = document.createElement('span');
+					zoneLabel.className = zone ? 'avatar-zone' : 'avatar-zone avatar-moving';
+					zoneLabel.textContent = status;
+					button.appendChild(zoneLabel);
+
+					attachAvatarGestures(button, user.id);
+					avatarStrip.appendChild(button);
+				});
+
+				if (!tracksEnabled) return;
+
+				const trackButton = document.createElement('button');
+				trackButton.type = 'button';
+				trackButton.className = `track-toggle-button${tracksVisible ? '' : ' tracks-off'}`;
+				trackButton.innerHTML = tracksVisible ? ROUTE_SVG : ROUTE_OFF_SVG;
+				trackButton.setAttribute('aria-pressed', String(tracksVisible));
+				trackButton.title = Homey.__(tracksVisible ? 'widget.map.hideTracks' : 'widget.map.showTracks');
+				trackButton.setAttribute('aria-label', trackButton.title);
+				trackButton.addEventListener('click', () =>
+				{
+					hapticFeedback();
+					tracksVisible = !tracksVisible;
+					renderAvatars();
+					renderMap();
+					Homey.api('POST', '/tracks-visibility', { instanceId, visible: tracksVisible }).catch(console.error);
+				});
+				avatarStrip.appendChild(trackButton);
+			}
+
+			/** Tap centres the map on the user (showing them first if hidden); a long press toggles them. */
+			function attachAvatarGestures(button, userId)
+			{
+				let longPressTimer = null;
+				let longPressed = false;
+				let origin = null;
+				let previous = null;
+				let moved = false;
+
+				const beginPress = (x, y) =>
+				{
+					longPressed = false;
+					moved = false;
+					origin = { x, y };
+					previous = { x, y };
+					clearTimeout(longPressTimer);
+					longPressTimer = setTimeout(() =>
+					{
+						longPressed = true;
+						setUserVisible(userId, hiddenUserIds.has(userId));
+						hapticFeedback();
+					}, LONG_PRESS_MS);
+				};
+
+				const endPress = () =>
+				{
+					clearTimeout(longPressTimer);
+					longPressTimer = null;
+					origin = null;
+					previous = null;
+				};
+
+				const tap = () =>
+				{
+					if (hiddenUserIds.has(userId)) setUserVisible(userId, true);
+					centerOnUser(userId);
+					hapticFeedback();
+				};
+
+				// The dashboard runs its own long-press gesture on widgets, so the touch has to be
+				// claimed here - which means the tap and the strip's sideways scroll are handled manually.
+				button.addEventListener('touchstart', (event) =>
+				{
+					if (event.cancelable) event.preventDefault();
+					event.stopPropagation();
+					const touch = event.touches[0];
+					beginPress(touch.clientX, touch.clientY);
+				}, { passive: false });
+
+				button.addEventListener('touchmove', (event) =>
+				{
+					if (!origin) return;
+					if (event.cancelable) event.preventDefault();
+					event.stopPropagation();
+					const touch = event.touches[0];
+					if (Math.hypot(touch.clientX - origin.x, touch.clientY - origin.y) > 10)
+					{
+						moved = true;
+						clearTimeout(longPressTimer);
+					}
+					avatarStrip.scrollLeft -= touch.clientX - previous.x;
+					previous = { x: touch.clientX, y: touch.clientY };
+				}, { passive: false });
+
+				button.addEventListener('touchend', (event) =>
+				{
+					event.stopPropagation();
+					const wasTap = Boolean(origin) && !longPressed && !moved;
+					endPress();
+					lastTouchEndAt = Date.now();
+					if (wasTap) tap();
+				});
+
+				button.addEventListener('touchcancel', endPress);
+				button.addEventListener('contextmenu', (event) => event.preventDefault());
+
+				// Mouse only; pointer events also fire for touch, and pointerup arrives before
+				// touchend, so letting them through here would clear the press state too early.
+				button.addEventListener('pointerdown', (event) =>
+				{
+					if (event.pointerType !== 'touch') beginPress(event.clientX, event.clientY);
+				});
+				button.addEventListener('pointerup', (event) =>
+				{
+					if (event.pointerType !== 'touch') endPress();
+				});
+				button.addEventListener('pointerleave', (event) =>
+				{
+					if (event.pointerType !== 'touch') endPress();
+				});
+				button.addEventListener('click', () =>
+				{
+					if (longPressed || Date.now() - lastTouchEndAt < 700) return;
+					tap();
+				});
+			}
+
+			function setUserVisible(userId, visible)
+			{
+				if (visible) hiddenUserIds.delete(userId);
+				else hiddenUserIds.add(userId);
+				renderAvatars();
+				renderMap();
+				Homey.api('POST', '/visibility', { instanceId, userId, visible }).catch(console.error);
+			}
+
+			function centerOnUser(userId)
+			{
+				const user = users.find((item) => item.id === userId);
+				const last = user && user.lastLocation;
+				if (!last || typeof last.lat !== 'number' || typeof last.lon !== 'number') return;
+				ensureMap();
+				map.setView([last.lat, last.lon], Math.max(map.getZoom(), 15));
+			}
+
+			function renderMap()
+			{
+				ensureMap();
+				layers.forEach((layer) => map.removeLayer(layer));
+				layers = [];
+
+				if (showZones)
+				{
+					waypoints.forEach((waypoint) =>
+					{
+						if (typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number') return;
+						const circle = L.circle([waypoint.lat, waypoint.lon], {
+							color: '#666',
+							fillColor: '#999',
+							fillOpacity: 0.15,
+							weight: 1,
+							radius: Number(waypoint.rad) || 100,
+						}).addTo(map);
+						circle.bindTooltip(waypoint.desc);
+						layers.push(circle);
+					});
+				}
+
+				const bounds = [];
+				const visibleUsers = users.filter((user) => !hiddenUserIds.has(user.id));
+
+				visibleUsers.forEach((user) =>
+				{
+					const color = colorForUser(user.id);
+					const track = (user.track || []).filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number');
+
+					if (tracksVisible && track.length > 1)
+					{
+						const line = L.polyline(track.map((point) => [point.lat, point.lon]), { color, weight: 3, opacity: 0.7 }).addTo(map);
+						layers.push(line);
+						track.forEach((point) => bounds.push([point.lat, point.lon]));
+
+						buildJourneys(track).forEach((journey) =>
+						{
+							if (journey.points.length < 2) return;
+							const endPoint = journey.points[journey.points.length - 1];
+							const flag = L.marker([endPoint.lat, endPoint.lon], {
+								pane: 'journeyFlags',
+								icon: L.divIcon({
+									className: 'journey-flag',
+									html: FLAG_SVG,
+									iconSize: [20, 20],
+									// Anchored bottom-left with a nudge so the flag stands clear of an
+									// avatar marker sitting on the same point.
+									iconAnchor: [-6, 22],
+								}),
+							}).addTo(map);
+							flag.bindTooltip(`${Homey.__('widget.map.journeyEnd')} — ${new Date(endPoint.timestamp).toLocaleString()}`);
+							layers.push(flag);
+						});
+					}
+
+					const last = user.lastLocation;
+					if (!last || typeof last.lat !== 'number' || typeof last.lon !== 'number') return;
+
+					const speed = formatSpeed(last);
+					const speedLabel = speed ? `<div class="marker-speed">${escapeHtml(speed)}</div>` : '';
+					const avatarHtml = user.avatarBase64
+						? `<img src="data:image/jpeg;base64,${user.avatarBase64}" style="border-color: ${color};">`
+						: `<div class="marker-fallback" style="background: ${color};">${escapeHtml((user.name || '?').trim().charAt(0).toUpperCase())}</div>`;
+					const marker = L.marker([last.lat, last.lon], {
+						icon: L.divIcon({ className: 'marker-avatar', html: `${speedLabel}${avatarHtml}`, iconSize: [34, 34] }),
+					}).addTo(map).bindTooltip(user.name);
+					layers.push(marker);
+					bounds.push([last.lat, last.lon]);
+				});
+
+				const fitKey = visibleUsers.map((user) => user.id).join('|');
+				if (bounds.length && fitKey !== lastFittedKey)
+				{
+					map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
+					lastFittedKey = fitKey;
+				}
+
+				if (!users.length) showMessage(Homey.__('widget.map.noUsers'));
+				else if (!bounds.length) showMessage(Homey.__('widget.map.noLocations'));
+				else showMessage(null);
+			}
+
+			function showMessage(text)
+			{
+				mapMessage.textContent = text || '';
+				mapMessage.classList.toggle('hidden', !text);
+			}
+
+			function load()
+			{
+				return Homey.api('GET', `/?instanceId=${encodeURIComponent(instanceId)}&trackHours=${trackHours}`)
+					.then((data) =>
+					{
+						users = Array.isArray(data && data.users) ? data.users : [];
+						waypoints = Array.isArray(data && data.waypoints) ? data.waypoints : [];
+						speedUnit = (data && data.speedUnit) === 'mph' ? 'mph' : 'kmh';
+						journeyGapMinutes = Number(data && data.journeyGapMinutes) || 30;
+						hiddenUserIds = new Set(Array.isArray(data && data.hiddenUserIds) ? data.hiddenUserIds : []);
+						if (data && typeof data.tracksVisible === 'boolean') tracksVisible = tracksEnabled && data.tracksVisible;
+						renderAvatars();
+						renderMap();
+					})
+					.catch((err) =>
+					{
+						console.error(err);
+						showMessage(Homey.__('widget.map.loadFailed'));
+					});
+			}
+
+			Homey.on('tracks_updated', () => load());
+			Homey.on('waypoints_updated', () => load());
+
+			// Realtime events cover most updates, but a slow refresh keeps the speed labels
+			// (which expire after a minute) and any missed event from going stale.
+			refreshTimer = setInterval(() => load(), REFRESH_INTERVAL_MS);
+			window.addEventListener('unload', () => clearInterval(refreshTimer));
+			window.addEventListener('resize', () =>
+			{
+				if (map) map.invalidateSize();
+			});
+
+			load().finally(() =>
+			{
+				Homey.ready();
+				// The container is still collapsed behind the widget's loading state during the
+				// first render, so Leaflet has to re-measure and re-fit once it becomes visible.
+				setTimeout(() =>
+				{
+					if (!map) return;
+					map.invalidateSize();
+					lastFittedKey = null;
+					renderMap();
+				}, 100);
+			});
+		}
+	</script>
+</body>
+
+</html>

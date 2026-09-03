@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Ainda não há utilizadores emparelhados.",
+			"noLocations": "Não há localizações para mostrar.",
+			"loadFailed": "Não foi possível carregar o mapa.",
+			"hideUser": "Ocultar [[user]]",
+			"showUser": "Mostrar [[user]]",
+			"centerOnUser": "Centrar em [[user]], manter premido para ocultar",
+			"journeyEnd": "Fim do percurso",
+			"hideTracks": "Ocultar percursos",
+			"showTracks": "Mostrar percursos",
+			"panUp": "Deslocar para cima",
+			"panDown": "Deslocar para baixo",
+			"panLeft": "Deslocar para a esquerda",
+			"panRight": "Deslocar para a direita",
+			"zoomIn": "Aproximar",
+			"zoomOut": "Afastar"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Conexão",
@@ -177,6 +196,7 @@
 			"journeyStart": "Hora de início",
 			"journeyDuration": "Duração",
 			"journeyAverageSpeed": "Velocidade média",
+			"journeyEndFlag": "Fim do percurso",
 			"deleteJourneyAria": "Eliminar viagem",
 			"deleteJourneyConfirm": "Eliminar todos os pontos desta viagem? Esta ação não pode ser anulada.",
 			"deletePoint": "Eliminar ponto",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Copiar pontos do percurso",
 			"trackPointsCopied": "Pontos do percurso copiados",
 			"noTrackPoints": "Não há pontos do percurso para copiar.",
-			"noJourneys": "Nenhuma viagem neste intervalo de datas."
+			"noJourneys": "Nenhuma viagem neste intervalo de datas.",
+			"contextHelpAria": "Ajuda sobre os controles do mapa",
+			"contextHelpTitle": "Controles do mapa",
+			"contextHelpBody": "Abrir o menu\nClique com o botão direito no mapa ou mantenha-o pressionado em uma tela sensível ao toque para abrir o menu. O primeiro comando alterna os pontos registrados entre pontos clássicos e marcadores direcionais em forma de gota.\n\nÍcones por usuário\n**Olho** indica que o usuário está visível. Selecione-o para ocultar o avatar, a localização e o trajeto do usuário. **Olho riscado** indica que o usuário está oculto; selecione-o para mostrar o usuário novamente.\n\n**Rota** indica que o trajeto registrado está visível. Selecione-a para ocultar somente o trajeto e manter visível a localização mais recente. **Rota riscada** indica que o trajeto está oculto; selecione-a para mostrar o trajeto novamente. Este controle fica desativado quando o usuário está oculto.\n\n**Alvo** centraliza o mapa na localização real mais recente do usuário. Fica desativado quando o usuário está oculto ou não possui uma localização informada."
 		},
 		"logs": {
 			"intro": "Os últimos ~20 KB de mensagens registradas, mais recentes na parte inferior (não persistem ao reiniciar o aplicativo). Erros são sempre registrados.",

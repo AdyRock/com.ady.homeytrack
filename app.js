@@ -33,6 +33,7 @@ const SETTINGS_BACKUP_KEYS = [
 const MAX_LOG_BUFFER_BYTES = 20 * 1024;
 const DEFAULT_TRACK_MAX_POINTS = 1000;
 const MIN_TRACK_MAX_POINTS = 100;
+const WIDGET_MAX_TRACK_POINTS = 250;
 
 module.exports = class MyApp extends Homey.App
 {
@@ -468,9 +469,84 @@ module.exports = class MyApp extends Homey.App
 			id: device.getData().id,
 			name: device.getName(),
 			avatarBase64: device.getStoreValue('avatarBase64') || null,
+			battery: device.getCapabilityValue('measure_battery'),
+			zone: device.getCapabilityValue('zone'),
 			lastLocation: device.getStoreValue('lastLocation') || null,
 			track: device.getStoreValue('track') || [],
 		}));
+	}
+
+	/**
+	 * Builds the payload for the map dashboard widget. Tracks are trimmed to the requested
+	 * window (and capped) because a widget re-fetches often and a full 1000-point-per-user
+	 * history is far more than a small dashboard map needs.
+	 * @param {string} instanceId The widget instance id, used to remember per-widget user visibility.
+	 * @param {number} trackHours How far back track points should reach; 0 means no track points.
+	 */
+	getWidgetMapData(instanceId, trackHours = 12)
+	{
+		const hours = Number.isFinite(Number(trackHours)) ? Math.max(0, Number(trackHours)) : 12;
+		const since = hours > 0 ? Date.now() - (hours * 60 * 60 * 1000) : null;
+		const users = this.listTracks().map((user) => ({
+			...user,
+			track: since === null
+				? []
+				: user.track.filter((point) => (point.timestamp || 0) >= since).slice(-WIDGET_MAX_TRACK_POINTS),
+		}));
+
+		return {
+			users,
+			waypoints: this.listMapWaypoints(),
+			speedUnit: this.homey.settings.get('speedUnit') === 'mph' ? 'mph' : 'kmh',
+			journeyGapMinutes: Number(this.homey.settings.get('journeyGapMinutes')) || 30,
+			hiddenUserIds: this._getWidgetHiddenUsers()[instanceId] || [],
+			// null means the user has never used the widget's track toggle, so its
+			// "Show recent tracks" setting still decides.
+			tracksVisible: this._getWidgetTracksVisible()[instanceId] ?? null,
+		};
+	}
+
+	/** Remembers, per widget instance, which users the dashboard user has toggled off. */
+	async setWidgetUserVisibility(instanceId, userId, visible)
+	{
+		if (typeof instanceId !== 'string' || !instanceId || typeof userId !== 'string' || !userId)
+		{
+			throw new Error('Invalid widget visibility request');
+		}
+
+		const hiddenUsers = this._getWidgetHiddenUsers();
+		const hidden = new Set(hiddenUsers[instanceId] || []);
+		if (visible) hidden.delete(userId);
+		else hidden.add(userId);
+		hiddenUsers[instanceId] = [...hidden];
+		await this.homey.settings.set('widgetHiddenUsers', hiddenUsers);
+		return { ok: true, hiddenUserIds: hiddenUsers[instanceId] };
+	}
+
+	_getWidgetHiddenUsers()
+	{
+		const hiddenUsers = this.homey.settings.get('widgetHiddenUsers');
+		return (hiddenUsers && typeof hiddenUsers === 'object') ? hiddenUsers : {};
+	}
+
+	/** Remembers, per widget instance, whether the track lines and journey flags are shown. */
+	async setWidgetTracksVisible(instanceId, visible)
+	{
+		if (typeof instanceId !== 'string' || !instanceId)
+		{
+			throw new Error('Invalid widget visibility request');
+		}
+
+		const tracksVisible = this._getWidgetTracksVisible();
+		tracksVisible[instanceId] = visible;
+		await this.homey.settings.set('widgetTracksVisible', tracksVisible);
+		return { ok: true, tracksVisible: visible };
+	}
+
+	_getWidgetTracksVisible()
+	{
+		const tracksVisible = this.homey.settings.get('widgetTracksVisible');
+		return (tracksVisible && typeof tracksVisible === 'object') ? tracksVisible : {};
 	}
 
 	async deleteJourney(userId, start, end)

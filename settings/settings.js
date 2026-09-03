@@ -193,6 +193,12 @@ function onHomeyReady(Homey)
 	helpSettings.setAttribute('title', helpSettingsLabel);
 	helpSettings.appendChild(document.querySelector('#helpMqtt svg').cloneNode(true));
 	wireHelpModal('helpSettings', 'helpModalSettings', 'closeHelpSettings');
+	const helpMap = document.getElementById('helpMap');
+	const helpMapLabel = Homey.__('settings.map.contextHelpAria');
+	helpMap.setAttribute('aria-label', helpMapLabel);
+	helpMap.setAttribute('title', helpMapLabel);
+	helpMap.appendChild(document.querySelector('#helpMqtt svg').cloneNode(true));
+	wireHelpModal('helpMap', 'helpModalMap', 'closeHelpMap');
 	const helpZones = document.getElementById('helpZones');
 	const helpZonesLabel = Homey.__('settings.zones.helpAria');
 	helpZones.setAttribute('aria-label', helpZonesLabel);
@@ -914,6 +920,11 @@ function onHomeyReady(Homey)
 	let trackPointMarkers = new WeakMap();
 	const trackZoneLayers = [];
 	const TRACK_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c'];
+	const CHEQUERED_FLAG_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+		+ '<rect x="5" y="2" width="15" height="10" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>'
+		+ '<g fill="#1a1a1a"><rect x="5" y="2" width="5" height="5"/><rect x="15" y="2" width="5" height="5"/>'
+		+ '<rect x="10" y="7" width="5" height="5"/></g>'
+		+ '<rect x="3" y="2" width="2" height="20" fill="#1a1a1a"/></svg>';
 	let trackUsers = [];
 	let trackWaypoints = [];
 	let selectedTrackUserIds = null;
@@ -1285,6 +1296,11 @@ function onHomeyReady(Homey)
 		trackMap.createPane('trackPoints');
 		trackMap.getPane('trackPoints').style.zIndex = 450;
 
+		// Journey flags sit above the avatar markers so they stay readable where a journey
+		// ends at a user's current position.
+		trackMap.createPane('journeyFlags');
+		trackMap.getPane('journeyFlags').style.zIndex = 650;
+
 		// Teardrop icon size and overlap-filtering are zoom-dependent, so the whole
 		// track needs redrawing (not just resizing) whenever the zoom level changes.
 		// adjustViewport is false so this never recenters the map the user just zoomed.
@@ -1641,6 +1657,26 @@ function onHomeyReady(Homey)
 					trackLayers.push(pointMarker);
 					trackPointLayers.push(pointMarker);
 					trackPointMarkers.set(point, pointMarker);
+				});
+
+				buildJourneys(track).forEach((journey) =>
+				{
+					if (journey.points.length < 2) return;
+					const endPoint = journey.points[journey.points.length - 1];
+					if (typeof endPoint.lat !== 'number' || typeof endPoint.lon !== 'number') return;
+					const flag = L.marker([endPoint.lat, endPoint.lon], {
+						pane: 'journeyFlags',
+						icon: L.divIcon({
+							className: 'track-flag-icon',
+							html: CHEQUERED_FLAG_SVG,
+							iconSize: [22, 22],
+							// Anchored bottom-left with a nudge so the flag stands clear of an
+							// avatar marker sitting on the same point.
+							iconAnchor: [-8, 24],
+						}),
+					}).addTo(trackMap);
+					flag.bindTooltip(`${user.name} - ${Homey.__('settings.map.journeyEndFlag')} ${new Date(endPoint.timestamp).toLocaleString()}`);
+					trackLayers.push(flag);
 				});
 
 				const journeyEnd = selectedJourney

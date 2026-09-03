@@ -1,4 +1,23 @@
 {
+	"widget": {
+		"map": {
+			"noUsers": "Nessun utente ancora associato.",
+			"noLocations": "Nessuna posizione da mostrare.",
+			"loadFailed": "Impossibile caricare la mappa.",
+			"hideUser": "Nascondi [[user]]",
+			"showUser": "Mostra [[user]]",
+			"centerOnUser": "Centra su [[user]], tieni premuto per nascondere",
+			"journeyEnd": "Fine del percorso",
+			"hideTracks": "Nascondi percorsi",
+			"showTracks": "Mostra percorsi",
+			"panUp": "Sposta in alto",
+			"panDown": "Sposta in basso",
+			"panLeft": "Sposta a sinistra",
+			"panRight": "Sposta a destra",
+			"zoomIn": "Ingrandisci",
+			"zoomOut": "Riduci"
+		}
+	},
 	"settings": {
 		"tabs": {
 			"connection": "Connessione",
@@ -177,6 +196,7 @@
 			"journeyStart": "Ora di inizio",
 			"journeyDuration": "Durata",
 			"journeyAverageSpeed": "Velocità media",
+			"journeyEndFlag": "Fine del percorso",
 			"deleteJourneyAria": "Elimina viaggio",
 			"deleteJourneyConfirm": "Eliminare tutti i punti di questo viaggio? L'operazione non può essere annullata.",
 			"deletePoint": "Elimina punto",
@@ -184,7 +204,10 @@
 			"copyTrackPoints": "Copia punti del percorso",
 			"trackPointsCopied": "Punti del percorso copiati",
 			"noTrackPoints": "Nessun punto del percorso da copiare.",
-			"noJourneys": "Nessun viaggio in questo intervallo di date."
+			"noJourneys": "Nessun viaggio in questo intervallo di date.",
+			"contextHelpAria": "Aiuto per i controlli della mappa",
+			"contextHelpTitle": "Controlli della mappa",
+			"contextHelpBody": "Apertura del menu\nFai clic con il pulsante destro sulla mappa oppure tieni premuto su uno schermo touch per aprire il menu. Il primo comando alterna i punti registrati tra punti classici e indicatori direzionali a goccia.\n\nIcone per utente\n**Occhio** indica che l'utente è visibile. Selezionalo per nascondere avatar, posizione e percorso. **Occhio barrato** indica che l'utente è nascosto; selezionalo per mostrarlo di nuovo.\n\n**Percorso** indica che il percorso registrato è visibile. Selezionalo per nascondere solo il percorso mantenendo visibile l'ultima posizione. **Percorso barrato** indica che il percorso è nascosto; selezionalo per mostrarlo di nuovo. Questo controllo è disabilitato quando l'utente è nascosto.\n\n**Bersaglio** centra la mappa sull'ultima posizione reale dell'utente. È disabilitato se l'utente è nascosto o non ha comunicato una posizione."
 		},
 		"logs": {
 			"intro": "Gli ultimi ~20 KB dei messaggi registrati, più recenti in basso (non persistenti tra i riavvii dell'app). Gli errori vengono sempre catturati.",

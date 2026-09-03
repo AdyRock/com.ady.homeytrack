@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.ady.homeytrack",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -837,6 +837,97 @@
       "id": "user"
     }
   ],
+  "widgets": {
+    "map": {
+      "name": {
+        "en": "Map",
+        "no": "Kart",
+        "nl": "Kaart",
+        "de": "Karte",
+        "fr": "Carte",
+        "es": "Mapa",
+        "pt": "Mapa",
+        "it": "Mappa",
+        "pl": "Mapa",
+        "ru": "Карта",
+        "ko": "지도"
+      },
+      "height": 350,
+      "settings": [
+        {
+          "id": "showZones",
+          "type": "checkbox",
+          "value": true,
+          "title": {
+            "en": "Show zones",
+            "no": "Vis soner",
+            "nl": "Zones tonen",
+            "de": "Zonen anzeigen",
+            "fr": "Afficher les zones",
+            "es": "Mostrar zonas",
+            "pt": "Mostrar zonas",
+            "it": "Mostra zone",
+            "pl": "Pokaż strefy",
+            "ru": "Показывать зоны",
+            "ko": "구역 표시"
+          }
+        },
+        {
+          "id": "showTracks",
+          "type": "checkbox",
+          "value": true,
+          "title": {
+            "en": "Show recent tracks",
+            "no": "Vis nylige spor",
+            "nl": "Recente routes tonen",
+            "de": "Letzte Routen anzeigen",
+            "fr": "Afficher les trajets récents",
+            "es": "Mostrar rutas recientes",
+            "pt": "Mostrar percursos recentes",
+            "it": "Mostra percorsi recenti",
+            "pl": "Pokaż ostatnie trasy",
+            "ru": "Показывать недавние маршруты",
+            "ko": "최근 경로 표시"
+          }
+        },
+        {
+          "id": "trackHours",
+          "type": "number",
+          "value": 12,
+          "min": 1,
+          "max": 168,
+          "title": {
+            "en": "Track history (hours)",
+            "no": "Sporhistorikk (timer)",
+            "nl": "Routegeschiedenis (uren)",
+            "de": "Routenverlauf (Stunden)",
+            "fr": "Historique des trajets (heures)",
+            "es": "Historial de rutas (horas)",
+            "pt": "Histórico de percursos (horas)",
+            "it": "Cronologia percorsi (ore)",
+            "pl": "Historia tras (godziny)",
+            "ru": "История маршрутов (часы)",
+            "ko": "경로 기록 (시간)"
+          }
+        }
+      ],
+      "api": {
+        "getData": {
+          "method": "GET",
+          "path": "/"
+        },
+        "setVisibility": {
+          "method": "POST",
+          "path": "/visibility"
+        },
+        "setTracksVisibility": {
+          "method": "POST",
+          "path": "/tracks-visibility"
+        }
+      },
+      "id": "map"
+    }
+  },
   "capabilities": {
     "last_coordinates": {
       "type": "string",
