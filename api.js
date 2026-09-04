@@ -25,6 +25,14 @@ module.exports = {
 	},
 
 	/**
+	 * Used by the settings page to centre the map when adding a zone.
+	 */
+	async getDefaultMapLocation({ homey })
+	{
+		return homey.app.getDefaultMapLocation();
+	},
+
+	/**
 	 * Used by the settings page's Map tab to show every user's last location and track history.
 	 */
 	async getTracks({ homey })

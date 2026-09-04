@@ -735,6 +735,10 @@
 						});
 					}
 
+					// After the track, so a user with history but no current fix still gets a line.
+					const last = user.lastLocation;
+					if (!last || typeof last.lat !== 'number' || typeof last.lon !== 'number') return;
+
 					const speed = formatSpeed(last);
 					const speedLabel = speed ? `<div class="marker-speed">${escapeHtml(speed)}</div>` : '';
 					const avatarHtml = user.avatarBase64
@@ -768,6 +772,13 @@
 			{
 				mapMessage.textContent = text || '';
 				mapMessage.classList.toggle('hidden', !text);
+			}
+
+			function describeError(err)
+			{
+				if (!err) return '';
+				if (typeof err === 'string') return err;
+				return err.message || err.error || err.code || '';
 			}
 
 			function load()
@@ -804,7 +815,12 @@
 					.catch((err) =>
 					{
 						console.error(err);
-						showMessage(Homey.__('widget.map.loadFailed'));
+						// The detail matters: this catch also covers a failure while rendering,
+						// which is a very different problem from the request itself failing.
+						const detail = describeError(err);
+						showMessage(detail
+							? `${Homey.__('widget.map.loadFailed')} (${detail})`
+							: Homey.__('widget.map.loadFailed'));
 					});
 			}
 

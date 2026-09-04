@@ -1,6 +1,6 @@
 {
 	"id": "com.ady.homeytrack",
-	"version": "1.0.5",
+	"version": "1.0.7",
 	"compatibility": ">=12.4.0",
 	"sdk": 3,
 	"runtime": "nodejs",
@@ -143,6 +143,11 @@
 		"getUsers": {
 			"method": "GET",
 			"path": "/users",
+			"public": false
+		},
+		"getDefaultMapLocation": {
+			"method": "GET",
+			"path": "/default-location",
 			"public": false
 		},
 		"getTracks": {

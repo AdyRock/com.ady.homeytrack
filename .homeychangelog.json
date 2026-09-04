@@ -46,5 +46,31 @@
 		"zh": "添加了用于显示用户轨迹的地图小部件。 在设置选项卡中添加了帮助按钮。 为每个用户设备添加了图像，以显示其位置和最近的行程。",
 		"ja": "ユーザートラックを表示するためのマップウィジェットを追加しました。 設定タブにヘルプボタンを追加しました。 各ユーザー デバイスに画像を追加して、その位置と最近の移動を表示しました。",
 		"ko": "사용자 트랙을 표시하기 위한 지도 위젯이 추가되었습니다. 설정 탭에 도움말 버튼이 추가되었습니다. 각 사용자 장치에 이미지를 추가하여 위치와 최근 이동 경로를 표시했습니다."
+	},
+	"1.0.6": {
+		"en": "Fixed a new zone being disabled for a user before their phone had a chance to receive it. New zones now open on your current location, or Homey's location.",
+		"nl": "Opgelost dat een nieuwe zone voor een gebruiker werd uitgeschakeld voordat hun telefoon deze kon ontvangen. Nieuwe zones openen nu op je huidige locatie, of de locatie van Homey.",
+		"fr": "Correction d'une nouvelle zone désactivée pour un utilisateur avant que son téléphone ait pu la recevoir. Les nouvelles zones s'ouvrent désormais sur votre position actuelle, ou celle de Homey.",
+		"de": "Behoben, dass eine neue Zone für einen Benutzer deaktiviert wurde, bevor dessen Telefon sie empfangen konnte. Neue Zonen öffnen jetzt an Ihrem aktuellen Standort oder am Standort von Homey.",
+		"es": "Se corrigió que una nueva zona se desactivara para un usuario antes de que su teléfono pudiera recibirla. Las nuevas zonas ahora se abren en tu ubicación actual o en la de Homey.",
+		"it": "Risolto il problema per cui una nuova zona veniva disattivata per un utente prima che il suo telefono potesse riceverla. Le nuove zone ora si aprono sulla tua posizione attuale o su quella di Homey.",
+		"pt": "Corrigido o problema de uma nova zona ser desativada para um utilizador antes de o seu telemóvel a poder receber. As novas zonas abrem agora na sua localização atual ou na do Homey.",
+		"ru": "Исправлено отключение новой зоны для пользователя до того, как его телефон успел её получить. Новые зоны теперь открываются в вашем текущем местоположении или в местоположении Homey.",
+		"zh": "修复了新区域在用户手机接收之前就被禁用的问题。新区域现在会以您当前的位置或 Homey 的位置打开。",
+		"ja": "新しいゾーンが、ユーザーの携帯電話が受信する前に無効化される問題を修正しました。新しいゾーンは現在地、または Homey の位置で開くようになりました。",
+		"ko": "새 영역이 사용자의 휴대폰에 전달되기 전에 비활성화되던 문제를 수정했습니다. 새 영역은 이제 현재 위치 또는 Homey의 위치에서 열립니다."
+	},
+	"1.0.7": {
+		"en": "The map shown when adding a new zone now centers on your current location.",
+		"nl": "De kaart die wordt weergegeven bij het toevoegen van een nieuwe zone, is nu gecentreerd op je huidige locatie.",
+		"fr": "La carte affichée lors de l'ajout d'une nouvelle zone est désormais centrée sur votre position actuelle.",
+		"de": "Die Karte, die beim Hinzufügen einer neuen Zone angezeigt wird, ist jetzt auf Ihren aktuellen Standort zentriert.",
+		"es": "El mapa que se muestra al agregar una nueva zona ahora se centra en tu ubicación actual.",
+		"it": "La mappa mostrata durante l'aggiunta di una nuova zona ora è centrata sulla tua posizione attuale.",
+		"pt": "O mapa exibido ao adicionar uma nova zona agora está centrado na sua localização atual.",
+		"ru": "Карта, отображаемая при добавлении новой зоны, теперь центрируется на вашем текущем местоположении.",
+		"zh": "添加新区域时显示的地图现在以您当前的位置为中心。",
+		"ja": "新しいゾーンを追加する際に表示される地図は、現在地を中心に表示されるようになりました。",
+		"ko": "새 영역을 추가할 때 표시되는 지도는 이제 현재 위치를 중심으로 표시됩니다."
 	}
 }

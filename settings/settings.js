@@ -768,6 +768,58 @@ function onHomeyReady(Homey)
 	let zoneMap = null;
 	let zoneMarker = null;
 	let zoneCircle = null;
+	let defaultZoneCenter = null;
+	const FALLBACK_ZONE_CENTER = [51.5074, -0.1278];
+
+	function fetchBrowserLocation()
+	{
+		return new Promise((resolve) =>
+		{
+			if (!navigator.geolocation || !window.isSecureContext)
+			{
+				resolve(null);
+				return;
+			}
+
+			navigator.geolocation.getCurrentPosition(
+				(position) => resolve([position.coords.latitude, position.coords.longitude]),
+				() => resolve(null),
+				{ timeout: 5000, maximumAge: 300000 },
+			);
+		});
+	}
+
+	function fetchDefaultLocation()
+	{
+		return new Promise((resolve) =>
+		{
+			Homey.api('GET', '/default-location', (err, location) =>
+			{
+				if (err || !location || typeof location.lat !== 'number' || typeof location.lon !== 'number')
+				{
+					resolve(null);
+					return;
+				}
+
+				resolve([location.lat, location.lon]);
+			});
+		});
+	}
+
+	// A new zone starts wherever the user is; the most recently reported user position is the
+	// fallback when the browser won't share a location, and only then a fixed view.
+	function getDefaultZoneCenter()
+	{
+		if (defaultZoneCenter) return Promise.resolve(defaultZoneCenter);
+
+		return fetchBrowserLocation()
+			.then((browserLocation) => browserLocation || fetchDefaultLocation())
+			.then((location) =>
+			{
+				defaultZoneCenter = location || FALLBACK_ZONE_CENTER;
+				return defaultZoneCenter;
+			});
+	}
 
 	function placeZoneMarker(lat, lon)
 	{
@@ -788,7 +840,7 @@ function onHomeyReady(Homey)
 	{
 		if (zoneMap) return;
 
-		zoneMap = L.map('zoneMap').setView([51.5074, -0.1278], 13);
+		zoneMap = L.map('zoneMap').setView(defaultZoneCenter || FALLBACK_ZONE_CENTER, 13);
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; OpenStreetMap contributors',
 			maxZoom: 19,
@@ -828,6 +880,12 @@ function onHomeyReady(Homey)
 		}
 		addZoneModal.classList.remove('hidden');
 		ensureZoneMap();
+		getDefaultZoneCenter().then((center) =>
+		{
+			// The user may have picked a spot (or closed the dialog) while the location resolved.
+			if (zoneMarker || addZoneModal.classList.contains('hidden')) return;
+			zoneMap.setView(center, 15);
+		});
 		// The map was hidden (display: none) when created, so it needs a resize nudge.
 		setTimeout(() => zoneMap.invalidateSize(), 100);
 	});

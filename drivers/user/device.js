@@ -626,6 +626,13 @@ module.exports = class UserDevice extends Homey.Device
 		const tid = this.getStoreValue('lastTrackerId') || (topicDevice && topicDevice.slice(-2).toUpperCase()) || this.getUserId().slice(-2).toUpperCase();
 		const entries = [];
 
+		// OwnTracks parses the whole HTTP response array in one go, so a single malformed entry
+		// makes it discard everything - including the zone sync. Only emit complete entries.
+		if (!tid)
+		{
+			return entries;
+		}
+
 		const face = await this.getAvatarBase64();
 		if (face)
 		{
@@ -633,16 +640,20 @@ module.exports = class UserDevice extends Homey.Device
 		}
 
 		const lastLocation = this.getStoreValue('lastLocation');
-		if (lastLocation && typeof lastLocation.lat === 'number')
+		if (lastLocation && Number.isFinite(lastLocation.lat) && Number.isFinite(lastLocation.lon))
 		{
-			entries.push({
+			const entry = {
 				_type: 'location',
 				tid,
 				lat: lastLocation.lat,
 				lon: lastLocation.lon,
-				acc: lastLocation.accuracy,
 				tst: Math.round((lastLocation.timestamp || Date.now()) / 1000),
-			});
+			};
+			if (Number.isFinite(lastLocation.accuracy))
+			{
+				entry.acc = Math.round(lastLocation.accuracy);
+			}
+			entries.push(entry);
 		}
 
 		return entries;

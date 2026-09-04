@@ -34,6 +34,9 @@ const MAX_LOG_BUFFER_BYTES = 20 * 1024;
 const DEFAULT_TRACK_MAX_POINTS = 1000;
 const MIN_TRACK_MAX_POINTS = 100;
 const WIDGET_MAX_TRACK_POINTS = 250;
+// How long a shared zone is protected from being auto-disabled after it was first sent to a
+// phone, so a waypoints export the phone had already prepared can't undo the new zone.
+const WAYPOINT_DELIVERY_GRACE_MS = 5 * 60 * 1000;
 
 module.exports = class MyApp extends Homey.App
 {
@@ -248,6 +251,34 @@ module.exports = class MyApp extends Homey.App
 	}
 
 	/**
+	 * The most recently reported position of any paired user, used by the settings page to
+	 * centre the map when adding a zone. Homey's own geolocation would need an extra app
+	 * permission, which stops an installed app until the user re-approves it.
+	 * @returns {{ lat: number, lon: number }|null}
+	 */
+	getDefaultMapLocation()
+	{
+		let devices;
+		try
+		{
+			devices = this.homey.drivers.getDriver('user').getDevices();
+		} catch (err)
+		{
+			return null;
+		}
+
+		let newest = null;
+		devices.forEach((device) =>
+		{
+			const location = device.getStoreValue('lastLocation');
+			if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) return;
+			if (!newest || (location.timestamp || 0) > (newest.timestamp || 0)) newest = location;
+		});
+
+		return newest ? { lat: newest.lat, lon: newest.lon } : null;
+	}
+
+	/**
 	 * Builds "card" (name/avatar), "location" and a "cmd"/setWaypoints (shared zones) entry for
 	 * every paired User device, so an OwnTracks HTTP response can show all family members (with
 	 * avatars) on the same map, and keep everyone's zones in sync.
@@ -272,12 +303,12 @@ module.exports = class MyApp extends Homey.App
 			action: 'setWaypoints',
 			waypoints: {
 				_type: 'waypoints',
-				waypoints: waypoints.map((wp) => ({ _type: 'waypoint', ...wp })),
+				waypoints: waypoints.map((waypoint) => this._toOwnTracksWaypoint(waypoint)),
 			},
 		});
 		if (requestingDevice)
 		{
-			this._setWaypointReconciliationReady(requestingDevice.getData().id);
+			this._setWaypointsDelivered(requestingDevice.getData().id, waypoints);
 		}
 
 		return entries;
@@ -655,7 +686,7 @@ module.exports = class MyApp extends Homey.App
 		if (synced)
 		{
 			this.mqttWaypointSyncSignatures.set(deviceId, signature);
-			this._setWaypointReconciliationReady(deviceId);
+			this._setWaypointsDelivered(deviceId, waypoints);
 			this._log(`Synced ${waypoints.length} MQTT waypoint(s) to ${device.getName()}`);
 		}
 		return synced;
@@ -828,14 +859,20 @@ module.exports = class MyApp extends Homey.App
 
 	_migrateWaypointModel()
 	{
-		if (this.homey.settings.get('waypointModelVersion') === 1) return;
+		const version = this.homey.settings.get('waypointModelVersion');
+		if (version !== 1 && version !== 2)
+		{
+			const legacyWaypoints = this.homey.settings.get('ownTracksWaypoints') || [];
+			this.homey.settings.set('sharedWaypoints', legacyWaypoints.map((waypoint) => this._normalizeWaypoint(waypoint)));
+			this.homey.settings.set('privateWaypoints', {});
+			this.homey.settings.set('sharedWaypointExclusions', {});
+			this.homey.settings.set('waypointReconciliationReady', {});
+		}
 
-		const legacyWaypoints = this.homey.settings.get('ownTracksWaypoints') || [];
-		this.homey.settings.set('sharedWaypoints', legacyWaypoints.map((waypoint) => this._normalizeWaypoint(waypoint)));
-		this.homey.settings.set('privateWaypoints', {});
-		this.homey.settings.set('sharedWaypointExclusions', {});
-		this.homey.settings.set('waypointReconciliationReady', {});
-		this.homey.settings.set('waypointModelVersion', 1);
+		if (version === 2) return;
+
+		this.homey.settings.set('waypointDeliveredIds', {});
+		this.homey.settings.set('waypointModelVersion', 2);
 	}
 
 	_normalizeWaypoint(waypoint, id = null)
@@ -903,6 +940,68 @@ module.exports = class MyApp extends Homey.App
 		this.homey.settings.set('waypointReconciliationReady', ready);
 	}
 
+	/**
+	 * Records when each shared zone was first handed to a device. A zone the phone has never been
+	 * offered must not be treated as "deleted on the phone" when it exports its full zone list.
+	 * @param {string} deviceId
+	 * @param {{ id: string }[]} waypoints The zones just delivered to that device.
+	 */
+	_setWaypointsDelivered(deviceId, waypoints)
+	{
+		this._setWaypointReconciliationReady(deviceId);
+
+		const sharedIds = new Set(this._getSharedWaypoints().map((waypoint) => waypoint.id));
+		const all = this.homey.settings.get('waypointDeliveredIds') || {};
+		const delivered = all[deviceId] || {};
+		const firstTimeSent = [];
+		let changed = false;
+
+		waypoints.forEach((waypoint) =>
+		{
+			// Keep the first delivery time; refreshing it on every report would keep the zone
+			// permanently inside its grace period.
+			if (!sharedIds.has(waypoint.id) || delivered[waypoint.id]) return;
+			delivered[waypoint.id] = Date.now();
+			firstTimeSent.push(waypoint.desc);
+			changed = true;
+		});
+		Object.keys(delivered).forEach((waypointId) =>
+		{
+			if (sharedIds.has(waypointId)) return;
+			delete delivered[waypointId];
+			changed = true;
+		});
+
+		if (!changed) return;
+		all[deviceId] = delivered;
+		this.homey.settings.set('waypointDeliveredIds', all);
+		if (firstTimeSent.length)
+		{
+			this._log(`Sent ${waypoints.length} zone(s) to ${deviceId}, including for the first time: ${firstTimeSent.join(', ')}`);
+		}
+	}
+
+	_getDeliveredWaypoints(deviceId)
+	{
+		return (this.homey.settings.get('waypointDeliveredIds') || {})[deviceId] || {};
+	}
+
+	/**
+	 * Strips the app's own bookkeeping fields; the phones only understand these.
+	 * @param {{ desc: string, lat: number, lon: number, rad: number, tst: number }} waypoint
+	 */
+	_toOwnTracksWaypoint(waypoint)
+	{
+		return {
+			_type: 'waypoint',
+			desc: waypoint.desc,
+			lat: waypoint.lat,
+			lon: waypoint.lon,
+			rad: waypoint.rad,
+			tst: waypoint.tst,
+		};
+	}
+
 	/** Handles an individual phone-created waypoint as private to its paired user. */
 	_onWaypoint(waypoint)
 	{
@@ -950,10 +1049,19 @@ module.exports = class MyApp extends Homey.App
 		const shared = this._getSharedWaypoints();
 		const exclusions = this._getSharedExclusions();
 		const excluded = new Set(exclusions[deviceId] || []);
+		const delivered = this._getDeliveredWaypoints(deviceId);
 		shared.forEach((waypoint) =>
 		{
-			if (incoming.some((item) => this._waypointsEqual(item, waypoint))) excluded.delete(waypoint.id);
-			else excluded.add(waypoint.id);
+			if (incoming.some((item) => this._waypointsEqual(item, waypoint)))
+			{
+				excluded.delete(waypoint.id);
+				return;
+			}
+
+			// The phone can only have deleted a zone it was actually given, and it needs a moment
+			// to import a newly added one - otherwise a queued export would silently undo it.
+			const deliveredAt = delivered[waypoint.id];
+			if (deliveredAt && Date.now() - deliveredAt > WAYPOINT_DELIVERY_GRACE_MS) excluded.add(waypoint.id);
 		});
 		exclusions[deviceId] = [...excluded];
 
