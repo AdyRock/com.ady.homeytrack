@@ -133,17 +133,20 @@ module.exports = class UserDevice extends Homey.Device
 	_listJourneys()
 	{
 		const gapMinutes = Number(this.homey.settings.get('journeyGapMinutes')) || 30;
-		return buildJourneys(this.getStoreValue('track') || [], gapMinutes * 60 * 1000).slice(0, JOURNEY_IMAGE_COUNT);
+		// Oldest first, so reading down the list follows the user forwards in time.
+		return buildJourneys(this.getStoreValue('track') || [], gapMinutes * 60 * 1000)
+			.slice(0, JOURNEY_IMAGE_COUNT)
+			.reverse();
 	}
 
 	/**
-	 * Slot N always shows the Nth most recent journey, so every title has to be rewritten once a
-	 * new journey starts (or an old one is trimmed off the track).
+	 * Slot N always shows the Nth oldest of the recent journeys, so every title has to be
+	 * rewritten once a new journey starts (or an old one is trimmed off the track).
 	 */
 	async _syncJourneyImages()
 	{
-		const journeys = this._listJourneys();
-		const signature = journeys.map((journey) => journey.start).join(',');
+		const journeys = this._listJourneys().map((journey) => ({ journey, zones: this._journeyZoneLabel(journey) }));
+		const signature = journeys.map((entry) => `${entry.journey.start}:${entry.zones}`).join('|');
 		const shifted = signature !== this.journeySignature;
 		this.journeySignature = signature;
 
@@ -151,16 +154,44 @@ module.exports = class UserDevice extends Homey.Device
 		{
 			if (shifted)
 			{
-				const title = `${this.homey.__('device.journeyImage')} ${this._formatJourneyStart(journeys[index])}`;
+				const { journey, zones } = journeys[index];
+				const title = `${this.homey.__('device.journeyImage')} ${this._formatJourneyStart(journey)}${zones ? ` (${zones})` : ''}`;
 				await this.setCameraImage(`journey${index}`, title, this.journeyImages[index]).catch(this.error);
 			}
 			// Only the newest journey gains points; re-pulling the older, unchanged ones would just
 			// cost tile fetches.
-			if (shifted || index === 0)
+			if (shifted || index === journeys.length - 1)
 			{
 				await this.journeyImages[index].update().catch(this.error);
 			}
 		}
+	}
+
+	/**
+	 * "Home → Work" for a journey that both starts and ends in a known zone. Either side is left
+	 * off when the user wasn't in a zone there, and a round trip just names the one zone.
+	 */
+	_journeyZoneLabel(journey)
+	{
+		const first = journey.points[0];
+		const last = journey.points[journey.points.length - 1];
+		const from = this._findWaypointZones(first.lat, first.lon)[0];
+		const to = this._findWaypointZones(last.lat, last.lon)[0];
+
+		if (from && to)
+		{
+			return from === to ? from : `${from} → ${to}`;
+		}
+		if (from)
+		{
+			return `${from} →`;
+		}
+		if (to)
+		{
+			return `→ ${to}`;
+		}
+
+		return '';
 	}
 
 	_formatJourneyStart(journey)
