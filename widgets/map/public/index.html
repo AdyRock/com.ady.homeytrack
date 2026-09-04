@@ -26,6 +26,13 @@
 				</div>
 			</div>
 			<div class="map-message hidden" id="mapMessage"></div>
+			<div class="journey-picker hidden" id="journeyPicker">
+				<div class="journey-picker-header">
+					<span id="journeyPickerTitle"></span>
+					<button type="button" id="journeyPickerClose" class="journey-picker-close" aria-label="Close">&times;</button>
+				</div>
+				<div id="journeyPickerList" class="journey-picker-list"></div>
+			</div>
 		</div>
 	</div>
 
@@ -45,6 +52,9 @@
 			+ '<circle cx="12" cy="9" r="3" fill="#fff"/></svg>';
 		const ROUTE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
 			+ '<path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/></svg>';
+		const LIST_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'
+			+ '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>'
+			+ '<line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
 		const ROUTE_OFF_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
 			+ '<path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/>'
 			+ '<line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>';
@@ -64,6 +74,9 @@
 
 			const avatarStrip = document.getElementById('avatarStrip');
 			const mapMessage = document.getElementById('mapMessage');
+			const journeyPicker = document.getElementById('journeyPicker');
+			const journeyPickerTitle = document.getElementById('journeyPickerTitle');
+			const journeyPickerList = document.getElementById('journeyPickerList');
 
 			let map = null;
 			let layers = [];
@@ -73,6 +86,8 @@
 			let journeyGapMinutes = 30;
 			let hiddenUserIds = new Set();
 			let tracksVisible = tracksEnabled;
+			let pickerUserId = null;
+			const selectedJourneys = {};
 			// The map is only re-centred when the set of visible users changes, so a user who has
 			// panned or zoomed isn't yanked back on every background refresh.
 			let lastFittedKey = null;
@@ -179,7 +194,19 @@
 				});
 			}
 
-			/** Splits a track into journeys, a new one starting after a gap longer than the app's setting. */
+			// Haversine, matching the server-side zone matching.
+		function distanceMeters(lat1, lon1, lat2, lon2)
+		{
+			const earthRadiusMeters = 6371000;
+			const toRadians = (degrees) => degrees * Math.PI / 180;
+			const deltaLat = toRadians(lat2 - lat1);
+			const deltaLon = toRadians(lon2 - lon1);
+			const chord = Math.sin(deltaLat / 2) ** 2
+				+ Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(deltaLon / 2) ** 2;
+			return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(chord), Math.sqrt(1 - chord));
+		}
+
+		/** Splits a track into journeys, a new one starting after a gap longer than the app's setting. */
 			function buildJourneys(track)
 			{
 				const gapMilliseconds = journeyGapMinutes * 60 * 1000;
@@ -207,6 +234,121 @@
 			{
 				const index = users.findIndex((user) => user.id === userId);
 				return USER_COLORS[(index < 0 ? 0 : index) % USER_COLORS.length];
+			}
+
+			/** The zone a coordinate falls inside, or an empty string when it isn't in one. */
+			function zoneAt(lat, lon)
+			{
+				if (typeof lat !== 'number' || typeof lon !== 'number') return '';
+
+				const match = waypoints.find((waypoint) => typeof waypoint.lat === 'number'
+					&& typeof waypoint.lon === 'number'
+					&& distanceMeters(lat, lon, waypoint.lat, waypoint.lon) <= (Number(waypoint.rad) || 100));
+
+				return match ? match.desc : '';
+			}
+
+			function journeyLabel(journey)
+			{
+				const start = new Date(journey.points[0].timestamp).toLocaleString([], {
+					day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+				});
+				const end = journey.points[journey.points.length - 1];
+				const zone = zoneAt(end.lat, end.lon);
+				return zone ? `${start} → ${zone}` : start;
+			}
+
+			function isJourneyVisible(userId, journey)
+			{
+				const selected = selectedJourneys[userId];
+				if (!selected) return true;
+				return selected.some((entry) => journey.points[0].timestamp >= entry.start
+					&& journey.points[journey.points.length - 1].timestamp <= entry.end);
+			}
+
+			function closeJourneyPicker()
+			{
+				pickerUserId = null;
+				journeyPicker.classList.add('hidden');
+			}
+
+			function openJourneyPicker(userId)
+			{
+				pickerUserId = userId;
+				renderJourneyPicker();
+				journeyPicker.classList.remove('hidden');
+			}
+
+			/** Rebuilt in place so the picker stays open across several toggles. */
+			function renderJourneyPicker()
+			{
+				const user = users.find((item) => item.id === pickerUserId);
+				if (!user) return;
+
+				journeyPickerTitle.textContent = user.name;
+				journeyPickerList.textContent = '';
+				const track = (user.track || [])
+					.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
+					.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
+				const journeys = buildJourneys(track).filter((journey) => journey.points.length > 1);
+
+				if (!journeys.length)
+				{
+					const empty = document.createElement('p');
+					empty.className = 'journey-picker-empty';
+					empty.textContent = Homey.__('widget.map.noJourneys');
+					journeyPickerList.appendChild(empty);
+					return;
+				}
+
+				// Oldest first, so reading down the list follows the user forwards in time.
+				journeys.forEach((journey) =>
+				{
+					const label = document.createElement('label');
+					label.className = 'journey-picker-item';
+					const checkbox = document.createElement('input');
+					checkbox.type = 'checkbox';
+					checkbox.checked = isJourneyVisible(user.id, journey);
+					checkbox.addEventListener('change', () =>
+					{
+						toggleJourney(user.id, journey, checkbox.checked);
+					});
+					const text = document.createElement('span');
+					text.textContent = journeyLabel(journey);
+					label.append(checkbox, text);
+					journeyPickerList.appendChild(label);
+				});
+			}
+
+			function toggleJourney(userId, journey, visible)
+			{
+				hapticFeedback();				const start = journey.points[0].timestamp;
+				const end = journey.points[journey.points.length - 1].timestamp;
+				const selected = selectedJourneys[userId];
+				const isSelected = selected && selected.some((entry) => entry.start === start && entry.end === end);
+
+				if (visible && !isSelected)
+				{
+					(selectedJourneys[userId] = selected || []).push({ start, end });
+				}
+				else if (!visible)
+				{
+					const remaining = selected
+						? selected.filter((entry) => entry.start !== start || entry.end !== end)
+						: buildJourneys(userTrack(userId))
+							.filter((other) => other.points.length > 1)
+							.map((other) => ({ start: other.points[0].timestamp, end: other.points[other.points.length - 1].timestamp }))
+							.filter((entry) => entry.start !== start || entry.end !== end);
+					selectedJourneys[userId] = remaining.length ? remaining : [];
+				}
+
+				renderMap();
+			}
+
+			function userTrack(userId)
+			{
+				const user = users.find((item) => item.id === userId);
+				return (user && user.track) || [];
 			}
 
 			function formatSpeed(location)
@@ -284,6 +426,34 @@
 
 				if (!tracksEnabled) return;
 
+				users.forEach((user) =>
+				{
+					const count = buildJourneys(user.track || []).filter((journey) => journey.points.length > 1).length;
+					const selectedCount = selectedJourneys[user.id]
+						? `${selectedJourneys[user.id].length}/${count}`
+						: '';
+					const trackButton = document.createElement('button');
+					trackButton.type = 'button';
+					trackButton.className = 'track-toggle-button';
+					trackButton.innerHTML = LIST_SVG;
+					trackButton.title = Homey.__('widget.map.pickJourneys').replace('[[user]]', user.name);
+					trackButton.setAttribute('aria-label', trackButton.title);
+					// Handled like the avatars so the dashboard's long-press doesn't win over the tap.
+					claimPressStripScroll(trackButton, () =>
+					{
+						hapticFeedback();
+						if (pickerUserId === user.id) closeJourneyPicker();
+						else openJourneyPicker(user.id);
+					});
+					const journeysText = document.createElement('span');
+					journeysText.className = 'track-toggle-count';
+					journeysText.textContent = Homey.__('widget.map.journeyCount').replace('[[count]]', selectedCount || count);
+					const wrap = document.createElement('span');
+					wrap.className = 'track-toggle-wrap';
+					wrap.append(trackButton, journeysText);
+					avatarStrip.appendChild(wrap);
+				});
+
 				const trackButton = document.createElement('button');
 				trackButton.type = 'button';
 				trackButton.className = `track-toggle-button${tracksVisible ? '' : ' tracks-off'}`;
@@ -291,7 +461,7 @@
 				trackButton.setAttribute('aria-pressed', String(tracksVisible));
 				trackButton.title = Homey.__(tracksVisible ? 'widget.map.hideTracks' : 'widget.map.showTracks');
 				trackButton.setAttribute('aria-label', trackButton.title);
-				trackButton.addEventListener('click', () =>
+				claimPressStripScroll(trackButton, () =>
 				{
 					hapticFeedback();
 					tracksVisible = !tracksVisible;
@@ -300,6 +470,56 @@
 					Homey.api('POST', '/tracks-visibility', { instanceId, visible: tracksVisible }).catch(console.error);
 				});
 				avatarStrip.appendChild(trackButton);
+			}
+
+			/**
+			 * Drives a tap on a strip button manually: the touch is claimed so the dashboard's
+			 * long-press doesn't steal it, and the strip still scrolls sideways when the touch moves.
+			 */
+			function claimPressStripScroll(button, action)
+			{
+				let origin = null;
+				let previous = null;
+				let moved = false;
+
+				button.addEventListener('touchstart', (event) =>
+				{
+					if (event.cancelable) event.preventDefault();
+					event.stopPropagation();
+					const touch = event.touches[0];
+					moved = false;
+					origin = { x: touch.clientX, y: touch.clientY };
+					previous = { x: touch.clientX, y: touch.clientY };
+				}, { passive: false });
+
+				button.addEventListener('touchmove', (event) =>
+				{
+					if (!origin) return;
+					if (event.cancelable) event.preventDefault();
+					event.stopPropagation();
+					const touch = event.touches[0];
+					if (Math.hypot(touch.clientX - origin.x, touch.clientY - origin.y) > 10) moved = true;
+					avatarStrip.scrollLeft -= touch.clientX - previous.x;
+					previous = { x: touch.clientX, y: touch.clientY };
+				}, { passive: false });
+
+				button.addEventListener('touchend', (event) =>
+				{
+					event.stopPropagation();
+					const wasTap = Boolean(origin) && !moved;
+					origin = null;
+					previous = null;
+					lastTouchEndAt = Date.now();
+					if (wasTap) action();
+				});
+
+				button.addEventListener('touchcancel', () => { origin = null; previous = null; });
+				button.addEventListener('contextmenu', (event) => event.preventDefault());
+				button.addEventListener('click', () =>
+				{
+					if (Date.now() - lastTouchEndAt < 700) return;
+					action();
+				});
 			}
 
 			/** Tap centres the map on the user (showing them first if hidden); a long press toggles them. */
@@ -403,10 +623,27 @@
 			{
 				if (visible) hiddenUserIds.delete(userId);
 				else hiddenUserIds.add(userId);
+				if (pickerUserId === userId && !visible) closeJourneyPicker();
 				renderAvatars();
 				renderMap();
 				Homey.api('POST', '/visibility', { instanceId, userId, visible }).catch(console.error);
 			}
+
+			document.getElementById('journeyPickerClose').addEventListener('click', () =>
+			{
+				hapticFeedback();
+				closeJourneyPicker();
+			});
+
+			// The map sits beneath the map-controls layer, so clicks anywhere outside the
+			// picker (or a strip button) close it.
+			document.addEventListener('click', (event) =>
+			{
+				if (journeyPicker.classList.contains('hidden')) return;
+				if (journeyPicker.contains(event.target)) return;
+				if (event.target.closest('.track-toggle-button')) return;
+				closeJourneyPicker();
+			});
 
 			function centerOnUser(userId)
 			{
@@ -455,7 +692,9 @@
 				}
 
 				const bounds = [];
-				const visibleUsers = users.filter((user) => !hiddenUserIds.has(user.id));
+				const visibleUsers = users.filter((user) =>
+					!hiddenUserIds.has(user.id)
+					&& (!selectedJourneys[user.id] || selectedJourneys[user.id].length > 0));
 
 				visibleUsers.forEach((user) =>
 				{
@@ -472,7 +711,9 @@
 
 						// One line per journey, so nothing is drawn across a gap where the phone
 						// had no connectivity or between separate trips.
-						buildJourneys(track).forEach((journey) =>
+					buildJourneys(track)
+						.filter((journey) => isJourneyVisible(user.id, journey))
+						.forEach((journey) =>
 						{
 							if (journey.points.length < 2) return;
 							layers.push(L.polyline(journey.points.map((point) => [point.lat, point.lon]), { color, weight: 3, opacity: 0.7 }).addTo(map));
@@ -493,9 +734,6 @@
 							layers.push(flag);
 						});
 					}
-
-					const last = user.lastLocation;
-					if (!last || typeof last.lat !== 'number' || typeof last.lon !== 'number') return;
 
 					const speed = formatSpeed(last);
 					const speedLabel = speed ? `<div class="marker-speed">${escapeHtml(speed)}</div>` : '';
@@ -543,7 +781,24 @@
 						journeyGapMinutes = Number(data && data.journeyGapMinutes) || 30;
 						hiddenUserIds = new Set(Array.isArray(data && data.hiddenUserIds) ? data.hiddenUserIds : []);
 						if (data && typeof data.tracksVisible === 'boolean') tracksVisible = tracksEnabled && data.tracksVisible;
-						renderAvatars();
+
+					// Journeys are re-split from whatever the track window holds now, so the picker
+					// list and the active selections have to be re-anchored after every refresh.
+					Object.keys(selectedJourneys).forEach((userId) =>
+					{
+						const user = users.find((item) => item.id === userId);
+						const journeys = user
+							? buildJourneys(user.track || []).filter((journey) => journey.points.length > 1)
+							: [];
+						const valid = selectedJourneys[userId].filter((selection) => journeys.some((journey) =>
+							journey.points[0].timestamp === selection.start
+							&& journey.points[journey.points.length - 1].timestamp === selection.end));
+						if (valid.length) selectedJourneys[userId] = valid;
+						else delete selectedJourneys[userId];
+					});
+
+					renderAvatars();
+					if (pickerUserId && !journeyPicker.classList.contains('hidden')) renderJourneyPicker();
 						renderMap();
 					})
 					.catch((err) =>

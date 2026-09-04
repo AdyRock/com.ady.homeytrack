@@ -128,6 +128,20 @@ body {
 	margin-bottom: 8px;
 }
 
+.track-map-heading {
+	min-width: 0;
+}
+
+.track-map-totals {
+	margin: 2px 0 0 !important;
+	font-size: 13px !important;
+	color: #444 !important;
+}
+
+.track-map-totals:empty {
+	display: none;
+}
+
 .track-map-header p {
 	margin: 0;
 }
@@ -264,6 +278,11 @@ button.journey-close-button {
 
 .journey-table td:not(:first-child) {
 	white-space: nowrap;
+}
+
+/* Zone names can be long, so the destination column is the one allowed to wrap. */
+.journey-table td:nth-child(2) {
+	white-space: normal;
 }
 
 .journey-table tbody tr {
@@ -955,6 +974,58 @@ button.password-toggle-button {
 
 .track-context-icon-button svg path {
 	fill: currentColor !important;
+}
+
+.journey-picker-menu {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	max-width: min(320px, calc(100vw - 16px));
+	max-height: 60vh;
+}
+
+.journey-picker-menu .track-context-menu-header {
+	justify-content: space-between;
+	align-items: center;
+}
+
+.journey-picker-menu-title {
+	flex: 1;
+	min-width: 0;
+	padding-left: 8px;
+	font-weight: bold;
+	font-size: 14px;
+	color: #333;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.journey-picker-menu-list {
+	overflow-y: auto;
+}
+
+.journey-picker-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	font-size: 14px;
+	color: #333;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.journey-picker-row:hover {
+	background: #f0f0f0;
+}
+
+.journey-picker-empty {
+	margin: 0;
+	padding: 10px;
+	font-size: 14px;
+	color: #666;
 }
 
 .track-speed-label {

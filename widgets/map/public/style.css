@@ -144,6 +144,39 @@ body {
 	cursor: pointer;
 }
 
+/* The per-user journey pickers sit beside their avatars; only the global toggle is pushed right. */
+.track-toggle-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex: 0 0 auto;
+	min-width: 44px;
+}
+
+.track-toggle-wrap .track-toggle-button {
+	margin-left: 0 !important;
+	margin-bottom: 0 !important;
+	order: 1;
+}
+
+/* Spacer keeps the label row aligned with the avatars' zone labels above the button. */
+.track-toggle-wrap::before {
+	content: "";
+	height: 13px;
+}
+
+.track-toggle-count {
+	order: 2;
+	height: 12px;
+	line-height: 12px;
+	font-size: 9px;
+	color: #555;
+	white-space: nowrap;
+	max-width: 84px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .track-toggle-button svg {
 	display: block !important;
 	visibility: visible !important;
@@ -155,6 +188,82 @@ body {
 
 .track-toggle-button.tracks-off {
 	opacity: 0.45;
+}
+
+.journey-picker {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 950;
+	max-width: calc(100% - 20px);
+	max-height: calc(100% - 20px);
+	display: flex;
+	flex-direction: column;
+	background: rgba(255, 255, 255, 0.97);
+	border-radius: 8px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+.journey-picker.hidden {
+	display: none;
+}
+
+.journey-picker-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 4px 6px 12px;
+	border-bottom: 1px solid #ddd;
+	font-weight: 600;
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.journey-picker-list {
+	overflow-y: auto;
+	padding: 4px 0;
+	/* The list scrolls; the host's scroll stays locked outside. */
+	touch-action: pan-y;
+}
+
+.journey-picker-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	font-size: 13px;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.journey-picker-item:active {
+	background: #eef4ff;
+}
+
+.journey-picker-empty {
+	margin: 0;
+	padding: 12px;
+	font-size: 13px;
+	color: #666;
+	white-space: nowrap;
+}
+
+button.journey-picker-close {
+	flex: 0 0 auto;
+	width: 26px !important;
+	height: 26px !important;
+	min-width: 26px !important;
+	padding: 0 !important;
+	background: none !important;
+	border: none !important;
+	font-size: 18px !important;
+	line-height: 1;
+	color: #555 !important;
+	cursor: pointer;
 }
 
 .map-shell {

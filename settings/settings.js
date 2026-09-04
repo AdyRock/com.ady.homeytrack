@@ -941,7 +941,7 @@ function onHomeyReady(Homey)
 	let selectedTrackUserIds = null;
 	let trackDateRange = { start: null, end: null, shortcut: 'all' };
 	let activeJourneyUserId = null;
-	let selectedJourney = null;
+	let selectedJourneys = [];
 	let journeyGapMinutes = 30;
 	let accuracyCircle = null;
 	const collapsedHistoryUserIds = new Set();
@@ -977,13 +977,43 @@ function onHomeyReady(Homey)
 			.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
 	}
 
+	function isJourneySelected(userId, start, end)
+	{
+		return selectedJourneys.some((selection) => selection.userId === userId && selection.start === start && selection.end === end);
+	}
+
+	/** Selections are always for one user, so picking another user's journey starts a new set. */
+	function toggleJourneySelection(selection)
+	{
+		if (selectedJourneys.length && selectedJourneys[0].userId !== selection.userId)
+		{
+			selectedJourneys = [];
+		}
+
+		const index = selectedJourneys.findIndex((current) => current.userId === selection.userId
+			&& current.start === selection.start
+			&& current.end === selection.end);
+		if (index >= 0) selectedJourneys.splice(index, 1);
+		else selectedJourneys.push(selection);
+	}
+
+	function isTrackUserShown(user)
+	{
+		if (selectedJourneys.length)
+		{
+			return selectedJourneys.some((selection) => selection.userId === user.id);
+		}
+		return selectedTrackUserIds === null || selectedTrackUserIds.has(user.id);
+	}
+
 	function getDisplayedTrack(user)
 	{
 		if (hiddenTrackUserIds.has(user.id)) return [];
 		const track = filterTrackByDate(user.track);
-		if (!selectedJourney) return track;
-		if (selectedJourney.userId !== user.id) return [];
-		return track.filter((point) => point.timestamp >= selectedJourney.start && point.timestamp <= selectedJourney.end);
+		if (!selectedJourneys.length) return track;
+		const ranges = selectedJourneys.filter((selection) => selection.userId === user.id);
+		if (!ranges.length) return [];
+		return track.filter((point) => ranges.some((range) => point.timestamp >= range.start && point.timestamp <= range.end));
 	}
 
 	function buildJourneys(track)
@@ -1008,7 +1038,20 @@ function onHomeyReady(Homey)
 		});
 		journeys.forEach((journey) => setJourneyTravelBounds(journey));
 
-		return journeys.reverse();
+		// Oldest first, so reading down the list follows the user forwards in time.
+		return journeys;
+	}
+
+	/** The zone a coordinate falls inside, or an empty string when it isn't in one. */
+	function zoneAt(lat, lon)
+	{
+		if (typeof lat !== 'number' || typeof lon !== 'number') return '';
+
+		const match = trackWaypoints.find((waypoint) => typeof waypoint.lat === 'number'
+			&& typeof waypoint.lon === 'number'
+			&& calculateJourneyDistanceMeters([{ lat, lon }, waypoint]) <= (Number(waypoint.rad) || 100));
+
+		return match ? match.desc : '';
 	}
 
 	function formatJourneyDuration(journey)
@@ -1112,17 +1155,53 @@ function onHomeyReady(Homey)
 	function renderTrackMapTitle()
 	{
 		const title = document.getElementById('trackMapTitle');
-		title.classList.toggle('journey-active', Boolean(selectedJourney));
-		if (!selectedJourney)
+		title.classList.toggle('journey-active', selectedJourneys.length > 0);
+		if (!selectedJourneys.length)
 		{
 			title.textContent = Homey.__('settings.map.intro');
 			return;
 		}
 
-		const start = new Date(selectedJourney.travelStart || selectedJourney.start);
+		if (selectedJourneys.length > 1)
+		{
+			title.textContent = Homey.__('settings.map.journeysSelected').replace('[[count]]', selectedJourneys.length);
+			return;
+		}
+
+		const start = new Date(selectedJourneys[0].travelStart || selectedJourneys[0].start);
 		title.textContent = Homey.__('settings.map.journeyHeading')
 			.replace('[[date]]', start.toLocaleDateString())
 			.replace('[[time]]', start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+	}
+
+	/** Combined distance and travel time of every journey currently drawn on the map. */
+	function renderTrackMapTotals()
+	{
+		let metres = 0;
+		let milliseconds = 0;
+
+		trackUsers.filter(isTrackUserShown).forEach((user) =>
+		{
+			buildJourneys(getDisplayedTrack(user)).forEach((journey) =>
+			{
+				metres += calculateJourneyDistanceMeters(journey.points);
+				milliseconds += Math.max(0, journey.travelEnd - journey.travelStart);
+			});
+		});
+
+		const totals = document.getElementById('trackMapTotals');
+		if (!metres && !milliseconds)
+		{
+			totals.textContent = '';
+			return;
+		}
+
+		const useMiles = mapSpeedUnit === 'mph';
+		const distance = useMiles ? (metres / 1000) * 0.621371 : metres / 1000;
+		const minutes = Math.round(milliseconds / 60000);
+		totals.textContent = Homey.__('settings.map.totals')
+			.replace('[[distance]]', `${distance.toFixed(1)} ${useMiles ? 'mi' : 'km'}`)
+			.replace('[[duration]]', `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`);
 	}
 
 	function renderJourneys()
@@ -1145,22 +1224,24 @@ function onHomeyReady(Homey)
 
 		document.getElementById('journeyTitle').textContent = Homey.__('settings.map.journeysTitle').replace('[[user]]', user.name);
 		const journeys = buildJourneys(user.track);
-		if (selectedJourney)
-		{
-			const currentJourney = selectedJourney.userId === user.id
-				? journeys.find((journey) => journey.start === selectedJourney.start)
-				: null;
-			selectedJourney = currentJourney
-				? { ...selectedJourney, end: currentJourney.end, travelStart: currentJourney.travelStart, travelEnd: currentJourney.travelEnd }
-				: null;
-		}
+		// Re-anchored to the rebuilt journeys, dropping any that no longer exist.
+		selectedJourneys = selectedJourneys
+			.filter((selection) => selection.userId === user.id)
+			.map((selection) =>
+			{
+				const current = journeys.find((journey) => journey.start === selection.start);
+				return current
+					? { ...selection, end: current.end, travelStart: current.travelStart, travelEnd: current.travelEnd }
+					: null;
+			})
+			.filter(Boolean);
 		renderTrackMapTitle();
 
 		if (!journeys.length)
 		{
 			const row = document.createElement('tr');
 			const cell = document.createElement('td');
-			cell.colSpan = 4;
+			cell.colSpan = 5;
 			cell.textContent = Homey.__('settings.map.noJourneys');
 			row.appendChild(cell);
 			body.appendChild(row);
@@ -1170,12 +1251,12 @@ function onHomeyReady(Homey)
 		journeys.forEach((journey) =>
 		{
 			const row = document.createElement('tr');
-			row.classList.toggle('active', Boolean(selectedJourney
-				&& selectedJourney.userId === user.id
-				&& selectedJourney.start === journey.start
-				&& selectedJourney.end === journey.end));
+			row.classList.toggle('active', isJourneySelected(user.id, journey.start, journey.end));
 			const startCell = document.createElement('td');
 			startCell.textContent = new Date(journey.travelStart).toLocaleString();
+			const destinationCell = document.createElement('td');
+			const destination = journey.points[journey.points.length - 1];
+			destinationCell.textContent = zoneAt(destination.lat, destination.lon);
 			const durationCell = document.createElement('td');
 			durationCell.textContent = formatJourneyDuration(journey);
 			const speedCell = document.createElement('td');
@@ -1207,22 +1288,22 @@ function onHomeyReady(Homey)
 							Homey.alert(deleteErr);
 							return;
 						}
-						selectedJourney = null;
+						selectedJourneys = [];
 						loadTracks(true);
 					});
 				});
 			});
 			deleteCell.appendChild(deleteButton);
-			row.append(startCell, durationCell, speedCell, deleteCell);
+			row.append(startCell, destinationCell, durationCell, speedCell, deleteCell);
 			row.addEventListener('click', () =>
 			{
-				selectedJourney = {
+				toggleJourneySelection({
 					userId: user.id,
 					start: journey.start,
 					end: journey.end,
 					travelStart: journey.travelStart,
 					travelEnd: journey.travelEnd,
-				};
+				});
 				renderJourneys();
 				renderTracks(trackUsers);
 				renderTrackHistory(trackUsers);
@@ -1243,7 +1324,7 @@ function onHomeyReady(Homey)
 
 	function refreshTrackDateFilter()
 	{
-		selectedJourney = null;
+		selectedJourneys = [];
 		renderJourneys();
 		renderTracks(trackUsers);
 		renderTrackHistory(trackUsers);
@@ -1446,7 +1527,8 @@ function onHomeyReady(Homey)
 		}
 		if (visible) selectedTrackUserIds.add(user.id);
 		else selectedTrackUserIds.delete(user.id);
-		if (!visible && selectedJourney && selectedJourney.userId === user.id) selectedJourney = null;
+		if (!visible) selectedJourneys = selectedJourneys.filter((selection) => selection.userId !== user.id);
+		if (!visible && journeyPickerUserId === user.id) journeyPickerMenu.classList.add('hidden');
 		// Showing/hiding a user shouldn't move the map the user is currently looking at.
 		renderTracks(trackUsers, false, false);
 		renderTrackHistory(trackUsers);
@@ -1495,7 +1577,7 @@ function onHomeyReady(Homey)
 			journeysButton.addEventListener('click', () =>
 			{
 				activeJourneyUserId = user.id;
-				selectedJourney = null;
+				selectedJourneys = [];
 				renderJourneys();
 				renderTracks(trackUsers);
 				renderTrackHistory(trackUsers);
@@ -1524,7 +1606,7 @@ function onHomeyReady(Homey)
 		let newestPosition = null;
 
 		users
-			.filter((user) => selectedJourney ? user.id === selectedJourney.userId : selectedTrackUserIds === null || selectedTrackUserIds.has(user.id))
+			.filter(isTrackUserShown)
 			.forEach((user, index) =>
 			{
 				const color = TRACK_COLORS[index % TRACK_COLORS.length];
@@ -1728,13 +1810,13 @@ function onHomeyReady(Homey)
 						// Otherwise the map's own double-click zoom fires as well.
 						L.DomEvent.stopPropagation(event);
 						activeJourneyUserId = user.id;
-						selectedJourney = {
+						toggleJourneySelection({
 							userId: user.id,
 							start: journey.start,
 							end: journey.end,
 							travelStart: journey.travelStart,
 							travelEnd: journey.travelEnd,
-						};
+						});
 						renderJourneys();
 						renderTracks(trackUsers);
 						renderTrackHistory(trackUsers);
@@ -1742,7 +1824,7 @@ function onHomeyReady(Homey)
 					trackLayers.push(flag);
 				});
 
-				const journeyEnd = selectedJourney
+				const journeyEnd = selectedJourneys.length
 					? track.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
 						.reduce((latest, point) => !latest || (point.timestamp || 0) > (latest.timestamp || 0) ? point : latest, null)
 					: null;
@@ -1755,7 +1837,7 @@ function onHomeyReady(Homey)
 					{
 						newestPosition = { lat: last.lat, lon: last.lon, timestamp: last.timestamp || 0 };
 					}
-					const formattedSpeed = selectedJourney ? null : formatMapSpeed(last);
+					const formattedSpeed = selectedJourneys.length ? null : formatMapSpeed(last);
 					const speedLabel = formattedSpeed ? `<div class="track-speed-label">${formattedSpeed}</div>` : '';
 					const icon = user.avatarBase64
 						? L.divIcon({
@@ -1797,6 +1879,8 @@ function onHomeyReady(Homey)
 			lastProgrammaticTrackViewAt = Date.now();
 			trackMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
 		}
+
+		renderTrackMapTotals();
 	}
 
 	/** Reveals and marks the Logged coordinates row for a point clicked on the map. */
@@ -1827,7 +1911,7 @@ function onHomeyReady(Homey)
 		historyList.textContent = '';
 		trackHistoryRows = new WeakMap();
 		const userTracks = users
-			.filter((user) => selectedJourney ? user.id === selectedJourney.userId : selectedTrackUserIds === null || selectedTrackUserIds.has(user.id))
+			.filter(isTrackUserShown)
 			.map((user) => ({
 				user,
 				points: getDisplayedTrack(user)
@@ -2024,7 +2108,7 @@ function onHomeyReady(Homey)
 	{
 		journeyGapMinutes = Math.min(999, Math.max(1, Math.round(Number(journeyGapInput.value) || 30)));
 		journeyGapInput.value = journeyGapMinutes;
-		selectedJourney = null;
+		selectedJourneys = [];
 		Homey.set('journeyGapMinutes', journeyGapMinutes, (err) => { if (err) Homey.alert(err); });
 		renderJourneys();
 		renderTracks(trackUsers);
@@ -2038,18 +2122,20 @@ function onHomeyReady(Homey)
 
 	const trackContextMenu = document.getElementById('trackContextMenu');
 	const togglePointStyleMenuItem = document.getElementById('toggleTrackPointStyleMenuItem');
-	const showAllJourneysMenuItem = document.getElementById('showAllJourneysMenuItem');
 	const trackContextMenuUserItems = document.getElementById('trackContextMenuUserItems');
+	const trackContextMenuContent = document.getElementById('trackContextMenuContent');
+	const journeyPickerMenu = document.getElementById('journeyPickerMenu');
+	const journeyPickerMenuTitle = document.getElementById('journeyPickerMenuTitle');
+	const journeyPickerMenuList = document.getElementById('journeyPickerMenuList');
+	let journeyPickerUserId = null;
 
 	/** Rebuilt in place after each toggle so the menu stays open across several changes. */
 	function renderTrackContextMenuItems()
 	{
-		showAllJourneysMenuItem.textContent = Homey.__('settings.map.showAllJourneys');
-		showAllJourneysMenuItem.classList.toggle('hidden', !selectedJourney && activeJourneyUserId === null);
-
 		togglePointStyleMenuItem.textContent = trackPointStyle === 'classic'
 			? Homey.__('settings.map.useTeardropPoints')
 			: Homey.__('settings.map.useClassicPoints');
+		trackContextMenuContent.classList.remove('hidden');
 
 		trackContextMenuUserItems.textContent = '';
 		trackUsers.forEach((user) =>
@@ -2075,29 +2161,25 @@ function onHomeyReady(Homey)
 			name.className = 'track-context-user-name';
 			name.textContent = user.name;
 
-			const trackButton = document.createElement('button');
-			trackButton.type = 'button';
+			const journeysButton = document.createElement('button');
+			journeysButton.type = 'button';
 			if (isVisible)
 			{
-				const isTrackHidden = hiddenTrackUserIds.has(user.id);
-				trackButton.className = 'track-context-icon-button';
-				trackButton.setAttribute('aria-label', Homey.__(isTrackHidden ? 'settings.map.showTrackForUser' : 'settings.map.hideTrackForUser').replace('[[user]]', user.name));
-				trackButton.innerHTML = isTrackHidden
-					? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/><line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>'
-					: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/></svg>';
-				trackButton.addEventListener('click', () =>
+				journeysButton.className = 'track-context-icon-button';
+				journeysButton.setAttribute('aria-label', Homey.__('settings.map.pickJourneys').replace('[[user]]', user.name));
+				journeysButton.setAttribute('title', Homey.__('settings.map.pickJourneys').replace('[[user]]', user.name));
+				journeysButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/></svg>';
+				journeysButton.addEventListener('click', (event) =>
 				{
-					if (isTrackHidden) hiddenTrackUserIds.delete(user.id);
-					else hiddenTrackUserIds.add(user.id);
-					renderTracks(trackUsers, false, false);
-					renderTrackHistory(trackUsers);
-					renderTrackContextMenuItems();
+					event.stopPropagation();
+					const rect = journeysButton.getBoundingClientRect();
+					openJourneyPicker(user.id, rect.left, rect.top);
 				});
 			} else
 			{
-				trackButton.className = 'track-context-icon-button track-context-icon-placeholder';
-				trackButton.disabled = true;
-				trackButton.setAttribute('aria-hidden', 'true');
+				journeysButton.className = 'track-context-icon-button track-context-icon-placeholder';
+				journeysButton.disabled = true;
+				journeysButton.setAttribute('aria-hidden', 'true');
 			}
 
 			const canCenter = isVisible && user.lastLocation
@@ -2120,8 +2202,73 @@ function onHomeyReady(Homey)
 				centerButton.setAttribute('aria-hidden', 'true');
 			}
 
-			row.append(visibilityButton, name, trackButton, centerButton);
+			row.append(visibilityButton, name, journeysButton, centerButton);
 			trackContextMenuUserItems.appendChild(row);
+		});
+	}
+
+	function openJourneyPicker(userId, clientX, clientY)
+	{
+		journeyPickerUserId = userId;
+		renderJourneyPickerMenu();
+		hideTrackContextMenu();
+		journeyPickerMenu.classList.remove('hidden');
+
+		// Measured only once visible, so it can be clamped fully inside the viewport.
+		const margin = 8;
+		const rect = journeyPickerMenu.getBoundingClientRect();
+		journeyPickerMenu.style.left = `${Math.max(margin, Math.min(clientX, window.innerWidth - rect.width - margin))}px`;
+		journeyPickerMenu.style.top = `${Math.max(margin, Math.min(clientY, window.innerHeight - rect.height - margin))}px`;
+	}
+
+	function renderJourneyPickerMenu()
+	{
+		const user = trackUsers.find((item) => item.id === journeyPickerUserId);
+		if (!user) return;
+
+		journeyPickerMenuTitle.textContent = Homey.__('settings.map.journeysTitle').replace('[[user]]', user.name);
+		journeyPickerMenuList.textContent = '';
+		const journeys = buildJourneys(user.track);
+
+		if (!journeys.length)
+		{
+			const empty = document.createElement('p');
+			empty.className = 'journey-picker-empty';
+			empty.textContent = Homey.__('settings.map.noJourneys');
+			journeyPickerMenuList.appendChild(empty);
+			return;
+		}
+
+		journeys.forEach((journey) =>
+		{
+			const row = document.createElement('label');
+			row.className = 'journey-picker-row';
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.checked = isJourneySelected(user.id, journey.start, journey.end);
+			checkbox.addEventListener('change', () =>
+			{
+				toggleJourneySelection({
+					userId: user.id,
+					start: journey.start,
+					end: journey.end,
+					travelStart: journey.travelStart,
+					travelEnd: journey.travelEnd,
+				});
+				renderTrackMapTitle();
+				renderTracks(trackUsers);
+				renderTrackHistory(trackUsers);
+			});
+
+			const destination = journey.points[journey.points.length - 1];
+			const zone = zoneAt(destination.lat, destination.lon);
+			const start = new Date(journey.travelStart).toLocaleString([], {
+				day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+			});
+			const text = document.createElement('span');
+			text.textContent = zone ? `${start} → ${zone}` : start;
+			row.append(checkbox, text);
+			journeyPickerMenuList.appendChild(row);
 		});
 	}
 
@@ -2156,16 +2303,6 @@ function onHomeyReady(Homey)
 		renderTracks(trackUsers, false, false);
 	});
 
-	showAllJourneysMenuItem.addEventListener('click', () =>
-	{
-		activeJourneyUserId = null;
-		selectedJourney = null;
-		renderJourneys();
-		renderTracks(trackUsers);
-		renderTrackHistory(trackUsers);
-		renderTrackContextMenuItems();
-	});
-
 	const closeTrackContextMenuButton = document.getElementById('closeTrackContextMenu');
 	closeTrackContextMenuButton.setAttribute('aria-label', Homey.__('settings.map.closeMenu'));
 	closeTrackContextMenuButton.setAttribute('title', Homey.__('settings.map.closeMenu'));
@@ -2180,10 +2317,19 @@ function onHomeyReady(Homey)
 		if (!trackContextMenu.classList.contains('hidden') && !trackContextMenu.contains(event.target)) hideTrackContextMenu();
 	});
 
+	const closeJourneyPickerButton = document.getElementById('closeJourneyPickerMenu');
+	closeJourneyPickerButton.setAttribute('aria-label', Homey.__('settings.map.closeMenu'));
+	closeJourneyPickerButton.setAttribute('title', Homey.__('settings.map.closeMenu'));
+	closeJourneyPickerButton.addEventListener('click', () => journeyPickerMenu.classList.add('hidden'));
+
+	journeyPickerMenu.addEventListener('click', (event) => event.stopPropagation());
+
+	document.addEventListener('click', () => journeyPickerMenu.classList.add('hidden'));
+
 	document.getElementById('closeJourneys').addEventListener('click', () =>
 	{
 		activeJourneyUserId = null;
-		selectedJourney = null;
+		selectedJourneys = [];
 		renderJourneys();
 		renderTracks(trackUsers);
 		renderTrackHistory(trackUsers);

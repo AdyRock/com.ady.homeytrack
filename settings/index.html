@@ -245,7 +245,10 @@
 
 	<div class="tab-panel hidden" id="tabPanelMap">
 		<div class="track-map-header">
-			<p id="trackMapTitle" data-i18n="settings.map.intro">Live positions and recent tracks</p>
+			<div class="track-map-heading">
+				<p id="trackMapTitle" data-i18n="settings.map.intro">Live positions and recent tracks</p>
+				<p id="trackMapTotals" class="track-map-totals"></p>
+			</div>
 			<div class="track-map-actions">
 				<button type="button" id="toggleTrackHistory" class="homey-button-secondary-shadow-small"
 					data-i18n="settings.map.showHistory">Show coordinates</button>
@@ -266,10 +269,21 @@
 					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
 				</button>
 			</div>
-			<button type="button" id="showAllJourneysMenuItem" aria-label="Show all journeys"></button>
-			<button type="button" id="toggleTrackPointStyleMenuItem" aria-label="Toggle track point style"></button>
-			<hr class="track-context-menu-separator">
-			<div id="trackContextMenuUserItems"></div>
+			<div id="trackContextMenuContent">
+				<button type="button" id="toggleTrackPointStyleMenuItem" aria-label="Toggle track point style"></button>
+				<hr class="track-context-menu-separator">
+				<div id="trackContextMenuUserItems"></div>
+			</div>
+		</div>
+		<div id="journeyPickerMenu" class="track-context-menu journey-picker-menu hidden">
+			<div class="track-context-menu-header">
+				<span id="journeyPickerMenuTitle" class="journey-picker-menu-title"></span>
+				<button type="button" id="closeJourneyPickerMenu" class="track-context-icon-button" title="Close menu"
+					aria-label="Close menu">
+					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+				</button>
+			</div>
+			<div id="journeyPickerMenuList" class="journey-picker-menu-list"></div>
 		</div>
 	</div>
 
@@ -453,6 +467,7 @@
 						<table class="journey-table">
 							<thead><tr>
 								<th data-i18n="settings.map.journeyStart">Start time</th>
+								<th data-i18n="settings.map.journeyDestination">Destination</th>
 								<th data-i18n="settings.map.journeyDuration">Duration</th>
 								<th data-i18n="settings.map.journeyAverageSpeed">Average speed</th>
 								<th aria-hidden="true"></th>
