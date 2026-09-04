@@ -1,4 +1,8 @@
 {
+	"device": {
+		"mapImage": "Nåværende posisjon",
+		"journeyImage": "Reise"
+	},
 	"widget": {
 		"map": {
 			"noUsers": "Ingen brukere er parkoblet ennå.",

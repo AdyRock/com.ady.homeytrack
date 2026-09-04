@@ -1,4 +1,8 @@
 {
+	"device": {
+		"mapImage": "Position actuelle",
+		"journeyImage": "Trajet"
+	},
 	"widget": {
 		"map": {
 			"noUsers": "Aucun utilisateur associé pour le moment.",

@@ -4,12 +4,14 @@ const Homey = require('homey');
 const { distanceMeters } = require('../../lib/geo');
 const { filterLocation } = require('../../lib/filterLocation');
 const { confirmZoneChange } = require('../../lib/confirmZones');
+const { renderUserMapImage, renderJourneyMapImage, buildJourneys } = require('../../lib/mapImage');
 
 const TRACK_MIN_DISTANCE_METERS = 50;
 const TRACK_MAX_POINTS = 1000;
 const SPEED_STALE_MS = 60 * 1000;
 const LOCATION_REQUEST_DELAY_MS = 30 * 1000;
 const KMH_TO_MPH = 0.621371;
+const JOURNEY_IMAGE_COUNT = 5;
 
 module.exports = class UserDevice extends Homey.Device
 {
@@ -40,6 +42,7 @@ module.exports = class UserDevice extends Homey.Device
 		this._loadTrackingSettings();
 		this.onAppSettingsChanged = () => this._loadTrackingSettings();
 		this.homey.settings.on('set', this.onAppSettingsChanged);
+		await this._setupImages().catch(this.error);
 		await this._refreshHttpEndpoint().catch(this.error);
 		this.homey.app.requestUserLocation(this);
 	}
@@ -57,6 +60,131 @@ module.exports = class UserDevice extends Homey.Device
 		if (this.onAppSettingsChanged)
 		{
 			this.homey.settings.off('set', this.onAppSettingsChanged);
+		}
+	}
+
+	async onDeleted()
+	{
+		for (const image of [this.mapImage, ...(this.journeyImages || [])])
+		{
+			if (image)
+			{
+				await image.unregister().catch(this.error);
+			}
+		}
+		this.mapImage = null;
+		this.journeyImages = [];
+	}
+
+	async _createImage(render)
+	{
+		const image = await this.homey.images.createImage();
+		image.setStream(async (stream) =>
+		{
+			const buffer = await render();
+			stream.contentType = 'image/png';
+			stream.contentLength = buffer.length;
+			stream.filename = `${this.getData().id}.png`;
+			stream.write(buffer);
+			stream.end();
+		});
+
+		return image;
+	}
+
+	/**
+	 * Registers this user's live map picture plus one picture per recent journey. Images are only
+	 * rendered when Homey pulls the stream, so nothing is drawn while no one is looking.
+	 */
+	async _setupImages()
+	{
+		this.mapImage = await this._createImage(() => renderUserMapImage({
+			location: this.getStoreValue('lastLocation'),
+			track: this.getStoreValue('track') || [],
+			journeyGapMinutes: Number(this.homey.settings.get('journeyGapMinutes')) || 30,
+			zone: this.getCapabilityValue('zone'),
+			speed: this.getCapabilityValue('speed'),
+			useMiles: this.homey.settings.get('speedUnit') === 'mph',
+			onError: (err) => this.error('Map tile failed', err),
+		}));
+		await this.setCameraImage('map', this.homey.__('device.mapImage'), this.mapImage);
+
+		// getTimezone() returns a plain string on some Homey versions and a promise on others.
+		try
+		{
+			this.timezone = await this.homey.clock.getTimezone();
+		} catch (err)
+		{
+			this.timezone = undefined;
+		}
+
+		this.journeyImages = [];
+		for (let index = 0; index < JOURNEY_IMAGE_COUNT; index++)
+		{
+			this.journeyImages.push(await this._createImage(() => renderJourneyMapImage({
+				journey: this._listJourneys()[index],
+				useMiles: this.homey.settings.get('speedUnit') === 'mph',
+				onError: (err) => this.error('Map tile failed', err),
+			})));
+		}
+		await this._syncJourneyImages();
+	}
+
+	_listJourneys()
+	{
+		const gapMinutes = Number(this.homey.settings.get('journeyGapMinutes')) || 30;
+		return buildJourneys(this.getStoreValue('track') || [], gapMinutes * 60 * 1000).slice(0, JOURNEY_IMAGE_COUNT);
+	}
+
+	/**
+	 * Slot N always shows the Nth most recent journey, so every title has to be rewritten once a
+	 * new journey starts (or an old one is trimmed off the track).
+	 */
+	async _syncJourneyImages()
+	{
+		const journeys = this._listJourneys();
+		const signature = journeys.map((journey) => journey.start).join(',');
+		const shifted = signature !== this.journeySignature;
+		this.journeySignature = signature;
+
+		for (let index = 0; index < journeys.length; index++)
+		{
+			if (shifted)
+			{
+				const title = `${this.homey.__('device.journeyImage')} ${this._formatJourneyStart(journeys[index])}`;
+				await this.setCameraImage(`journey${index}`, title, this.journeyImages[index]).catch(this.error);
+			}
+			// Only the newest journey gains points; re-pulling the older, unchanged ones would just
+			// cost tile fetches.
+			if (shifted || index === 0)
+			{
+				await this.journeyImages[index].update().catch(this.error);
+			}
+		}
+	}
+
+	_formatJourneyStart(journey)
+	{
+		try
+		{
+			return new Intl.DateTimeFormat('en-GB', {
+				day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: this.timezone,
+			}).format(new Date(journey.start));
+		} catch (err)
+		{
+			return new Date(journey.start).toLocaleString();
+		}
+	}
+
+	_refreshMapImage()
+	{
+		if (this.mapImage)
+		{
+			this.mapImage.update().catch(this.error);
+		}
+		if (this.journeyImages && this.journeyImages.length)
+		{
+			this._syncJourneyImages().catch(this.error);
 		}
 	}
 
@@ -218,6 +346,7 @@ module.exports = class UserDevice extends Homey.Device
 			this.latestVelocityKmh = null;
 			this.speedStaleTimer = null;
 			this.setCapabilityValue('speed', null).catch(this.error);
+			this._refreshMapImage();
 			this.homey.api.realtime('tracks_updated', null);
 		}, SPEED_STALE_MS);
 	}
@@ -349,6 +478,7 @@ module.exports = class UserDevice extends Homey.Device
 		}
 
 		await this._recordTrackPoint(location).catch(this.error);
+		this._refreshMapImage();
 		this.homey.api.realtime('tracks_updated', null);
 	}
 

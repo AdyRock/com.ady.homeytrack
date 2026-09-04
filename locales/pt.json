@@ -1,4 +1,8 @@
 {
+	"device": {
+		"mapImage": "Posição atual",
+		"journeyImage": "Viagem"
+	},
 	"widget": {
 		"map": {
 			"noUsers": "Ainda não há utilizadores emparelhados.",

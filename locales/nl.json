@@ -1,4 +1,8 @@
 {
+	"device": {
+		"mapImage": "Huidige positie",
+		"journeyImage": "Rit"
+	},
 	"widget": {
 		"map": {
 			"noUsers": "Nog geen gebruikers gekoppeld.",

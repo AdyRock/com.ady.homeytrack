@@ -5,7 +5,8 @@
   "scripts": {},
   "dependencies": {
     "mqtt": "^5.15.2",
-    "nodemailer": "^9.0.6"
+    "nodemailer": "^9.0.6",
+    "pngjs": "^7.0.0"
   },
   "devDependencies": {
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12"

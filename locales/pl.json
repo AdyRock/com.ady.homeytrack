@@ -1,4 +1,8 @@
 {
+	"device": {
+		"mapImage": "Bieżąca pozycja",
+		"journeyImage": "Podróż"
+	},
 	"widget": {
 		"map": {
 			"noUsers": "Nie sparowano jeszcze żadnych użytkowników.",

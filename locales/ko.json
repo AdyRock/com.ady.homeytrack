@@ -1,4 +1,8 @@
 {
+	"device": {
+		"mapImage": "현재 위치",
+		"journeyImage": "여정"
+	},
 	"widget": {
 		"map": {
 			"noUsers": "아직 연결된 사용자가 없습니다.",
