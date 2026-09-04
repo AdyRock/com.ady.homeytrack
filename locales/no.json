@@ -185,6 +185,7 @@
 			"historySpeed": "Hastighet",
 			"historyAccuracy": "Nøyaktighet",
 			"myJourneys": "Mine reiser",
+			"showAllJourneys": "Vis alle reiser",
 			"journeysTitle": "Reiser for [[user]]",
 			"journeyHeading": "Reise [[date]] - [[time]]",
 			"journeySelectHint": "Velg reisen som skal vises.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Sporpunkter kopiert",
 			"noTrackPoints": "Ingen sporpunkter å kopiere.",
 			"noJourneys": "Ingen reiser i dette datointervallet.",
+			"closeMenu": "Lukk meny",
 			"contextHelpAria": "Hjelp med kartkontroller",
 			"contextHelpTitle": "Kartkontroller",
 			"contextHelpBody": "Åpne menyen\nHøyreklikk på kartet med en mus, eller trykk og hold på en berøringsskjerm, for å åpne kartmenyen. Den første kommandoen bytter registrerte punkter mellom klassiske prikker og dråpeformede retningsmarkører.\n\nIkoner per bruker\n**Øye** betyr at brukeren er synlig. Velg det for å skjule brukerens avatar, posisjon og spor. **Overstreket øye** betyr at brukeren er skjult; velg det for å vise brukeren igjen.\n\n**Rute** betyr at brukerens registrerte spor er synlig. Velg den for å skjule bare sporet og fortsatt vise den nyeste posisjonen. **Overstreket rute** betyr at sporet er skjult; velg den for å vise sporet igjen. Denne kontrollen er deaktivert når brukeren er skjult.\n\n**Mål** sentrerer kartet på brukerens faktiske nyeste posisjon. Det er deaktivert når brukeren er skjult eller ikke har noen rapportert posisjon."

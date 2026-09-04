@@ -185,6 +185,7 @@
 			"historySpeed": "Velocità",
 			"historyAccuracy": "Precisione",
 			"myJourneys": "I miei viaggi",
+			"showAllJourneys": "Mostra tutti i viaggi",
 			"journeysTitle": "Viaggi di [[user]]",
 			"journeyHeading": "Viaggio [[date]] - [[time]]",
 			"journeySelectHint": "Seleziona il viaggio da visualizzare.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Punti del percorso copiati",
 			"noTrackPoints": "Nessun punto del percorso da copiare.",
 			"noJourneys": "Nessun viaggio in questo intervallo di date.",
+			"closeMenu": "Chiudi menu",
 			"contextHelpAria": "Aiuto per i controlli della mappa",
 			"contextHelpTitle": "Controlli della mappa",
 			"contextHelpBody": "Apertura del menu\nFai clic con il pulsante destro sulla mappa oppure tieni premuto su uno schermo touch per aprire il menu. Il primo comando alterna i punti registrati tra punti classici e indicatori direzionali a goccia.\n\nIcone per utente\n**Occhio** indica che l'utente è visibile. Selezionalo per nascondere avatar, posizione e percorso. **Occhio barrato** indica che l'utente è nascosto; selezionalo per mostrarlo di nuovo.\n\n**Percorso** indica che il percorso registrato è visibile. Selezionalo per nascondere solo il percorso mantenendo visibile l'ultima posizione. **Percorso barrato** indica che il percorso è nascosto; selezionalo per mostrarlo di nuovo. Questo controllo è disabilitato quando l'utente è nascosto.\n\n**Bersaglio** centra la mappa sull'ultima posizione reale dell'utente. È disabilitato se l'utente è nascosto o non ha comunicato una posizione."

@@ -185,6 +185,7 @@
 			"historySpeed": "Velocidad",
 			"historyAccuracy": "Precisión",
 			"myJourneys": "Mis trayectos",
+			"showAllJourneys": "Mostrar todos los trayectos",
 			"journeysTitle": "Trayectos de [[user]]",
 			"journeyHeading": "Trayecto [[date]] - [[time]]",
 			"journeySelectHint": "Selecciona el trayecto que deseas mostrar.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Puntos de ruta copiados",
 			"noTrackPoints": "No hay puntos de ruta para copiar.",
 			"noJourneys": "No hay trayectos en este intervalo de fechas.",
+			"closeMenu": "Cerrar menú",
 			"contextHelpAria": "Ayuda sobre los controles del mapa",
 			"contextHelpTitle": "Controles del mapa",
 			"contextHelpBody": "Abrir el menú\nHaz clic con el botón derecho en el mapa o mantenlo pulsado en una pantalla táctil para abrir el menú. El primer comando alterna los puntos registrados entre puntos clásicos y marcadores de dirección con forma de gota.\n\nIconos por usuario\n**Ojo** indica que el usuario está visible. Selecciónalo para ocultar su avatar, ubicación y ruta. **Ojo tachado** indica que está oculto; selecciónalo para volver a mostrarlo.\n\n**Ruta** indica que la ruta registrada está visible. Selecciónala para ocultar solo la ruta y mantener visible la última ubicación. **Ruta tachada** indica que la ruta está oculta; selecciónala para volver a mostrarla. Este control está desactivado cuando el usuario está oculto.\n\n**Objetivo** centra el mapa en la última ubicación real del usuario. Está desactivado si el usuario está oculto o no tiene una ubicación registrada."

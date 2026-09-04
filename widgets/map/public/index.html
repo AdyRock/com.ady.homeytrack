@@ -37,6 +37,12 @@
 			+ '<g fill="#1a1a1a"><rect x="5" y="2" width="5" height="5"/><rect x="15" y="2" width="5" height="5"/>'
 			+ '<rect x="10" y="7" width="5" height="5"/></g>'
 			+ '<rect x="3" y="2" width="2" height="20" fill="#1a1a1a"/></svg>';
+		// Zone circles shrink to nothing when zoomed out, so every zone also gets a
+		// fixed-size pin whose point sits on the zone centre.
+		const ZONE_PIN_SVG = '<svg viewBox="0 0 24 32" aria-hidden="true">'
+			+ '<line x1="12" y1="9" x2="12" y2="31" stroke="#4a4a4a" stroke-width="2"/>'
+			+ '<circle cx="12" cy="9" r="8" fill="#999" stroke="#4a4a4a" stroke-width="2"/>'
+			+ '<circle cx="12" cy="9" r="3" fill="#fff"/></svg>';
 		const ROUTE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
 			+ '<path d="M23 8c0 1.1-.9 2-2 2-.18 0-.35-.02-.51-.07l-3.56 3.55c.05.16.07.34.07.52 0 1.1-.9 2-2 2s-2-.9-2-2c0-.18.02-.36.07-.52l-2.55-2.55c-.16.05-.34.07-.52.07s-.36-.02-.52-.07l-4.55 4.56c.05.16.07.33.07.51 0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2c.18 0 .35.02.51.07l4.56-4.55C8.02 9.36 8 9.18 8 9c0-1.1.9-2 2-2s2 .9 2 2c0 .18-.02.36-.07.52l2.55 2.55c.16-.05.34-.07.52-.07s.36.02.52.07l3.55-3.56C19.02 8.35 19 8.18 19 8c0-1.1.9-2 2-2s2 .9 2 2z"/></svg>';
 		const ROUTE_OFF_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
@@ -70,6 +76,9 @@
 			// The map is only re-centred when the set of visible users changes, so a user who has
 			// panned or zoomed isn't yanked back on every background refresh.
 			let lastFittedKey = null;
+			// Panning or zooming suspends automatic re-centring until the user taps an avatar.
+			let viewportPinned = false;
+			let lastProgrammaticViewAt = 0;
 			let refreshTimer = null;
 			let lastTouchEndAt = 0;
 
@@ -90,6 +99,9 @@
 			{
 				if (map) return;
 				map = L.map('map', { attributionControl: false, zoomControl: false }).setView([51.5074, -0.1278], 13);
+				// Zone pins sit above the zone circles but below the user avatars.
+				map.createPane('zonePins');
+				map.getPane('zonePins').style.zIndex = 590;
 				// Journey flags sit above the avatar markers so they stay readable where a
 				// journey ends at a user's current position.
 				map.createPane('journeyFlags');
@@ -100,8 +112,16 @@
 					metric: speedUnit !== 'mph',
 					imperial: speedUnit === 'mph',
 				}).addTo(map);
+				map.on('dragend zoomend', pinViewport);
 				claimMapTouches();
 				setupMapControls();
+			}
+
+			/** Leaflet reports our own recentres like user gestures, so those are timestamped and ignored. */
+			function pinViewport()
+			{
+				if (Date.now() - lastProgrammaticViewAt < 1200) return;
+				viewportPinned = true;
 			}
 
 			/**
@@ -138,6 +158,7 @@
 						hapticFeedback();
 						const size = map.getSize();
 						const [x, y] = PAN_OFFSETS[direction];
+						viewportPinned = true;
 						map.panBy([Math.round(x * size.x * 0.4), Math.round(y * size.y * 0.4)]);
 					});
 				});
@@ -151,6 +172,7 @@
 					button.addEventListener('click', () =>
 					{
 						hapticFeedback();
+						viewportPinned = true;
 						if (zoomIn) map.zoomIn();
 						else map.zoomOut();
 					});
@@ -392,6 +414,8 @@
 				const last = user && user.lastLocation;
 				if (!last || typeof last.lat !== 'number' || typeof last.lon !== 'number') return;
 				ensureMap();
+				viewportPinned = false;
+				lastProgrammaticViewAt = Date.now();
 				map.setView([last.lat, last.lon], Math.max(map.getZoom(), 15));
 			}
 
@@ -415,6 +439,18 @@
 						}).addTo(map);
 						circle.bindTooltip(waypoint.desc);
 						layers.push(circle);
+
+						const pin = L.marker([waypoint.lat, waypoint.lon], {
+							pane: 'zonePins',
+							icon: L.divIcon({
+								className: 'zone-pin',
+								html: ZONE_PIN_SVG,
+								iconSize: [24, 32],
+								iconAnchor: [12, 32],
+							}),
+						}).addTo(map);
+						pin.bindTooltip(waypoint.desc, { direction: 'top', offset: [0, -30] });
+						layers.push(pin);
 					});
 				}
 
@@ -424,17 +460,23 @@
 				visibleUsers.forEach((user) =>
 				{
 					const color = colorForUser(user.id);
-					const track = (user.track || []).filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number');
+					// Sorted because OwnTracks can flush fixes queued while offline, which would
+					// otherwise draw the line back through an earlier position.
+					const track = (user.track || [])
+						.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
+						.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
 
 					if (tracksVisible && track.length > 1)
 					{
-						const line = L.polyline(track.map((point) => [point.lat, point.lon]), { color, weight: 3, opacity: 0.7 }).addTo(map);
-						layers.push(line);
 						track.forEach((point) => bounds.push([point.lat, point.lon]));
 
+						// One line per journey, so nothing is drawn across a gap where the phone
+						// had no connectivity or between separate trips.
 						buildJourneys(track).forEach((journey) =>
 						{
 							if (journey.points.length < 2) return;
+							layers.push(L.polyline(journey.points.map((point) => [point.lat, point.lon]), { color, weight: 3, opacity: 0.7 }).addTo(map));
+
 							const endPoint = journey.points[journey.points.length - 1];
 							const flag = L.marker([endPoint.lat, endPoint.lon], {
 								pane: 'journeyFlags',
@@ -470,7 +512,12 @@
 				const fitKey = visibleUsers.map((user) => user.id).join('|');
 				if (bounds.length && fitKey !== lastFittedKey)
 				{
-					map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
+					if (!viewportPinned)
+					{
+						lastProgrammaticViewAt = Date.now();
+						map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16 });
+					}
+					// Recorded even when skipped, so unpinning later doesn't trigger a stale jump.
 					lastFittedKey = fitKey;
 				}
 
@@ -517,6 +564,16 @@
 			{
 				if (map) map.invalidateSize();
 			});
+
+			// A backgrounded dashboard suspends the timer and can drop realtime events, so
+			// whatever was on screen may be stale by the time the widget is looked at again.
+			document.addEventListener('visibilitychange', () =>
+			{
+				if (document.hidden) return;
+				if (map) map.invalidateSize();
+				load();
+			});
+			window.addEventListener('pageshow', () => load());
 
 			load().finally(() =>
 			{

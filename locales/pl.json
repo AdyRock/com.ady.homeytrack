@@ -185,6 +185,7 @@
 			"historySpeed": "Prędkość",
 			"historyAccuracy": "Dokładność",
 			"myJourneys": "Moje podróże",
+			"showAllJourneys": "Pokaż wszystkie podróże",
 			"journeysTitle": "Podróże: [[user]]",
 			"journeyHeading": "Podróż [[date]] - [[time]]",
 			"journeySelectHint": "Wybierz podróż do wyświetlenia.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Punkty trasy skopiowane",
 			"noTrackPoints": "Brak punktów trasy do skopiowania.",
 			"noJourneys": "Brak podróży w tym zakresie dat.",
+			"closeMenu": "Zamknij menu",
 			"contextHelpAria": "Pomoc dotycząca sterowania mapą",
 			"contextHelpTitle": "Sterowanie mapą",
 			"contextHelpBody": "Otwieranie menu\nKliknij mapę prawym przyciskiem myszy lub naciśnij ją i przytrzymaj na ekranie dotykowym, aby otworzyć menu mapy. Pierwsze polecenie przełącza zapisane punkty między klasycznymi kropkami a znacznikami kierunku w kształcie kropli.\n\nIkony użytkownika\n**Oko** oznacza, że użytkownik jest widoczny. Wybierz je, aby ukryć awatar, lokalizację i trasę użytkownika. **Przekreślone oko** oznacza, że użytkownik jest ukryty; wybierz je, aby ponownie go wyświetlić.\n\n**Trasa** oznacza, że zapisana trasa użytkownika jest widoczna. Wybierz ją, aby ukryć tylko trasę i pozostawić widoczną najnowszą lokalizację. **Przekreślona trasa** oznacza, że trasa jest ukryta; wybierz ją, aby ponownie ją wyświetlić. Ta kontrolka jest wyłączona, gdy użytkownik jest ukryty.\n\n**Cel** centruje mapę na rzeczywistej najnowszej lokalizacji użytkownika. Jest wyłączony, gdy użytkownik jest ukryty lub nie ma zgłoszonej lokalizacji."

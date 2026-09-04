@@ -185,6 +185,7 @@
 			"historySpeed": "Snelheid",
 			"historyAccuracy": "Nauwkeurigheid",
 			"myJourneys": "Mijn ritten",
+			"showAllJourneys": "Alle ritten tonen",
 			"journeysTitle": "Ritten van [[user]]",
 			"journeyHeading": "Rit [[date]] - [[time]]",
 			"journeySelectHint": "Selecteer de rit die u wilt weergeven.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Trackpunten gekopieerd",
 			"noTrackPoints": "Geen trackpunten om te kopiëren.",
 			"noJourneys": "Geen ritten in dit datumbereik.",
+			"closeMenu": "Menu sluiten",
 			"contextHelpAria": "Hulp bij kaartbediening",
 			"contextHelpTitle": "Kaartbediening",
 			"contextHelpBody": "Het menu openen\nKlik met de rechtermuisknop op de kaart of houd de kaart ingedrukt op een touchscreen om het kaartmenu te openen. Met de eerste opdracht wissel je geregistreerde punten tussen klassieke stippen en druppelvormige richtingsmarkeringen.\n\nPictogrammen per gebruiker\n**Oog** betekent dat de gebruiker zichtbaar is. Selecteer het om de avatar, locatie en track te verbergen. **Doorgestreept oog** betekent dat de gebruiker verborgen is; selecteer het om de gebruiker weer te tonen.\n\n**Route** betekent dat de geregistreerde track zichtbaar is. Selecteer deze om alleen de track te verbergen en de nieuwste locatie zichtbaar te houden. **Doorgestreepte route** betekent dat de track verborgen is; selecteer deze om de track weer te tonen. Deze bediening is uitgeschakeld wanneer de gebruiker verborgen is.\n\n**Doel** centreert de kaart op de werkelijke nieuwste locatie van de gebruiker. Het is uitgeschakeld wanneer de gebruiker verborgen is of geen gemelde locatie heeft."

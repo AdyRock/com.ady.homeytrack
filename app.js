@@ -491,7 +491,12 @@ module.exports = class MyApp extends Homey.App
 			...user,
 			track: since === null
 				? []
-				: user.track.filter((point) => (point.timestamp || 0) >= since).slice(-WIDGET_MAX_TRACK_POINTS),
+				: user.track
+					.filter((point) => (point.timestamp || 0) >= since)
+					// Sorted before trimming so the newest points survive even if history
+					// recorded before the ordering fix still holds late fixes out of order.
+					.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0))
+					.slice(-WIDGET_MAX_TRACK_POINTS),
 		}));
 
 		return {

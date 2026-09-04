@@ -185,6 +185,7 @@
 			"historySpeed": "Velocidade",
 			"historyAccuracy": "Precisão",
 			"myJourneys": "Minhas viagens",
+			"showAllJourneys": "Mostrar todas as viagens",
 			"journeysTitle": "Viagens de [[user]]",
 			"journeyHeading": "Viagem [[date]] - [[time]]",
 			"journeySelectHint": "Selecione a viagem a apresentar.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Pontos do percurso copiados",
 			"noTrackPoints": "Não há pontos do percurso para copiar.",
 			"noJourneys": "Nenhuma viagem neste intervalo de datas.",
+			"closeMenu": "Fechar menu",
 			"contextHelpAria": "Ajuda sobre os controles do mapa",
 			"contextHelpTitle": "Controles do mapa",
 			"contextHelpBody": "Abrir o menu\nClique com o botão direito no mapa ou mantenha-o pressionado em uma tela sensível ao toque para abrir o menu. O primeiro comando alterna os pontos registrados entre pontos clássicos e marcadores direcionais em forma de gota.\n\nÍcones por usuário\n**Olho** indica que o usuário está visível. Selecione-o para ocultar o avatar, a localização e o trajeto do usuário. **Olho riscado** indica que o usuário está oculto; selecione-o para mostrar o usuário novamente.\n\n**Rota** indica que o trajeto registrado está visível. Selecione-a para ocultar somente o trajeto e manter visível a localização mais recente. **Rota riscada** indica que o trajeto está oculto; selecione-a para mostrar o trajeto novamente. Este controle fica desativado quando o usuário está oculto.\n\n**Alvo** centraliza o mapa na localização real mais recente do usuário. Fica desativado quando o usuário está oculto ou não possui uma localização informada."

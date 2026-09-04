@@ -185,6 +185,7 @@
 			"historySpeed": "Geschwindigkeit",
 			"historyAccuracy": "Genauigkeit",
 			"myJourneys": "Meine Fahrten",
+			"showAllJourneys": "Alle Fahrten anzeigen",
 			"journeysTitle": "Fahrten von [[user]]",
 			"journeyHeading": "Fahrt [[date]] - [[time]]",
 			"journeySelectHint": "Wählen Sie die anzuzeigende Fahrt aus.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Trackpunkte kopiert",
 			"noTrackPoints": "Keine Trackpunkte zum Kopieren.",
 			"noJourneys": "Keine Fahrten in diesem Zeitraum.",
+			"closeMenu": "Menü schließen",
 			"contextHelpAria": "Hilfe zur Kartensteuerung",
 			"contextHelpTitle": "Kartensteuerung",
 			"contextHelpBody": "Menü öffnen\nKlicken Sie mit der rechten Maustaste auf die Karte oder halten Sie sie auf einem Touchscreen gedrückt, um das Kartenmenü zu öffnen. Der erste Befehl wechselt bei aufgezeichneten Punkten zwischen klassischen Punkten und tropfenförmigen Richtungsmarkern.\n\nSymbole pro Benutzer\n**Auge** bedeutet, dass der Benutzer sichtbar ist. Wählen Sie es, um Avatar, Standort und Track auszublenden. **Durchgestrichenes Auge** bedeutet, dass der Benutzer ausgeblendet ist; wählen Sie es, um ihn wieder einzublenden.\n\n**Route** bedeutet, dass der aufgezeichnete Track sichtbar ist. Wählen Sie sie, um nur den Track auszublenden und den neuesten Standort sichtbar zu lassen. **Durchgestrichene Route** bedeutet, dass der Track ausgeblendet ist; wählen Sie sie, um ihn wieder einzublenden. Diese Steuerung ist deaktiviert, wenn der Benutzer ausgeblendet ist.\n\n**Ziel** zentriert die Karte auf den tatsächlichen neuesten Standort des Benutzers. Es ist deaktiviert, wenn der Benutzer ausgeblendet ist oder keinen gemeldeten Standort hat."

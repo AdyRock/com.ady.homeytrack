@@ -70,7 +70,12 @@ module.exports = class UserDevice extends Homey.Device
 
 		if (typeof velocity !== 'number' || !Number.isFinite(velocity) || velocity <= 0)
 		{
-			return;
+			// A user who stops just outside a zone would otherwise never send the reports needed
+			// to confirm they left it.
+			if (!this.pendingZoneChange)
+			{
+				return;
+			}
 		}
 
 		this.locationRequestTimer = setTimeout(() =>
@@ -303,13 +308,14 @@ module.exports = class UserDevice extends Homey.Device
 			return;
 		}
 
-		this._scheduleLocationRequest(location.velocity);
 		const reportedRegions = Array.isArray(location.regions) ? location.regions : [];
 		const regions = !reportedRegions.length
 			? this._findWaypointZones(location.lat, location.lon)
 			: reportedRegions;
 
+		// Scheduled after the zone decision so a pending change can keep the polling alive.
 		await this._considerZoneChange(regions);
+		this._scheduleLocationRequest(location.velocity);
 		await this.setCapabilityValue('last_seen', await this._getLocalTimestamp()).catch(this.error);
 		if (typeof location.lat === 'number' && typeof location.lon === 'number')
 		{
@@ -397,7 +403,12 @@ module.exports = class UserDevice extends Homey.Device
 		}
 
 		const track = this.getStoreValue('track') || [];
-		const last = track[track.length - 1];
+		// OwnTracks flushes fixes that were queued while offline, so a report isn't always
+		// newer than the last one recorded.
+		const last = track.reduce(
+			(newest, point) => (!newest || (point.timestamp || 0) > (newest.timestamp || 0) ? point : newest),
+			null
+		);
 		const speedKmh = typeof location.velocity === 'number' && Number.isFinite(location.velocity) && location.velocity > 0
 			? location.velocity
 			: 0;
@@ -416,6 +427,9 @@ module.exports = class UserDevice extends Homey.Device
 			velocity: location.velocity,
 			timestamp: location.timestamp || Date.now(),
 		});
+		// The map joins the points in stored order, so a late fix inserted at the end would
+		// otherwise draw a line back to where the user was at the time.
+		track.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
 		while (track.length > this.trackMaxPoints)
 		{
 			track.shift();

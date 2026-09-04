@@ -463,6 +463,11 @@ button.track-date-shortcut {
 	outline: none;
 }
 
+.track-history-table tr.track-history-point.highlighted {
+	background: #d7f0c4;
+	outline: 1px solid #5bf527;
+}
+
 button.track-point-delete-button {
 	display: flex !important;
 	align-items: center;
@@ -494,6 +499,18 @@ button.track-zone-edit-button {
 .track-zone-edit-button svg {
 	width: 18px;
 	height: 18px;
+}
+
+.zone-pin {
+	background: none;
+	border: none;
+}
+
+.zone-pin svg {
+	display: block !important;
+	width: 24px;
+	height: 32px;
+	filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
 }
 
 #tabPanelMap.history-expanded .track-history {
@@ -855,6 +872,11 @@ button.password-toggle-button {
 	display: none;
 }
 
+.track-context-menu-header {
+	display: flex;
+	justify-content: flex-end;
+}
+
 .track-context-menu button {
 	display: block;
 	width: 100%;
@@ -870,6 +892,10 @@ button.password-toggle-button {
 
 .track-context-menu button:hover {
 	background: #f0f0f0;
+}
+
+.track-context-menu button.hidden {
+	display: none;
 }
 
 .track-context-menu-separator {

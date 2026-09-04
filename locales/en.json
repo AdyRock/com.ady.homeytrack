@@ -185,6 +185,7 @@
 			"historySpeed": "Speed",
 			"historyAccuracy": "Accuracy",
 			"myJourneys": "My Journeys",
+			"showAllJourneys": "Show all journeys",
 			"journeysTitle": "[[user]]'s journeys",
 			"journeyHeading": "Journey [[date]] - [[time]]",
 			"journeySelectHint": "Select the journey to display.",
@@ -213,6 +214,7 @@
 			"centerOnUser": "Center on [[user]]",
 			"hideTrackForUser": "Hide track for [[user]]",
 			"showTrackForUser": "Show track for [[user]]",
+			"closeMenu": "Close menu",
 			"contextHelpAria": "Help with map controls",
 			"contextHelpTitle": "Map controls",
 			"contextHelpBody": "Opening the menu\nRight-click the map with a mouse, or press and hold it on a touchscreen, to open the map menu. The first command switches recorded points between classic dots and teardrop direction markers.\n\nPer-user icons\n**Eye** shows that the user is visible. Select it to hide the user's avatar, location and track. **Crossed-out eye** shows that the user is hidden; select it to show the user again.\n\n**Route** shows that the user's recorded track is visible. Select it to hide only the track while keeping the user's latest location visible. **Crossed-out route** shows that the track is hidden; select it to show the track again. This control is disabled while the user is hidden.\n\n**Target** centres the map on the user's real latest location. It is disabled when the user is hidden or has no reported location."

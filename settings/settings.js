@@ -918,6 +918,11 @@ function onHomeyReady(Homey)
 		return (toDeg(Math.atan2(y, x)) + 360) % 360;
 	}
 	let trackPointMarkers = new WeakMap();
+	let trackHistoryRows = new WeakMap();
+	// Panning or zooming suspends the automatic re-centring done by background refreshes,
+	// until the user centres on a user again.
+	let trackViewportPinned = false;
+	let lastProgrammaticTrackViewAt = 0;
 	const trackZoneLayers = [];
 	const TRACK_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c'];
 	const CHEQUERED_FLAG_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true">'
@@ -925,6 +930,12 @@ function onHomeyReady(Homey)
 		+ '<g fill="#1a1a1a"><rect x="5" y="2" width="5" height="5"/><rect x="15" y="2" width="5" height="5"/>'
 		+ '<rect x="10" y="7" width="5" height="5"/></g>'
 		+ '<rect x="3" y="2" width="2" height="20" fill="#1a1a1a"/></svg>';
+	// Zone circles shrink to nothing when zoomed out, so every zone also gets a
+	// fixed-size pin whose point sits on the zone centre.
+	const ZONE_PIN_SVG = '<svg viewBox="0 0 24 32" aria-hidden="true">'
+		+ '<line x1="12" y1="9" x2="12" y2="31" stroke="#4a4a4a" stroke-width="2"/>'
+		+ '<circle cx="12" cy="9" r="8" fill="#999" stroke="#4a4a4a" stroke-width="2"/>'
+		+ '<circle cx="12" cy="9" r="3" fill="#fff"/></svg>';
 	let trackUsers = [];
 	let trackWaypoints = [];
 	let selectedTrackUserIds = null;
@@ -959,7 +970,11 @@ function onHomeyReady(Homey)
 
 	function filterTrackByDate(track)
 	{
-		return (Array.isArray(track) ? track : []).filter((point) => isInTrackDateRange(point.timestamp));
+		// Sorted here as well as on recording, because history stored before that fix can
+		// still hold late-arriving fixes out of order.
+		return (Array.isArray(track) ? track : [])
+			.filter((point) => isInTrackDateRange(point.timestamp))
+			.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
 	}
 
 	function getDisplayedTrack(user)
@@ -1036,42 +1051,29 @@ function onHomeyReady(Homey)
 
 	function setJourneyTravelBounds(journey)
 	{
-		const maximumActivityGapMilliseconds = 5 * 60 * 1000;
-		const activityWindows = [];
-		journey.points.forEach((point) =>
-		{
-			const currentWindow = activityWindows[activityWindows.length - 1];
-			if (!currentWindow || point.timestamp - currentWindow[currentWindow.length - 1].timestamp > maximumActivityGapMilliseconds)
-			{
-				activityWindows.push([point]);
-			} else
-			{
-				currentWindow.push(point);
-			}
-		});
-		const activePoints = activityWindows.reduce((longest, candidate) =>
-			calculateJourneyDistanceMeters(candidate) > calculateJourneyDistanceMeters(longest) ? candidate : longest);
+		const points = journey.points;
 		let firstMovingPoint = null;
 		let lastMovingPoint = null;
 		const minimumMovingSpeedKmh = 2;
 
-		for (let index = 1; index < activePoints.length; index++)
+		for (let index = 1; index < points.length; index++)
 		{
-			const previous = activePoints[index - 1];
-			const current = activePoints[index];
+			const previous = points[index - 1];
+			const current = points[index];
 			const durationHours = (current.timestamp - previous.timestamp) / 3600000;
 			if (durationHours <= 0) continue;
 			const speedKmh = calculateJourneyDistanceMeters([previous, current]) / 1000 / durationHours;
 			if (speedKmh < minimumMovingSpeedKmh) continue;
-			if (firstMovingPoint === null) firstMovingPoint = index;
+			// The leg started at the previous point, so that's when travel began.
+			if (firstMovingPoint === null) firstMovingPoint = index - 1;
 			lastMovingPoint = index;
 		}
 
-		journey.travelStart = firstMovingPoint === null ? activePoints[0].timestamp : activePoints[firstMovingPoint].timestamp;
-		journey.travelEnd = lastMovingPoint === null ? activePoints[activePoints.length - 1].timestamp : activePoints[lastMovingPoint].timestamp;
+		journey.travelStart = firstMovingPoint === null ? points[0].timestamp : points[firstMovingPoint].timestamp;
+		journey.travelEnd = lastMovingPoint === null ? points[points.length - 1].timestamp : points[lastMovingPoint].timestamp;
 		journey.travelPoints = firstMovingPoint === null
-			? activePoints
-			: activePoints.slice(firstMovingPoint, lastMovingPoint + 1);
+			? points
+			: points.slice(firstMovingPoint, lastMovingPoint + 1);
 	}
 
 	function formatJourneyAverageSpeed(journey)
@@ -1293,6 +1295,10 @@ function onHomeyReady(Homey)
 		trackMap.createPane('zones');
 		trackMap.getPane('zones').style.zIndex = 400;
 
+		// Zone pins sit above the zone circles but below the track points.
+		trackMap.createPane('zonePins');
+		trackMap.getPane('zonePins').style.zIndex = 440;
+
 		trackMap.createPane('trackPoints');
 		trackMap.getPane('trackPoints').style.zIndex = 450;
 
@@ -1305,6 +1311,7 @@ function onHomeyReady(Homey)
 		// track needs redrawing (not just resizing) whenever the zoom level changes.
 		// adjustViewport is false so this never recenters the map the user just zoomed.
 		trackMap.on('zoomend', () => renderTracks(trackUsers, false, false));
+		trackMap.on('dragend zoomend', pinTrackViewport);
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; OpenStreetMap contributors',
 			maxZoom: 19,
@@ -1325,7 +1332,6 @@ function onHomeyReady(Homey)
 			L.DomEvent.preventDefault(event.originalEvent);
 			showTrackContextMenu(event.originalEvent.clientX, event.originalEvent.clientY);
 		});
-		trackMap.on('movestart zoomstart', hideTrackContextMenu);
 
 		// Leaflet has no built-in long-press event, so it's detected manually from touch
 		// timing to give touch users the same menu as a desktop right-click.
@@ -1359,21 +1365,28 @@ function onHomeyReady(Homey)
 		return zoom >= 17 ? 5 : Math.max(1, Math.min(4, zoom - 10));
 	}
 
+	/** Leaflet reports our own recentres like user gestures, so those are timestamped and ignored. */
+	function pinTrackViewport()
+	{
+		if (Date.now() - lastProgrammaticTrackViewAt < 1200) return;
+		trackViewportPinned = true;
+	}
+
+	function centreTrackMapOn(lat, lon)
+	{
+		trackViewportPinned = false;
+		lastProgrammaticTrackViewAt = Date.now();
+		trackMap.panTo([lat, lon]);
+	}
+
 	function renderTrackZones()
 	{
 		trackZoneLayers.forEach((layer) => trackMap.removeLayer(layer));
 		trackZoneLayers.length = 0;
 
-		trackWaypoints.forEach((waypoint) =>
+		// A popup element can only belong to one popup, so the circle and its pin each need their own.
+		function buildZonePopup(waypoint)
 		{
-			if (typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number') return;
-			const circle = L.circle([waypoint.lat, waypoint.lon], {
-				pane: 'zones',
-				color: '#666',
-				fillColor: '#999',
-				fillOpacity: 0.15,
-				radius: Number(waypoint.rad) || 100,
-			}).addTo(trackMap);
 			const popupContent = document.createElement('div');
 			const popupDetails = document.createElement('div');
 			popupDetails.textContent = `${waypoint.desc}\n${waypoint.lat}, ${waypoint.lon}\nRadius: ${waypoint.rad || 100}m`;
@@ -1392,8 +1405,34 @@ function onHomeyReady(Homey)
 				openZoneEditor(waypoint, { scope: waypoint.scope, userId: waypoint.userId });
 			});
 			popupContent.append(popupDetails, editButton);
-			circle.bindPopup(popupContent);
+			return popupContent;
+		}
+
+		trackWaypoints.forEach((waypoint) =>
+		{
+			if (typeof waypoint.lat !== 'number' || typeof waypoint.lon !== 'number') return;
+			const circle = L.circle([waypoint.lat, waypoint.lon], {
+				pane: 'zones',
+				color: '#666',
+				fillColor: '#999',
+				fillOpacity: 0.15,
+				radius: Number(waypoint.rad) || 100,
+			}).addTo(trackMap);
+			circle.bindPopup(buildZonePopup(waypoint));
 			trackZoneLayers.push(circle);
+
+			const pin = L.marker([waypoint.lat, waypoint.lon], {
+				pane: 'zonePins',
+				icon: L.divIcon({
+					className: 'zone-pin',
+					html: ZONE_PIN_SVG,
+					iconSize: [24, 32],
+					iconAnchor: [12, 32],
+				}),
+			}).addTo(trackMap);
+			pin.bindTooltip(waypoint.desc, { direction: 'top', offset: [0, -30] });
+			pin.bindPopup(buildZonePopup(waypoint));
+			trackZoneLayers.push(pin);
 		});
 	}
 
@@ -1490,12 +1529,18 @@ function onHomeyReady(Homey)
 			{
 				const color = TRACK_COLORS[index % TRACK_COLORS.length];
 				const track = getDisplayedTrack(user);
+				const journeys = buildJourneys(track);
 
-				if (track.length > 1)
+				// One line per journey, so nothing is drawn across a gap where the phone had no
+				// connectivity or between separate trips.
+				journeys.forEach((journey) =>
 				{
-					const line = L.polyline(track.map((point) => [point.lat, point.lon]), { color }).addTo(trackMap);
-					trackLayers.push(line);
-				}
+					const coordinates = journey.points
+						.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
+						.map((point) => [point.lat, point.lon]);
+					if (coordinates.length < 2) return;
+					trackLayers.push(L.polyline(coordinates, { color }).addTo(trackMap));
+				});
 
 				const classicRadius = getTrackPointRadius();
 				const teardropWidth = Math.max(14, classicRadius * 5);
@@ -1589,6 +1634,8 @@ function onHomeyReady(Homey)
 							radius: Number(point.acc) || 100,
 							interactive: false
 						}).addTo(trackMap);
+
+						highlightHistoryRow(point);
 					});
 					pointMarker.on('mouseover', () =>
 					{
@@ -1659,7 +1706,7 @@ function onHomeyReady(Homey)
 					trackPointMarkers.set(point, pointMarker);
 				});
 
-				buildJourneys(track).forEach((journey) =>
+				journeys.forEach((journey) =>
 				{
 					if (journey.points.length < 2) return;
 					const endPoint = journey.points[journey.points.length - 1];
@@ -1676,6 +1723,22 @@ function onHomeyReady(Homey)
 						}),
 					}).addTo(trackMap);
 					flag.bindTooltip(`${user.name} - ${Homey.__('settings.map.journeyEndFlag')} ${new Date(endPoint.timestamp).toLocaleString()}`);
+					flag.on('dblclick', (event) =>
+					{
+						// Otherwise the map's own double-click zoom fires as well.
+						L.DomEvent.stopPropagation(event);
+						activeJourneyUserId = user.id;
+						selectedJourney = {
+							userId: user.id,
+							start: journey.start,
+							end: journey.end,
+							travelStart: journey.travelStart,
+							travelEnd: journey.travelEnd,
+						};
+						renderJourneys();
+						renderTracks(trackUsers);
+						renderTrackHistory(trackUsers);
+					});
 					trackLayers.push(flag);
 				});
 
@@ -1716,22 +1779,53 @@ function onHomeyReady(Homey)
 		{
 			// Called just to resize/re-filter markers after a zoom change - the user's
 			// current view should be left exactly as they set it.
-		} else if (preserveViewport && newestPosition)
+		} else if (preserveViewport)
 		{
-			trackMap.panInside([newestPosition.lat, newestPosition.lon], {
-				paddingTopLeft: [30, 30],
-				paddingBottomRight: [30, 30],
-			});
+			// Background refresh: leave the view alone while the user has panned or zoomed away.
+			if (!trackViewportPinned && newestPosition)
+			{
+				lastProgrammaticTrackViewAt = Date.now();
+				trackMap.panInside([newestPosition.lat, newestPosition.lon], {
+					paddingTopLeft: [30, 30],
+					paddingBottomRight: [30, 30],
+				});
+			}
 		} else if (bounds.length)
 		{
+			// A deliberate re-render (filter or journey change) resets the view, so following resumes.
+			trackViewportPinned = false;
+			lastProgrammaticTrackViewAt = Date.now();
 			trackMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
 		}
+	}
+
+	/** Reveals and marks the Logged coordinates row for a point clicked on the map. */
+	function highlightHistoryRow(point)
+	{
+		if (!document.getElementById('tabPanelMap').classList.contains('history-expanded')) return;
+		const row = trackHistoryRows.get(point);
+		if (!row) return;
+
+		document.querySelectorAll('.track-history-point.highlighted')
+			.forEach((element) => element.classList.remove('highlighted'));
+
+		// The row's table is hidden while its user group is collapsed, so open it first.
+		const table = row.closest('.track-history-table');
+		if (table && table.classList.contains('hidden'))
+		{
+			const heading = table.parentElement.querySelector('.track-history-user');
+			if (heading) heading.click();
+		}
+
+		row.classList.add('highlighted');
+		row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 	}
 
 	function renderTrackHistory(users)
 	{
 		const historyList = document.getElementById('trackHistoryList');
 		historyList.textContent = '';
+		trackHistoryRows = new WeakMap();
 		const userTracks = users
 			.filter((user) => selectedJourney ? user.id === selectedJourney.userId : selectedTrackUserIds === null || selectedTrackUserIds.has(user.id))
 			.map((user) => ({
@@ -1833,6 +1927,9 @@ function onHomeyReady(Homey)
 
 					const marker = trackPointMarkers.get(point);
 					if (!marker) return;
+					// Inspecting a specific point holds the view there until a user is centred on.
+					trackViewportPinned = true;
+					lastProgrammaticTrackViewAt = Date.now();
 					trackMap.panTo(marker.getLatLng());
 					marker.openPopup();
 				};
@@ -1850,6 +1947,7 @@ function onHomeyReady(Homey)
 					row.appendChild(cell);
 				});
 				table.appendChild(row);
+				trackHistoryRows.set(point, row);
 			});
 			group.append(heading, table);
 			historyList.appendChild(group);
@@ -1940,10 +2038,15 @@ function onHomeyReady(Homey)
 
 	const trackContextMenu = document.getElementById('trackContextMenu');
 	const togglePointStyleMenuItem = document.getElementById('toggleTrackPointStyleMenuItem');
+	const showAllJourneysMenuItem = document.getElementById('showAllJourneysMenuItem');
 	const trackContextMenuUserItems = document.getElementById('trackContextMenuUserItems');
 
-	function showTrackContextMenu(clientX, clientY)
+	/** Rebuilt in place after each toggle so the menu stays open across several changes. */
+	function renderTrackContextMenuItems()
 	{
+		showAllJourneysMenuItem.textContent = Homey.__('settings.map.showAllJourneys');
+		showAllJourneysMenuItem.classList.toggle('hidden', !selectedJourney && activeJourneyUserId === null);
+
 		togglePointStyleMenuItem.textContent = trackPointStyle === 'classic'
 			? Homey.__('settings.map.useTeardropPoints')
 			: Homey.__('settings.map.useClassicPoints');
@@ -1965,7 +2068,7 @@ function onHomeyReady(Homey)
 			visibilityButton.addEventListener('click', () =>
 			{
 				setTrackUserVisibility(user, !isVisible);
-				hideTrackContextMenu();
+				renderTrackContextMenuItems();
 			});
 
 			const name = document.createElement('span');
@@ -1988,7 +2091,7 @@ function onHomeyReady(Homey)
 					else hiddenTrackUserIds.add(user.id);
 					renderTracks(trackUsers, false, false);
 					renderTrackHistory(trackUsers);
-					hideTrackContextMenu();
+					renderTrackContextMenuItems();
 				});
 			} else
 			{
@@ -2008,8 +2111,7 @@ function onHomeyReady(Homey)
 				centerButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>';
 				centerButton.addEventListener('click', () =>
 				{
-					trackMap.panTo([user.lastLocation.lat, user.lastLocation.lon]);
-					hideTrackContextMenu();
+					centreTrackMapOn(user.lastLocation.lat, user.lastLocation.lon);
 				});
 			} else
 			{
@@ -2021,6 +2123,11 @@ function onHomeyReady(Homey)
 			row.append(visibilityButton, name, trackButton, centerButton);
 			trackContextMenuUserItems.appendChild(row);
 		});
+	}
+
+	function showTrackContextMenu(clientX, clientY)
+	{
+		renderTrackContextMenuItems();
 
 		trackContextMenu.style.left = `${clientX}px`;
 		trackContextMenu.style.top = `${clientY}px`;
@@ -2045,9 +2152,28 @@ function onHomeyReady(Homey)
 	{
 		trackPointStyle = trackPointStyle === 'classic' ? 'teardrop' : 'classic';
 		Homey.set('trackPointStyle', trackPointStyle, (err) => { if (err) Homey.alert(err); });
-		hideTrackContextMenu();
+		renderTrackContextMenuItems();
 		renderTracks(trackUsers, false, false);
 	});
+
+	showAllJourneysMenuItem.addEventListener('click', () =>
+	{
+		activeJourneyUserId = null;
+		selectedJourney = null;
+		renderJourneys();
+		renderTracks(trackUsers);
+		renderTrackHistory(trackUsers);
+		renderTrackContextMenuItems();
+	});
+
+	const closeTrackContextMenuButton = document.getElementById('closeTrackContextMenu');
+	closeTrackContextMenuButton.setAttribute('aria-label', Homey.__('settings.map.closeMenu'));
+	closeTrackContextMenuButton.setAttribute('title', Homey.__('settings.map.closeMenu'));
+	closeTrackContextMenuButton.addEventListener('click', hideTrackContextMenu);
+
+	// Toggling an item rebuilds the menu, which detaches the clicked button before the
+	// document handler runs - it would then see the click as coming from outside.
+	trackContextMenu.addEventListener('click', (event) => event.stopPropagation());
 
 	document.addEventListener('click', (event) =>
 	{

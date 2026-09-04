@@ -185,6 +185,7 @@
 			"historySpeed": "Vitesse",
 			"historyAccuracy": "Précision",
 			"myJourneys": "Mes trajets",
+			"showAllJourneys": "Afficher tous les trajets",
 			"journeysTitle": "Trajets de [[user]]",
 			"journeyHeading": "Trajet [[date]] - [[time]]",
 			"journeySelectHint": "Sélectionnez le trajet à afficher.",
@@ -205,6 +206,7 @@
 			"trackPointsCopied": "Points du trajet copiés",
 			"noTrackPoints": "Aucun point de trajet à copier.",
 			"noJourneys": "Aucun trajet dans cette période.",
+			"closeMenu": "Fermer le menu",
 			"contextHelpAria": "Aide sur les commandes de la carte",
 			"contextHelpTitle": "Commandes de la carte",
 			"contextHelpBody": "Ouvrir le menu\nFaites un clic droit sur la carte ou maintenez votre doigt appuyé sur un écran tactile pour ouvrir le menu. La première commande fait alterner les points enregistrés entre des points classiques et des marqueurs directionnels en forme de goutte.\n\nIcônes par utilisateur\n**Œil** indique que l'utilisateur est visible. Sélectionnez-le pour masquer son avatar, sa position et son trajet. **Œil barré** indique que l'utilisateur est masqué ; sélectionnez-le pour l'afficher de nouveau.\n\n**Trajet** indique que le trajet enregistré est visible. Sélectionnez-le pour masquer uniquement le trajet tout en conservant la dernière position visible. **Trajet barré** indique que le trajet est masqué ; sélectionnez-le pour l'afficher de nouveau. Cette commande est désactivée lorsque l'utilisateur est masqué.\n\n**Cible** centre la carte sur la dernière position réelle de l'utilisateur. Elle est désactivée si l'utilisateur est masqué ou n'a signalé aucune position."
