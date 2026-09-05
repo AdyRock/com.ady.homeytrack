@@ -72,5 +72,18 @@
 		"zh": "添加新区域时显示的地图现在以您当前的位置为中心。",
 		"ja": "新しいゾーンを追加する際に表示される地図は、現在地を中心に表示されるようになりました。",
 		"ko": "새 영역을 추가할 때 표시되는 지도는 이제 현재 위치를 중심으로 표시됩니다."
+	},
+	"1.0.8": {
+		"en": "The Widget no longer filters the journey list to the last 12 hours.",
+		"nl": "Het widget filtert de reislijst niet langer op de laatste 12 uur.",
+		"fr": "Le widget ne filtre plus la liste des trajets sur les 12 dernières heures.",
+		"de": "Das Widget filtert die Reiseliste nicht mehr auf die letzten 12 Stunden.",
+		"es": "El widget ya no filtra la lista de viajes a las últimas 12 horas.",
+		"it": "Il widget non filtra più l'elenco dei viaggi nelle ultime 12 ore.",
+		"pt": "O widget não filtra mais a lista de viagens para as últimas 12 horas.",
+		"ru": "Виджет больше не фильтрует список поездок за последние 12 часов.",
+		"zh": "小部件不再将行程列表过滤为最近 12 小时。",
+		"ja": "ウィジェットは、旅のリストを過去12時間に絞り込まなくなりました。",
+		"ko": "위젯이 여정 목록을 지난 12시간으로 필터링하지 않습니다."
 	}
 }

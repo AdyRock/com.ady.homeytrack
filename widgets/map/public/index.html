@@ -83,7 +83,6 @@
 			let users = [];
 			let waypoints = [];
 			let speedUnit = 'kmh';
-			let journeyGapMinutes = 30;
 			let hiddenUserIds = new Set();
 			let tracksVisible = tracksEnabled;
 			let pickerUserId = null;
@@ -206,28 +205,11 @@
 			return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(chord), Math.sqrt(1 - chord));
 		}
 
-		/** Splits a track into journeys, a new one starting after a gap longer than the app's setting. */
-			function buildJourneys(track)
+		/** The journeys the app has built from a user's whole recorded track, newest first. */
+			function userJourneys(userId)
 			{
-				const gapMilliseconds = journeyGapMinutes * 60 * 1000;
-				const journeys = [];
-				track
-					.filter((point) => Number.isFinite(point.timestamp))
-					.sort((first, second) => first.timestamp - second.timestamp)
-					.forEach((point) =>
-					{
-						const current = journeys[journeys.length - 1];
-						if (!current || point.timestamp - current.end > gapMilliseconds)
-						{
-							journeys.push({ end: point.timestamp, points: [point] });
-						}
-						else
-						{
-							current.end = point.timestamp;
-							current.points.push(point);
-						}
-					});
-				return journeys;
+				const user = users.find((item) => item.id === userId);
+				return (user && user.journeys) || [];
 			}
 
 			function colorForUser(userId)
@@ -258,12 +240,12 @@
 				return zone ? `${start} → ${zone}` : start;
 			}
 
+			/** Until the user picks journeys themselves, only those inside the widget's window show. */
 			function isJourneyVisible(userId, journey)
 			{
 				const selected = selectedJourneys[userId];
-				if (!selected) return true;
-				return selected.some((entry) => journey.points[0].timestamp >= entry.start
-					&& journey.points[journey.points.length - 1].timestamp <= entry.end);
+				if (!selected) return Boolean(journey.recent);
+				return selected.some((entry) => entry.start === journey.start && entry.end === journey.end);
 			}
 
 			function closeJourneyPicker()
@@ -287,10 +269,7 @@
 
 				journeyPickerTitle.textContent = user.name;
 				journeyPickerList.textContent = '';
-				const track = (user.track || [])
-					.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
-					.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
-				const journeys = buildJourneys(track).filter((journey) => journey.points.length > 1);
+				const journeys = userJourneys(user.id);
 
 				if (!journeys.length)
 				{
@@ -301,8 +280,9 @@
 					return;
 				}
 
-				// Oldest first, so reading down the list follows the user forwards in time.
-				journeys.forEach((journey) =>
+				// Reversed because the app sends them newest first, and reading down the list
+				// should follow the user forwards in time.
+				[...journeys].reverse().forEach((journey) =>
 				{
 					const label = document.createElement('label');
 					label.className = 'journey-picker-item';
@@ -322,33 +302,40 @@
 
 			function toggleJourney(userId, journey, visible)
 			{
-				hapticFeedback();				const start = journey.points[0].timestamp;
-				const end = journey.points[journey.points.length - 1].timestamp;
-				const selected = selectedJourneys[userId];
-				const isSelected = selected && selected.some((entry) => entry.start === start && entry.end === end);
+				hapticFeedback();
+				// The first toggle turns the window's default set into an explicit selection, so
+				// the journeys that were already drawn stay drawn.
+				const selected = selectedJourneys[userId]
+					|| userJourneys(userId)
+						.filter((entry) => entry.recent)
+						.map((entry) => ({ start: entry.start, end: entry.end }));
+				const without = selected.filter((entry) => entry.start !== journey.start || entry.end !== journey.end);
+				selectedJourneys[userId] = visible
+					? [...without, { start: journey.start, end: journey.end }]
+					: without;
 
-				if (visible && !isSelected)
-				{
-					(selectedJourneys[userId] = selected || []).push({ start, end });
-				}
-				else if (!visible)
-				{
-					const remaining = selected
-						? selected.filter((entry) => entry.start !== start || entry.end !== end)
-						: buildJourneys(userTrack(userId))
-							.filter((other) => other.points.length > 1)
-							.map((other) => ({ start: other.points[0].timestamp, end: other.points[other.points.length - 1].timestamp }))
-							.filter((entry) => entry.start !== start || entry.end !== end);
-					selectedJourneys[userId] = remaining.length ? remaining : [];
-				}
-
+				// Picking a journey is a request to see it, so the lines are turned back on and
+				// the map is moved to it - it is usually nowhere near the current view.
+				if (visible && !tracksVisible) setTracksVisible(true);
+				renderAvatars();
 				renderMap();
+				if (visible) focusJourney(journey);
 			}
 
-			function userTrack(userId)
+			/** Pinned afterwards, so a background refresh can't pull the view off the picked journey. */
+			function focusJourney(journey)
 			{
-				const user = users.find((item) => item.id === userId);
-				return (user && user.track) || [];
+				const points = (journey.points || []).filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lon));
+				if (!points.length) return;
+				lastProgrammaticViewAt = Date.now();
+				map.fitBounds(points.map((point) => [point.lat, point.lon]), { padding: [24, 24], maxZoom: 16 });
+				viewportPinned = true;
+			}
+
+			function setTracksVisible(visible)
+			{
+				tracksVisible = visible;
+				Homey.api('POST', '/tracks-visibility', { instanceId, visible }).catch(console.error);
 			}
 
 			function formatSpeed(location)
@@ -428,7 +415,7 @@
 
 				users.forEach((user) =>
 				{
-					const count = buildJourneys(user.track || []).filter((journey) => journey.points.length > 1).length;
+					const count = userJourneys(user.id).length;
 					const selectedCount = selectedJourneys[user.id]
 						? `${selectedJourneys[user.id].length}/${count}`
 						: '';
@@ -464,10 +451,9 @@
 				claimPressStripScroll(trackButton, () =>
 				{
 					hapticFeedback();
-					tracksVisible = !tracksVisible;
+					setTracksVisible(!tracksVisible);
 					renderAvatars();
 					renderMap();
-					Homey.api('POST', '/tracks-visibility', { instanceId, visible: tracksVisible }).catch(console.error);
 				});
 				avatarStrip.appendChild(trackButton);
 			}
@@ -692,47 +678,42 @@
 				}
 
 				const bounds = [];
-				const visibleUsers = users.filter((user) =>
-					!hiddenUserIds.has(user.id)
-					&& (!selectedJourneys[user.id] || selectedJourneys[user.id].length > 0));
+				// Journey visibility is decided per journey below, so unticking every journey
+				// still leaves the user's current position on the map.
+				const visibleUsers = users.filter((user) => !hiddenUserIds.has(user.id));
 
 				visibleUsers.forEach((user) =>
 				{
 					const color = colorForUser(user.id);
-					// Sorted because OwnTracks can flush fixes queued while offline, which would
-					// otherwise draw the line back through an earlier position.
-					const track = (user.track || [])
-						.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
-						.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0));
 
-					if (tracksVisible && track.length > 1)
+					if (tracksVisible)
 					{
-						track.forEach((point) => bounds.push([point.lat, point.lon]));
-
 						// One line per journey, so nothing is drawn across a gap where the phone
 						// had no connectivity or between separate trips.
-					buildJourneys(track)
-						.filter((journey) => isJourneyVisible(user.id, journey))
-						.forEach((journey) =>
-						{
-							if (journey.points.length < 2) return;
-							layers.push(L.polyline(journey.points.map((point) => [point.lat, point.lon]), { color, weight: 3, opacity: 0.7 }).addTo(map));
+						userJourneys(user.id)
+							.filter((journey) => isJourneyVisible(user.id, journey))
+							.forEach((journey) =>
+							{
+								const points = journey.points || [];
+								if (points.length < 2) return;
+								points.forEach((point) => bounds.push([point.lat, point.lon]));
+								layers.push(L.polyline(points.map((point) => [point.lat, point.lon]), { color, weight: 3, opacity: 0.7 }).addTo(map));
 
-							const endPoint = journey.points[journey.points.length - 1];
-							const flag = L.marker([endPoint.lat, endPoint.lon], {
-								pane: 'journeyFlags',
-								icon: L.divIcon({
-									className: 'journey-flag',
-									html: FLAG_SVG,
-									iconSize: [20, 20],
-									// Anchored bottom-left with a nudge so the flag stands clear of an
-									// avatar marker sitting on the same point.
-									iconAnchor: [-6, 22],
-								}),
-							}).addTo(map);
-							flag.bindTooltip(`${Homey.__('widget.map.journeyEnd')} — ${new Date(endPoint.timestamp).toLocaleString()}`);
-							layers.push(flag);
-						});
+								const endPoint = points[points.length - 1];
+								const flag = L.marker([endPoint.lat, endPoint.lon], {
+									pane: 'journeyFlags',
+									icon: L.divIcon({
+										className: 'journey-flag',
+										html: FLAG_SVG,
+										iconSize: [20, 20],
+										// Anchored bottom-left with a nudge so the flag stands clear of an
+										// avatar marker sitting on the same point.
+										iconAnchor: [-6, 22],
+									}),
+								}).addTo(map);
+								flag.bindTooltip(`${Homey.__('widget.map.journeyEnd')} — ${new Date(endPoint.timestamp).toLocaleString()}`);
+								layers.push(flag);
+							});
 					}
 
 					// After the track, so a user with history but no current fix still gets a line.
@@ -789,23 +770,23 @@
 						users = Array.isArray(data && data.users) ? data.users : [];
 						waypoints = Array.isArray(data && data.waypoints) ? data.waypoints : [];
 						speedUnit = (data && data.speedUnit) === 'mph' ? 'mph' : 'kmh';
-						journeyGapMinutes = Number(data && data.journeyGapMinutes) || 30;
 						hiddenUserIds = new Set(Array.isArray(data && data.hiddenUserIds) ? data.hiddenUserIds : []);
 						if (data && typeof data.tracksVisible === 'boolean') tracksVisible = tracksEnabled && data.tracksVisible;
 
-					// Journeys are re-split from whatever the track window holds now, so the picker
-					// list and the active selections have to be re-anchored after every refresh.
+					// A refresh can drop journeys off the end of the list, so the selections have to
+					// be re-anchored. An emptied selection is kept: it means "show none of them".
 					Object.keys(selectedJourneys).forEach((userId) =>
 					{
-						const user = users.find((item) => item.id === userId);
-						const journeys = user
-							? buildJourneys(user.track || []).filter((journey) => journey.points.length > 1)
-							: [];
-						const valid = selectedJourneys[userId].filter((selection) => journeys.some((journey) =>
-							journey.points[0].timestamp === selection.start
-							&& journey.points[journey.points.length - 1].timestamp === selection.end));
-						if (valid.length) selectedJourneys[userId] = valid;
-						else delete selectedJourneys[userId];
+						if (!users.some((item) => item.id === userId))
+						{
+							delete selectedJourneys[userId];
+							return;
+						}
+
+						const journeys = userJourneys(userId);
+						selectedJourneys[userId] = selectedJourneys[userId].filter((selection) => journeys.some(
+							(journey) => journey.start === selection.start && journey.end === selection.end
+						));
 					});
 
 					renderAvatars();

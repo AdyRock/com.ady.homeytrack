@@ -10,6 +10,7 @@ const Homey = require('homey');
 const nodemailer = require('nodemailer');
 const { randomUUID } = require('crypto');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');
+const { buildJourneys } = require('./lib/mapImage');
 
 const SETTINGS_KEYS = [
 	'connectionMethod',
@@ -33,10 +34,22 @@ const SETTINGS_BACKUP_KEYS = [
 const MAX_LOG_BUFFER_BYTES = 20 * 1024;
 const DEFAULT_TRACK_MAX_POINTS = 1000;
 const MIN_TRACK_MAX_POINTS = 100;
-const WIDGET_MAX_TRACK_POINTS = 250;
+const WIDGET_MAX_JOURNEYS = 12;
+const WIDGET_MAX_JOURNEY_POINTS = 80;
 // How long a shared zone is protected from being auto-disabled after it was first sent to a
 // phone, so a waypoints export the phone had already prepared can't undo the new zone.
 const WAYPOINT_DELIVERY_GRACE_MS = 5 * 60 * 1000;
+
+/** Keeps a journey's shape and its two end points while dropping detail a widget map can't resolve. */
+function thinJourneyPoints(points)
+{
+	if (points.length <= WIDGET_MAX_JOURNEY_POINTS) return points;
+	const stride = Math.ceil(points.length / WIDGET_MAX_JOURNEY_POINTS);
+	const thinned = points.filter((point, index) => index % stride === 0);
+	const last = points[points.length - 1];
+	if (thinned[thinned.length - 1] !== last) thinned.push(last);
+	return thinned;
+}
 
 module.exports = class MyApp extends Homey.App
 {
@@ -508,33 +521,37 @@ module.exports = class MyApp extends Homey.App
 	}
 
 	/**
-	 * Builds the payload for the map dashboard widget. Tracks are trimmed to the requested
-	 * window (and capped) because a widget re-fetches often and a full 1000-point-per-user
-	 * history is far more than a small dashboard map needs.
+	 * Builds the payload for the map dashboard widget. Each user's history is sent as a short
+	 * list of journeys rather than a raw track, because a widget re-fetches often and a full
+	 * 1000-point-per-user history is far more than a small dashboard map needs.
+	 *
+	 * The journeys are built from the whole stored track, not just the requested window, so the
+	 * widget's journey picker lists the same trips as the settings page and the device images.
+	 * The window only decides which of them are drawn until the user picks some themselves.
 	 * @param {string} instanceId The widget instance id, used to remember per-widget user visibility.
-	 * @param {number} trackHours How far back track points should reach; 0 means no track points.
+	 * @param {number} trackHours How far back a journey may end to be shown by default; 0 means none.
 	 */
 	getWidgetMapData(instanceId, trackHours = 12)
 	{
 		const hours = Number.isFinite(Number(trackHours)) ? Math.max(0, Number(trackHours)) : 12;
 		const since = hours > 0 ? Date.now() - (hours * 60 * 60 * 1000) : null;
-		const users = this.listTracks().map((user) => ({
+		const gapMilliseconds = (Number(this.homey.settings.get('journeyGapMinutes')) || 30) * 60 * 1000;
+		const users = this.listTracks().map(({ track, ...user }) => ({
 			...user,
-			track: since === null
-				? []
-				: user.track
-					.filter((point) => (point.timestamp || 0) >= since)
-					// Sorted before trimming so the newest points survive even if history
-					// recorded before the ordering fix still holds late fixes out of order.
-					.sort((first, second) => (first.timestamp || 0) - (second.timestamp || 0))
-					.slice(-WIDGET_MAX_TRACK_POINTS),
+			journeys: buildJourneys(track, gapMilliseconds)
+				.slice(0, WIDGET_MAX_JOURNEYS)
+				.map((journey) => ({
+					start: journey.start,
+					end: journey.end,
+					recent: since !== null && journey.end >= since,
+					points: thinJourneyPoints(journey.points),
+				})),
 		}));
 
 		return {
 			users,
 			waypoints: this.listMapWaypoints(),
 			speedUnit: this.homey.settings.get('speedUnit') === 'mph' ? 'mph' : 'kmh',
-			journeyGapMinutes: Number(this.homey.settings.get('journeyGapMinutes')) || 30,
 			hiddenUserIds: this._getWidgetHiddenUsers()[instanceId] || [],
 			// null means the user has never used the widget's track toggle, so its
 			// "Show recent tracks" setting still decides.
