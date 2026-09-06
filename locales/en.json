@@ -19,6 +19,8 @@
 			"noJourneys": "No journeys recorded yet.",
 			"panUp": "Pan up",
 			"panDown": "Pan down",
+			"scrollUp": "Scroll up",
+			"scrollDown": "Scroll down",
 			"panLeft": "Pan left",
 			"panRight": "Pan right",
 			"zoomIn": "Zoom in",

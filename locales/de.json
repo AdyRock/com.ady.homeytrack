@@ -19,6 +19,8 @@
 			"noJourneys": "Noch keine Fahrten aufgezeichnet.",
 			"panUp": "Nach oben verschieben",
 			"panDown": "Nach unten verschieben",
+			"scrollUp": "Nach oben scrollen",
+			"scrollDown": "Nach unten scrollen",
 			"panLeft": "Nach links verschieben",
 			"panRight": "Nach rechts verschieben",
 			"zoomIn": "Vergrößern",

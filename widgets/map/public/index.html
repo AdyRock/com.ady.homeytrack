@@ -31,7 +31,9 @@
 					<span id="journeyPickerTitle"></span>
 					<button type="button" id="journeyPickerClose" class="journey-picker-close" aria-label="Close">&times;</button>
 				</div>
+				<button type="button" id="journeyScrollUp" class="journey-scroll scroll-up hidden" aria-label="Scroll up"></button>
 				<div id="journeyPickerList" class="journey-picker-list"></div>
+				<button type="button" id="journeyScrollDown" class="journey-scroll scroll-down hidden" aria-label="Scroll down"></button>
 			</div>
 		</div>
 	</div>
@@ -77,6 +79,8 @@
 			const journeyPicker = document.getElementById('journeyPicker');
 			const journeyPickerTitle = document.getElementById('journeyPickerTitle');
 			const journeyPickerList = document.getElementById('journeyPickerList');
+			const journeyScrollUp = document.getElementById('journeyScrollUp');
+			const journeyScrollDown = document.getElementById('journeyScrollDown');
 
 			let map = null;
 			let layers = [];
@@ -277,6 +281,7 @@
 					empty.className = 'journey-picker-empty';
 					empty.textContent = Homey.__('widget.map.noJourneys');
 					journeyPickerList.appendChild(empty);
+					updateJourneyScrollButtons();
 					return;
 				}
 
@@ -298,6 +303,25 @@
 					label.append(checkbox, text);
 					journeyPickerList.appendChild(label);
 				});
+
+				// Measured after the layout settles, so the arrows match the list's real height.
+				requestAnimationFrame(updateJourneyScrollButtons);
+			}
+
+			/** The dashboard swallows touch scrolling inside a widget, so the list needs its own arrows. */
+			function updateJourneyScrollButtons()
+			{
+				const overflow = journeyPickerList.scrollHeight - journeyPickerList.clientHeight;
+				const scrollable = overflow > 1;
+				journeyScrollUp.classList.toggle('hidden', !scrollable);
+				journeyScrollDown.classList.toggle('hidden', !scrollable);
+				journeyScrollUp.disabled = !scrollable || journeyPickerList.scrollTop <= 0;
+				journeyScrollDown.disabled = !scrollable || journeyPickerList.scrollTop >= overflow - 1;
+			}
+
+			function scrollJourneyList(direction)
+			{
+				journeyPickerList.scrollBy({ top: direction * Math.max(40, journeyPickerList.clientHeight * 0.6), behavior: 'smooth' });
 			}
 
 			function toggleJourney(userId, journey, visible)
@@ -620,6 +644,40 @@
 				hapticFeedback();
 				closeJourneyPicker();
 			});
+
+			[[journeyScrollUp, -1, 'scrollUp'], [journeyScrollDown, 1, 'scrollDown']].forEach(([button, direction, token]) =>
+			{
+				button.innerHTML = CHEVRON_SVG;
+				button.title = Homey.__(`widget.map.${token}`);
+				button.setAttribute('aria-label', button.title);
+				// The dashboard claims the touch otherwise, so every stage (not just start/end)
+				// has to be intercepted or a moving finger falls through to its own gesture.
+				button.addEventListener('touchstart', (event) =>
+				{
+					if (event.cancelable) event.preventDefault();
+					event.stopPropagation();
+				}, { passive: false });
+				button.addEventListener('touchmove', (event) =>
+				{
+					if (event.cancelable) event.preventDefault();
+					event.stopPropagation();
+				}, { passive: false });
+				button.addEventListener('touchend', (event) =>
+				{
+					event.stopPropagation();
+					lastTouchEndAt = Date.now();
+					scrollJourneyList(direction);
+					hapticFeedback();
+				});
+				button.addEventListener('touchcancel', (event) => event.stopPropagation());
+				button.addEventListener('click', () =>
+				{
+					if (Date.now() - lastTouchEndAt < 700) return;
+					scrollJourneyList(direction);
+				});
+			});
+
+			journeyPickerList.addEventListener('scroll', updateJourneyScrollButtons);
 
 			// The map sits beneath the map-controls layer, so clicks anywhere outside the
 			// picker (or a strip button) close it.

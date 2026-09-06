@@ -19,6 +19,8 @@
 			"noJourneys": "기록된 여정이 아직 없습니다.",
 			"panUp": "위로 이동",
 			"panDown": "아래로 이동",
+			"scrollUp": "위로 스크롤",
+			"scrollDown": "아래로 스크롤",
 			"panLeft": "왼쪽으로 이동",
 			"panRight": "오른쪽으로 이동",
 			"zoomIn": "확대",

@@ -19,6 +19,8 @@
 			"noJourneys": "Aucun trajet enregistré pour le moment.",
 			"panUp": "Déplacer vers le haut",
 			"panDown": "Déplacer vers le bas",
+			"scrollUp": "Faire défiler vers le haut",
+			"scrollDown": "Faire défiler vers le bas",
 			"panLeft": "Déplacer vers la gauche",
 			"panRight": "Déplacer vers la droite",
 			"zoomIn": "Zoom avant",

@@ -19,6 +19,8 @@
 			"noJourneys": "Ancora nessun viaggio registrato.",
 			"panUp": "Sposta in alto",
 			"panDown": "Sposta in basso",
+			"scrollUp": "Scorri in alto",
+			"scrollDown": "Scorri in basso",
 			"panLeft": "Sposta a sinistra",
 			"panRight": "Sposta a destra",
 			"zoomIn": "Ingrandisci",

@@ -228,9 +228,60 @@ body {
 
 .journey-picker-list {
 	overflow-y: auto;
+	/* min-height lets the list shrink inside the flex column so it scrolls instead of
+	   pushing the panel past its max-height. */
+	flex: 1 1 auto;
+	min-height: 0;
 	padding: 4px 0;
 	/* The list scrolls; the host's scroll stays locked outside. */
 	touch-action: pan-y;
+}
+
+/* The dashboard swallows touch scrolling inside a widget, so the list gets its own arrows. */
+button.journey-scroll {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100% !important;
+	height: 22px !important;
+	min-width: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	background: rgba(0, 0, 0, 0.06) !important;
+	border: none !important;
+	border-radius: 0 !important;
+	color: #1a1a1a !important;
+	/* Touches are handled in script; without this a moving finger falls through to the
+	   dashboard's own gesture instead of being claimed by the button. */
+	touch-action: none;
+	cursor: pointer;
+}
+
+button.journey-scroll:disabled {
+	opacity: 0.3;
+	cursor: default;
+}
+
+button.journey-scroll.hidden {
+	display: none;
+}
+
+button.journey-scroll svg {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	width: 18px !important;
+	height: 18px !important;
+	fill: currentColor !important;
+}
+
+button.journey-scroll.scroll-up svg {
+	transform: rotate(90deg);
+}
+
+button.journey-scroll.scroll-down svg {
+	transform: rotate(-90deg);
 }
 
 .journey-picker-item {

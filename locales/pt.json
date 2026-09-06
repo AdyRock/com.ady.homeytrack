@@ -19,6 +19,8 @@
 			"noJourneys": "Ainda não há viagens registadas.",
 			"panUp": "Deslocar para cima",
 			"panDown": "Deslocar para baixo",
+			"scrollUp": "Deslocar a lista para cima",
+			"scrollDown": "Deslocar a lista para baixo",
 			"panLeft": "Deslocar para a esquerda",
 			"panRight": "Deslocar para a direita",
 			"zoomIn": "Aproximar",

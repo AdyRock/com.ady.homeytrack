@@ -19,6 +19,8 @@
 			"noJourneys": "Aún no hay trayectos registrados.",
 			"panUp": "Desplazar arriba",
 			"panDown": "Desplazar abajo",
+			"scrollUp": "Desplazar la lista hacia arriba",
+			"scrollDown": "Desplazar la lista hacia abajo",
 			"panLeft": "Desplazar a la izquierda",
 			"panRight": "Desplazar a la derecha",
 			"zoomIn": "Acercar",

@@ -19,6 +19,8 @@
 			"noJourneys": "Ingen reiser registrert ennå.",
 			"panUp": "Panorer opp",
 			"panDown": "Panorer ned",
+			"scrollUp": "Rull opp",
+			"scrollDown": "Rull ned",
 			"panLeft": "Panorer til venstre",
 			"panRight": "Panorer til høyre",
 			"zoomIn": "Zoom inn",
