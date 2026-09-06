@@ -72,7 +72,12 @@
 			const instanceId = Homey.getWidgetInstanceId();
 			const showZones = settings.showZones !== false;
 			const tracksEnabled = settings.showTracks !== false;
-			const trackHours = tracksEnabled ? Math.max(1, Number(settings.trackHours) || 12) : 0;
+			const journeysEnabled = tracksEnabled && settings.showJourneys !== false;
+			const lastJourneyOnly = Boolean(settings.lastJourneyOnly);
+			// Fixed once at load: the "Devices" widget setting picks which paired users this
+			// instance shows. An empty selection (or a device since removed) falls back to
+			// everyone, so the widget can never end up with nobody to show.
+			const selectedDeviceIds = new Set(Homey.getDeviceIds() || []);
 
 			const avatarStrip = document.getElementById('avatarStrip');
 			const mapMessage = document.getElementById('mapMessage');
@@ -216,6 +221,13 @@
 				return (user && user.journeys) || [];
 			}
 
+			/** Which journeys are shown before the user has picked any themselves. */
+			function defaultJourneys(userId)
+			{
+				const journeys = userJourneys(userId);
+				return lastJourneyOnly ? journeys.slice(0, 1) : journeys;
+			}
+
 			function colorForUser(userId)
 			{
 				const index = users.findIndex((user) => user.id === userId);
@@ -244,11 +256,10 @@
 				return zone ? `${start} → ${zone}` : start;
 			}
 
-			/** Until the user picks journeys themselves, only those inside the widget's window show. */
+			/** Until the user picks journeys themselves, only the widget's default set show. */
 			function isJourneyVisible(userId, journey)
 			{
-				const selected = selectedJourneys[userId];
-				if (!selected) return Boolean(journey.recent);
+				const selected = selectedJourneys[userId] || defaultJourneys(userId);
 				return selected.some((entry) => entry.start === journey.start && entry.end === journey.end);
 			}
 
@@ -327,12 +338,10 @@
 			function toggleJourney(userId, journey, visible)
 			{
 				hapticFeedback();
-				// The first toggle turns the window's default set into an explicit selection, so
-				// the journeys that were already drawn stay drawn.
+				// The first toggle turns the default set into an explicit selection, so the
+				// journeys that were already drawn stay drawn.
 				const selected = selectedJourneys[userId]
-					|| userJourneys(userId)
-						.filter((entry) => entry.recent)
-						.map((entry) => ({ start: entry.start, end: entry.end }));
+					|| defaultJourneys(userId).map((entry) => ({ start: entry.start, end: entry.end }));
 				const without = selected.filter((entry) => entry.start !== journey.start || entry.end !== journey.end);
 				selectedJourneys[userId] = visible
 					? [...without, { start: journey.start, end: journey.end }]
@@ -437,33 +446,38 @@
 
 				if (!tracksEnabled) return;
 
-				users.forEach((user) =>
+				if (journeysEnabled)
 				{
-					const count = userJourneys(user.id).length;
-					const selectedCount = selectedJourneys[user.id]
-						? `${selectedJourneys[user.id].length}/${count}`
-						: '';
-					const trackButton = document.createElement('button');
-					trackButton.type = 'button';
-					trackButton.className = 'track-toggle-button';
-					trackButton.innerHTML = LIST_SVG;
-					trackButton.title = Homey.__('widget.map.pickJourneys').replace('[[user]]', user.name);
-					trackButton.setAttribute('aria-label', trackButton.title);
-					// Handled like the avatars so the dashboard's long-press doesn't win over the tap.
-					claimPressStripScroll(trackButton, () =>
+					// A hidden user has no track on the map, so there's nothing for its button to pick.
+					users.filter((user) => !hiddenUserIds.has(user.id)).forEach((user) =>
 					{
-						hapticFeedback();
-						if (pickerUserId === user.id) closeJourneyPicker();
-						else openJourneyPicker(user.id);
+						const count = userJourneys(user.id).length;
+						const selectedCount = selectedJourneys[user.id]
+							? `${selectedJourneys[user.id].length}/${count}`
+							: '';
+						const trackButton = document.createElement('button');
+						trackButton.type = 'button';
+						trackButton.className = 'track-toggle-button';
+						trackButton.innerHTML = LIST_SVG;
+						trackButton.title = Homey.__('widget.map.pickJourneys').replace('[[user]]', user.name);
+						trackButton.setAttribute('aria-label', trackButton.title);
+						// Handled like the avatars so the dashboard's long-press doesn't win over the tap.
+						claimPressStripScroll(trackButton, () =>
+						{
+							hapticFeedback();
+							if (pickerUserId === user.id) closeJourneyPicker();
+							else openJourneyPicker(user.id);
+						});
+						const journeysText = document.createElement('span');
+						journeysText.className = 'track-toggle-count';
+						journeysText.textContent = Homey.__('widget.map.journeyCount').replace('[[count]]', selectedCount || count);
+
+						const wrap = document.createElement('span');
+						wrap.className = 'track-toggle-wrap';
+						wrap.append(trackButton, journeysText);
+						avatarStrip.appendChild(wrap);
 					});
-					const journeysText = document.createElement('span');
-					journeysText.className = 'track-toggle-count';
-					journeysText.textContent = Homey.__('widget.map.journeyCount').replace('[[count]]', selectedCount || count);
-					const wrap = document.createElement('span');
-					wrap.className = 'track-toggle-wrap';
-					wrap.append(trackButton, journeysText);
-					avatarStrip.appendChild(wrap);
-				});
+				}
 
 				const trackButton = document.createElement('button');
 				trackButton.type = 'button';
@@ -822,10 +836,14 @@
 
 			function load()
 			{
-				return Homey.api('GET', `/?instanceId=${encodeURIComponent(instanceId)}&trackHours=${trackHours}`)
+				return Homey.api('GET', `/?instanceId=${encodeURIComponent(instanceId)}`)
 					.then((data) =>
 					{
-						users = Array.isArray(data && data.users) ? data.users : [];
+						const allUsers = Array.isArray(data && data.users) ? data.users : [];
+						// A selection that no longer matches any paired user (all deselected, or the
+						// device was removed) falls back to everyone rather than showing nobody.
+						const picked = allUsers.filter((user) => selectedDeviceIds.has(user.deviceId));
+						users = selectedDeviceIds.size && picked.length ? picked : allUsers;
 						waypoints = Array.isArray(data && data.waypoints) ? data.waypoints : [];
 						speedUnit = (data && data.speedUnit) === 'mph' ? 'mph' : 'kmh';
 						hiddenUserIds = new Set(Array.isArray(data && data.hiddenUserIds) ? data.hiddenUserIds : []);

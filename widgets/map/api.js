@@ -3,12 +3,12 @@
 module.exports = {
 
 	/**
-	 * Returns every paired user's avatar, last location and recent track, plus the zones and
+	 * Returns every paired user's avatar, last location and recent journeys, plus the zones and
 	 * the users this widget instance has hidden.
 	 */
 	async getData({ homey, query })
 	{
-		return homey.app.getWidgetMapData(query.instanceId, query.trackHours);
+		return homey.app.getWidgetMapData(query.instanceId);
 	},
 
 	/**

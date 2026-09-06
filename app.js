@@ -505,7 +505,7 @@ module.exports = class MyApp extends Homey.App
 	}
 
 	/**
-	 * @returns {{ id: string, name: string, avatarBase64: string|null, lastLocation: object|null, track: object[] }[]}
+	 * @returns {{ id: string, deviceId: string, name: string, avatarBase64: string|null, lastLocation: object|null, track: object[] }[]}
 	 * Each paired User device's last known location and recorded track history, for the
 	 * settings page's Map tab.
 	 */
@@ -513,6 +513,10 @@ module.exports = class MyApp extends Homey.App
 	{
 		return this.homey.drivers.getDriver('user').getDevices().map((device) => ({
 			id: device.getData().id,
+			// The widget's "Devices" setting selects devices by their real Homey device id
+			// (`__id`, undocumented but verified against `GET /device`), not the driver's own
+			// pairing id above, so both have to be sent to the widget.
+			deviceId: device.__id,
 			name: device.getName(),
 			avatarBase64: device.getStoreValue('avatarBase64') || null,
 			battery: device.getCapabilityValue('measure_battery'),
@@ -527,16 +531,13 @@ module.exports = class MyApp extends Homey.App
 	 * list of journeys rather than a raw track, because a widget re-fetches often and a full
 	 * 1000-point-per-user history is far more than a small dashboard map needs.
 	 *
-	 * The journeys are built from the whole stored track, not just the requested window, so the
-	 * widget's journey picker lists the same trips as the settings page and the device images.
-	 * The window only decides which of them are drawn until the user picks some themselves.
+	 * The journeys are built from the whole stored track, newest first, so the widget's journey
+	 * picker lists the same trips as the settings page and the device images; the widget itself
+	 * decides how many of them are shown by default (its "Show only the last journey" setting).
 	 * @param {string} instanceId The widget instance id, used to remember per-widget user visibility.
-	 * @param {number} trackHours How far back a journey may end to be shown by default; 0 means none.
 	 */
-	getWidgetMapData(instanceId, trackHours = 12)
+	getWidgetMapData(instanceId)
 	{
-		const hours = Number.isFinite(Number(trackHours)) ? Math.max(0, Number(trackHours)) : 12;
-		const since = hours > 0 ? Date.now() - (hours * 60 * 60 * 1000) : null;
 		const gapMilliseconds = (Number(this.homey.settings.get('journeyGapMinutes')) || 30) * 60 * 1000;
 		const users = this.listTracks().map(({ track, ...user }) => ({
 			...user,
@@ -545,7 +546,6 @@ module.exports = class MyApp extends Homey.App
 				.map((journey) => ({
 					start: journey.start,
 					end: journey.end,
-					recent: since !== null && journey.end >= since,
 					points: thinJourneyPoints(journey.points),
 				})),
 		}));

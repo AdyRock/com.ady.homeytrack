@@ -13,6 +13,10 @@
 		"ko": "지도"
 	},
 	"height": 350,
+	"devices": {
+		"type": "app",
+		"singular": false
+	},
 	"settings": [
 		{
 			"id": "showZones",
@@ -51,23 +55,39 @@
 			}
 		},
 		{
-			"id": "trackHours",
-			"type": "number",
-			"value": 12,
-			"min": 1,
-			"max": 168,
+			"id": "showJourneys",
+			"type": "checkbox",
+			"value": true,
 			"title": {
-				"en": "Track history (hours)",
-				"no": "Sporhistorikk (timer)",
-				"nl": "Routegeschiedenis (uren)",
-				"de": "Routenverlauf (Stunden)",
-				"fr": "Historique des trajets (heures)",
-				"es": "Historial de rutas (horas)",
-				"pt": "Histórico de percursos (horas)",
-				"it": "Cronologia percorsi (ore)",
-				"pl": "Historia tras (godziny)",
-				"ru": "История маршрутов (часы)",
-				"ko": "경로 기록 (시간)"
+				"en": "Show journeys",
+				"no": "Vis reiser",
+				"nl": "Ritten tonen",
+				"de": "Fahrten anzeigen",
+				"fr": "Afficher les trajets",
+				"es": "Mostrar trayectos",
+				"pt": "Mostrar viagens",
+				"it": "Mostra viaggi",
+				"pl": "Pokaż podróże",
+				"ru": "Показывать поездки",
+				"ko": "여정 표시"
+			}
+		},
+		{
+			"id": "lastJourneyOnly",
+			"type": "checkbox",
+			"value": false,
+			"title": {
+				"en": "Show only the last journey",
+				"no": "Vis kun siste reise",
+				"nl": "Alleen laatste rit tonen",
+				"de": "Nur die letzte Fahrt anzeigen",
+				"fr": "Afficher uniquement le dernier trajet",
+				"es": "Mostrar solo el último trayecto",
+				"pt": "Mostrar apenas a última viagem",
+				"it": "Mostra solo l'ultimo viaggio",
+				"pl": "Pokaż tylko ostatnią podróż",
+				"ru": "Показывать только последнюю поездку",
+				"ko": "마지막 여정만 표시"
 			}
 		}
 	],
