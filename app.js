@@ -16,6 +16,8 @@ const SETTINGS_KEYS = [
 	'connectionMethod',
 	'mqttBrokerUrl',
 	'mqttUseTls',
+	'mqttCaCert',
+	'mqttAllowSelfSigned',
 	'mqttPort',
 	'mqttUsername',
 	'mqttPassword',

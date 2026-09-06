@@ -135,6 +135,53 @@
 						</label>
 					</div>
 
+					<div class="mqtt-tls-section hidden" id="mqttTlsSection">
+						<button type="button" class="zone-section-toggle mqtt-tls-toggle" id="mqttTlsToggle"
+							aria-expanded="false" aria-controls="mqttTlsOptions">
+							<span data-i18n="settings.mqtt.tlsAdvanced">Optional certificate</span>
+							<span class="zone-section-toggle-arrow" aria-hidden="true"></span>
+						</button>
+						<p class="mqtt-tls-hint" data-i18n="settings.mqtt.tlsAdvancedHint">Only needed when the broker
+							uses a self-signed or private certificate.</p>
+
+						<div class="mqtt-tls-options hidden" id="mqttTlsOptions">
+							<div class="homey-form-group">
+								<label class="homey-form-label" for="mqttCaCert"
+									data-i18n="settings.mqtt.caCert">CA certificate (PEM)</label>
+								<textarea class="homey-form-input mqtt-ca-cert-input" id="mqttCaCert" rows="4"
+									data-i18n-placeholder="settings.mqtt.caCertPlaceholder"
+									placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+								<div class="mqtt-ca-cert-actions">
+									<input class="mqtt-ca-cert-file-input" type="file" id="mqttCaCertFile"
+										accept=".pem,.crt,.cer,.ca,application/x-x509-ca-cert,application/x-pem-file">
+									<label class="homey-button-secondary-shadow-small" for="mqttCaCertFile"
+										data-i18n="settings.mqtt.caCertChooseFile">Choose file</label>
+									<button type="button" id="mqttCaCertClear"
+										class="homey-button-secondary-shadow-small"
+										data-i18n="settings.mqtt.caCertClear">Clear</button>
+								</div>
+								<p class="mqtt-tls-hint" data-i18n="settings.mqtt.caCertHint">Paste or load the
+									certificate of the authority that signed the broker's certificate (for a
+									self-signed broker, its own certificate). Leave empty to use Homey's standard
+									trusted authorities.</p>
+							</div>
+
+							<div class="homey-form-group">
+								<label class="homey-form-checkbox">
+									<input class="homey-form-checkbox-input" type="checkbox" id="mqttAllowSelfSigned">
+									<span class="homey-form-checkbox-checkmark"></span>
+									<span class="homey-form-checkbox-text"
+										data-i18n="settings.mqtt.allowSelfSigned">Accept any certificate (skip
+										validation)</span>
+								</label>
+								<p class="mqtt-tls-hint mqtt-tls-warning"
+									data-i18n="settings.mqtt.allowSelfSignedHint">Only use this if a CA certificate
+									isn't available. The connection stays encrypted, but Homey can no longer verify
+									that it is talking to your broker.</p>
+							</div>
+						</div>
+					</div>
+
 					<div class="homey-form-group">
 						<label class="homey-form-label" for="mqttPort" data-i18n="settings.mqtt.port">Port</label>
 						<input class="homey-form-input" type="number" id="mqttPort" placeholder="1883">

@@ -230,6 +230,13 @@ function onHomeyReady(Homey)
 	const mqttFields = document.getElementById('mqttFields');
 	const mqttBrokerUrl = document.getElementById('mqttBrokerUrl');
 	const mqttUseTls = document.getElementById('mqttUseTls');
+	const mqttTlsSection = document.getElementById('mqttTlsSection');
+	const mqttTlsToggle = document.getElementById('mqttTlsToggle');
+	const mqttTlsOptions = document.getElementById('mqttTlsOptions');
+	const mqttCaCert = document.getElementById('mqttCaCert');
+	const mqttCaCertFile = document.getElementById('mqttCaCertFile');
+	const mqttCaCertClear = document.getElementById('mqttCaCertClear');
+	const mqttAllowSelfSigned = document.getElementById('mqttAllowSelfSigned');
 	const mqttPort = document.getElementById('mqttPort');
 	const mqttUsername = document.getElementById('mqttUsername');
 	const mqttPassword = document.getElementById('mqttPassword');
@@ -260,14 +267,54 @@ function onHomeyReady(Homey)
 	function updateVisibility()
 	{
 		mqttFields.classList.toggle('hidden', !methodMqtt.checked);
+		mqttTlsSection.classList.toggle('hidden', !mqttUseTls.checked);
+	}
+
+	function setTlsOptionsExpanded(expanded)
+	{
+		mqttTlsToggle.setAttribute('aria-expanded', String(expanded));
+		mqttTlsOptions.classList.toggle('hidden', !expanded);
 	}
 
 	methodMqtt.addEventListener('change', updateVisibility);
 	methodHttp.addEventListener('change', updateVisibility);
 
+	mqttTlsToggle.addEventListener('click', () =>
+	{
+		setTlsOptionsExpanded(mqttTlsToggle.getAttribute('aria-expanded') !== 'true');
+	});
+
 	mqttUseTls.addEventListener('change', () =>
 	{
 		mqttPort.value = mqttUseTls.checked ? 8883 : 1883;
+		updateVisibility();
+	});
+
+	mqttCaCertFile.addEventListener('change', () =>
+	{
+		const file = mqttCaCertFile.files[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onerror = () => Homey.alert(Homey.__('settings.mqtt.caCertReadFailed'));
+		reader.onload = () =>
+		{
+			const pem = String(reader.result).trim();
+			// A DER (binary) .crt has no PEM header and can't be pasted into a text setting.
+			if (!pem.includes('-----BEGIN CERTIFICATE-----'))
+			{
+				Homey.alert(Homey.__('settings.mqtt.caCertInvalid'));
+				return;
+			}
+			mqttCaCert.value = pem;
+		};
+		reader.readAsText(file);
+		mqttCaCertFile.value = '';
+	});
+
+	mqttCaCertClear.addEventListener('click', () =>
+	{
+		mqttCaCert.value = '';
 	});
 
 	Homey.get('connectionMethod', (err, value) =>
@@ -284,7 +331,19 @@ function onHomeyReady(Homey)
 	});
 
 	Homey.get('mqttBrokerUrl', (err, value) => { if (!err && value) mqttBrokerUrl.value = value; });
-	Homey.get('mqttUseTls', (err, value) => { if (!err) mqttUseTls.checked = Boolean(value); });
+	Homey.get('mqttUseTls', (err, value) => { if (!err) mqttUseTls.checked = Boolean(value); updateVisibility(); });
+	Homey.get('mqttCaCert', (err, value) =>
+	{
+		if (err || !value) return;
+		mqttCaCert.value = value;
+		setTlsOptionsExpanded(true);
+	});
+	Homey.get('mqttAllowSelfSigned', (err, value) =>
+	{
+		if (err || !value) return;
+		mqttAllowSelfSigned.checked = true;
+		setTlsOptionsExpanded(true);
+	});
 	Homey.get('mqttPort', (err, value) => { if (!err && value) mqttPort.value = value; });
 	Homey.get('mqttUsername', (err, value) => { if (!err && value) mqttUsername.value = value; });
 	Homey.get('mqttPassword', (err, value) => { if (!err && value) mqttPassword.value = value; });
@@ -2504,10 +2563,18 @@ function onHomeyReady(Homey)
 	saveButton.addEventListener('click', () =>
 	{
 		const connectionMethod = methodMqtt.checked ? 'mqtt' : 'http';
+		const caCert = mqttCaCert.value.trim();
+
+		if (connectionMethod === 'mqtt' && mqttUseTls.checked && caCert && !caCert.includes('-----BEGIN CERTIFICATE-----'))
+		{
+			return Homey.alert(Homey.__('settings.mqtt.caCertInvalid'));
+		}
 
 		Homey.set('connectionMethod', connectionMethod, (err) => { if (err) return Homey.alert(err); });
 		Homey.set('mqttBrokerUrl', mqttBrokerUrl.value, (err) => { if (err) return Homey.alert(err); });
 		Homey.set('mqttUseTls', mqttUseTls.checked, (err) => { if (err) return Homey.alert(err); });
+		Homey.set('mqttCaCert', caCert, (err) => { if (err) return Homey.alert(err); });
+		Homey.set('mqttAllowSelfSigned', mqttAllowSelfSigned.checked, (err) => { if (err) return Homey.alert(err); });
 		Homey.set('mqttPort', mqttPort.value ? Number(mqttPort.value) : null, (err) => { if (err) return Homey.alert(err); });
 		Homey.set('mqttUsername', mqttUsername.value, (err) => { if (err) return Homey.alert(err); });
 		Homey.set('mqttPassword', mqttPassword.value, (err) =>

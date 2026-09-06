@@ -85,5 +85,18 @@
 		"zh": "小部件不再将行程列表过滤为最近 12 小时。",
 		"ja": "ウィジェットは、旅のリストを過去12時間に絞り込まなくなりました。",
 		"ko": "위젯이 여정 목록을 지난 12시간으로 필터링하지 않습니다."
+	},
+	"1.0.9": {
+		"en": "Added support for optional TLS certificates and an option to allow self-signed certificates.",
+		"nl": "Ondersteuning voor optionele TLS-certificaten toegevoegd en een optie om zelfondertekende certificaten toe te staan.",
+		"fr": "Ajout du support des certificats TLS optionnels et d'une option pour autoriser les certificats auto-signés.",
+		"de": "Unterstützung für optionale TLS-Zertifikate und eine Option zum Zulassen selbstsignierter Zertifikate hinzugefügt.",
+		"es": "Se agregó soporte para certificados TLS opcionales y una opción para permitir certificados autofirmados.",
+		"it": "Aggiunto il supporto per i certificati TLS opzionali e un'opzione per consentire certificati autofirmati.",
+		"pt": "Adicionado suporte para certificados TLS opcionais e uma opção para permitir certificados autoassinados.",
+		"ru": "Добавлена поддержка необязательных TLS-сертификатов и опция разрешения самоподписанных сертификатов.",
+		"zh": "添加了对可选 TLS 证书的支持，以及允许自签名证书的选项。",
+		"ja": "オプションの TLS 証明書のサポートと自己署名証明書を許可するオプションを追加しました。",
+		"ko": "선택적 TLS 인증서에 대한 지원과 자체 서명된 인증서를 허용하는 옵션이 추가되었습니다."
 	}
 }

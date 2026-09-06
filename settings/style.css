@@ -2,6 +2,62 @@
 	display: none;
 }
 
+#mqttTlsOptions.hidden {
+	display: none;
+}
+
+#mqttTlsSection.hidden {
+	display: none;
+}
+
+.mqtt-tls-section {
+	margin: 0 0 16px;
+}
+
+button.mqtt-tls-toggle {
+	font-weight: 600;
+}
+
+.mqtt-tls-options {
+	margin: 0 0 12px 12px;
+	padding-left: 12px;
+	border-left: 2px solid rgba(128, 128, 128, 0.35);
+}
+
+.mqtt-ca-cert-input {
+	width: 100%;
+	box-sizing: border-box;
+	resize: vertical;
+	font-family: monospace;
+	font-size: 12px;
+}
+
+.mqtt-ca-cert-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.mqtt-ca-cert-file-input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+}
+
+.mqtt-tls-hint {
+	margin: 6px 0 0;
+	font-size: 12px;
+	opacity: 0.75;
+}
+
+.mqtt-tls-warning {
+	color: #c0392b;
+	opacity: 1;
+}
+
 .connection-status {
 	display: inline-flex;
 	align-items: center;
