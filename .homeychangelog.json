@@ -98,5 +98,18 @@
 		"zh": "添加了对可选 TLS 证书的支持，以及允许自签名证书的选项。",
 		"ja": "オプションの TLS 証明書のサポートと自己署名証明書を許可するオプションを追加しました。",
 		"ko": "선택적 TLS 인증서에 대한 지원과 자체 서명된 인증서를 허용하는 옵션이 추가되었습니다."
+	},
+	"1.0.10": {
+		"en": "Updated app image. Fixed an issue with the Widget showing track details.",
+		"nl": "Bijgewerkte app-afbeelding. Een probleem met het widget dat trackdetails weergeeft, is opgelost.",
+		"fr": "Image de l'application mise à jour. Un problème avec le widget affichant les détails du trajet a été corrigé.",
+		"de": "Aktualisiertes App-Bild. Ein Problem mit dem Widget, das Trackdetails anzeigt, wurde behoben.",
+		"es": "Imagen de la aplicación actualizada. Se solucionó un problema con el widget que mostraba los detalles del viaje.",
+		"it": "Immagine dell'app aggiornata. Risolto un problema con il widget che mostrava i dettagli del percorso.",
+		"pt": "Imagem do aplicativo atualizada. Corrigido um problema com o widget mostrando os detalhes da viagem.",
+		"ru": "Обновлено изображение приложения. Исправлена проблема с виджетом, показывающим детали поездки.",
+		"zh": "更新了应用程序图片。修复了小部件显示行程详情的问题。",
+		"ja": "アプリアイコンを更新しました。ウィジェットが軌跡の詳細を表示する問題を修正しました。",
+		"ko": "앱 이미지가 업데이트되었습니다. 위젯이 경로 세부 정보를 표시하는 문제를 수정했습니다."
 	}
 }
