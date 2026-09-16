@@ -111,5 +111,18 @@
 		"zh": "更新了应用程序图片。修复了小部件显示行程详情的问题。",
 		"ja": "アプリアイコンを更新しました。ウィジェットが軌跡の詳細を表示する問題を修正しました。",
 		"ko": "앱 이미지가 업데이트되었습니다. 위젯이 경로 세부 정보를 표시하는 문제를 수정했습니다."
+	},
+	"1.0.11": {
+		"en": "Changed method for fetching map tiles to comply with the API.",
+		"nl": "Gewijzigde methode voor het ophalen van kaarttegels om te voldoen aan de API.",
+		"fr": "Méthode modifiée pour récupérer les tuiles de la carte afin de se conformer à l'API.",
+		"de": "Geänderte Methode zum Abrufen von Kartenkacheln, um den API-Anforderungen zu entsprechen.",
+		"es": "Método cambiado para obtener mosaicos de mapas para cumplir con la API.",
+		"it": "Metodo modificato per il recupero delle tessere della mappa per conformarsi all'API.",
+		"pt": "Método alterado para buscar blocos de mapa para cumprir a API.",
+		"ru": "Изменен метод получения картографических плиток для соответствия API.",
+		"zh": "更改了获取地图瓦片的方法以符合 API。",
+		"ja": "API に準拠するように地図タイルを取得する方法を変更しました。",
+		"ko": "API를 준수하도록 지도 타일을 가져오는 방법이 변경되었습니다."
 	}
 }

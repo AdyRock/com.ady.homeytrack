@@ -1,6 +1,6 @@
 {
   "name": "com.ady.homeytrack",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "main": "app.js",
   "scripts": {},
   "dependencies": {
