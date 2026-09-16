@@ -118,10 +118,14 @@ function onHomeyReady(Homey)
 		}
 		if (button.dataset.tab === 'map')
 		{
-			ensureTrackMap();
-			setTimeout(() => trackMap.invalidateSize(), 100);
-			loadTracks();
-			loadTrackWaypoints();
+			getDefaultZoneCenter().then((center) =>
+			{
+				if (button.dataset.tab !== 'map' || tabPanels.map.classList.contains('hidden')) return;
+				ensureTrackMap(center);
+				setTimeout(() => trackMap.invalidateSize(), 100);
+				loadTracks();
+				loadTrackWaypoints();
+			});
 		}
 	}
 
@@ -1512,11 +1516,11 @@ function onHomeyReady(Homey)
 		if (refresh) refreshTrackDateFilter();
 	}
 
-	function ensureTrackMap()
+	function ensureTrackMap(initialCenter = FALLBACK_ZONE_CENTER)
 	{
 		if (trackMap) return;
 
-		trackMap = L.map('trackMap').setView([51.5074, -0.1278], 13);
+		trackMap = L.map('trackMap').setView(initialCenter, 13);
 		trackMap.createPane('zones');
 		trackMap.getPane('zones').style.zIndex = 400;
 

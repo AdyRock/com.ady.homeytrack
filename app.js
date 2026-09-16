@@ -291,7 +291,15 @@ module.exports = class MyApp extends Homey.App
 			if (!newest || (location.timestamp || 0) > (newest.timestamp || 0)) newest = location;
 		});
 
-		return newest ? { lat: newest.lat, lon: newest.lon } : null;
+		if (newest)
+		{
+			const location = { lat: newest.lat, lon: newest.lon };
+			this.homey.settings.set('lastMapLocation', location);
+			return location;
+		}
+
+		const stored = this.homey.settings.get('lastMapLocation');
+		return stored && Number.isFinite(stored.lat) && Number.isFinite(stored.lon) ? stored : null;
 	}
 
 	/**
@@ -553,6 +561,7 @@ module.exports = class MyApp extends Homey.App
 
 		return {
 			users,
+			defaultMapLocation: this.getDefaultMapLocation(),
 			waypoints: this.listMapWaypoints(),
 			speedUnit: this.homey.settings.get('speedUnit') === 'mph' ? 'mph' : 'kmh',
 			hiddenUserIds: this._getWidgetHiddenUsers()[instanceId] || [],
@@ -1345,6 +1354,10 @@ module.exports = class MyApp extends Homey.App
 		if (device)
 		{
 			await device.updateFromLocation(location);
+			if (Number.isFinite(location.lat) && Number.isFinite(location.lon))
+			{
+				this.homey.settings.set('lastMapLocation', { lat: location.lat, lon: location.lon });
+			}
 			const firstReportThisSession = location.topic && !this.mqttActiveTopics.has(location.topic);
 			if (location.topic)
 			{

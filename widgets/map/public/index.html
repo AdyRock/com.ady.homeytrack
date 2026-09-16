@@ -91,6 +91,7 @@
 			let layers = [];
 			let users = [];
 			let waypoints = [];
+			let defaultMapLocation = null;
 			let speedUnit = 'kmh';
 			let hiddenUserIds = new Set();
 			let tracksVisible = tracksEnabled;
@@ -145,10 +146,22 @@
 				});
 			}
 
+			function getInitialMapCenter()
+			{
+				const user = users.find((item) => item.lastLocation
+					&& Number.isFinite(item.lastLocation.lat) && Number.isFinite(item.lastLocation.lon));
+				if (user) return [user.lastLocation.lat, user.lastLocation.lon];
+				if (defaultMapLocation && Number.isFinite(defaultMapLocation.lat) && Number.isFinite(defaultMapLocation.lon))
+				{
+					return [defaultMapLocation.lat, defaultMapLocation.lon];
+				}
+				return [51.5074, -0.1278];
+			}
+
 			function ensureMap()
 			{
 				if (map) return;
-				map = L.map('map', { zoomControl: false }).setView([51.5074, -0.1278], 13);
+				map = L.map('map', { zoomControl: false }).setView(getInitialMapCenter(), 13);
 				// Zone pins sit above the zone circles but below the user avatars.
 				map.createPane('zonePins');
 				map.getPane('zonePins').style.zIndex = 590;
@@ -872,6 +885,7 @@
 						const picked = allUsers.filter((user) => selectedDeviceIds.has(user.deviceId));
 						users = selectedDeviceIds.size && picked.length ? picked : allUsers;
 						waypoints = Array.isArray(data && data.waypoints) ? data.waypoints : [];
+						defaultMapLocation = data && data.defaultMapLocation;
 						speedUnit = (data && data.speedUnit) === 'mph' ? 'mph' : 'kmh';
 						hiddenUserIds = new Set(Array.isArray(data && data.hiddenUserIds) ? data.hiddenUserIds : []);
 						if (data && typeof data.tracksVisible === 'boolean') tracksVisible = tracksEnabled && data.tracksVisible;
