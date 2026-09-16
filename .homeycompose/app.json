@@ -160,6 +160,11 @@
 			"path": "/map-tiles/:zoom/:tileX/:tileY",
 			"public": false
 		},
+		"getTileStats": {
+			"method": "GET",
+			"path": "/map-tiles/stats",
+			"public": false
+		},
 		"deleteJourney": {
 			"method": "POST",
 			"path": "/tracks/delete-journey",

@@ -1,6 +1,6 @@
 'use strict';
 
-const { fetchTileBuffer } = require('./lib/mapImage');
+const { fetchTileBuffer, getTileStats } = require('./lib/mapImage');
 
 module.exports = {
 
@@ -58,6 +58,14 @@ module.exports = {
 		const buffer = await fetchTileBuffer(zoom, tileX, tileY);
 		if (!buffer) throw new Error('Map tile is outside the supported range');
 		return { data: buffer.toString('base64') };
+	},
+
+	/**
+	 * Returns live aggregate tile-cache usage for diagnostics.
+	 */
+	async getTileStats()
+	{
+		return getTileStats();
 	},
 
 	async deleteJourney({ homey, body })

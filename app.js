@@ -10,7 +10,7 @@ const Homey = require('homey');
 const nodemailer = require('nodemailer');
 const { randomUUID } = require('crypto');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');
-const { buildJourneys } = require('./lib/mapImage');
+const { buildJourneys, initializeTileCache } = require('./lib/mapImage');
 
 const SETTINGS_KEYS = [
 	'connectionMethod',
@@ -70,6 +70,7 @@ module.exports = class MyApp extends Homey.App
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
 		this.logBuffer = [];
 		this.memoryWarningPromise = null;
+		initializeTileCache(this.homey.settings);
 		this._migrateWaypointModel();
 
 		// Default "logsEnabled" to false on first run, so its state is explicit and predictable
