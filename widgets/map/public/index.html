@@ -121,7 +121,7 @@
 			function ensureMap()
 			{
 				if (map) return;
-				map = L.map('map', { attributionControl: false, zoomControl: false }).setView([51.5074, -0.1278], 13);
+				map = L.map('map', { zoomControl: false }).setView([51.5074, -0.1278], 13);
 				// Zone pins sit above the zone circles but below the user avatars.
 				map.createPane('zonePins');
 				map.getPane('zonePins').style.zIndex = 590;
@@ -129,7 +129,10 @@
 				// journey ends at a user's current position.
 				map.createPane('journeyFlags');
 				map.getPane('journeyFlags').style.zIndex = 650;
-				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+				L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+					attribution: 'Tiles &copy; <a href="https://www.esri.com" target="_blank">Esri</a>',
+					maxZoom: 19,
+				}).addTo(map);
 				L.control.scale({
 					position: 'bottomleft',
 					metric: speedUnit !== 'mph',

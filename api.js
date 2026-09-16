@@ -1,5 +1,7 @@
 'use strict';
 
+const { fetchTileBuffer } = require('./lib/mapImage');
+
 module.exports = {
 
 	/**
@@ -38,6 +40,24 @@ module.exports = {
 	async getTracks({ homey })
 	{
 		return homey.app.listTracks();
+	},
+
+	/**
+	 * Returns a visible settings-map tile through the app's identified, cached OSM client.
+	 */
+	async getMapTile({ params })
+	{
+		const zoom = Number(params.zoom);
+		const tileX = Number(params.tileX);
+		const tileY = Number(params.tileY);
+		if (!Number.isInteger(zoom) || !Number.isInteger(tileX) || !Number.isInteger(tileY) || zoom < 0 || zoom > 19)
+		{
+			throw new Error('Invalid map tile coordinates');
+		}
+
+		const buffer = await fetchTileBuffer(zoom, tileX, tileY);
+		if (!buffer) throw new Error('Map tile is outside the supported range');
+		return { data: buffer.toString('base64') };
 	},
 
 	async deleteJourney({ homey, body })

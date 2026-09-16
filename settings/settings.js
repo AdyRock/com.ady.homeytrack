@@ -880,6 +880,36 @@ function onHomeyReady(Homey)
 			});
 	}
 
+	function createOsmTileLayer()
+	{
+		const SettingsTileLayer = L.GridLayer.extend({
+			createTile(coords, done)
+			{
+				const tile = document.createElement('img');
+				tile.alt = '';
+				tile.setAttribute('role', 'presentation');
+				Homey.api('GET', `/map-tiles/${coords.z}/${coords.x}/${coords.y}`, null, (err, result) =>
+				{
+					if (err || !result || !result.data)
+					{
+						done(err || new Error('Map tile could not be loaded'), tile);
+						return;
+					}
+
+					tile.onload = () => done(null, tile);
+					tile.onerror = () => done(new Error('Map tile could not be displayed'), tile);
+					tile.src = `data:image/png;base64,${result.data}`;
+				});
+				return tile;
+			},
+		});
+
+		return new SettingsTileLayer({
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+			maxZoom: 19,
+		});
+	}
+
 	function placeZoneMarker(lat, lon)
 	{
 		const radius = Number(zoneRadiusInput.value) || 100;
@@ -900,10 +930,7 @@ function onHomeyReady(Homey)
 		if (zoneMap) return;
 
 		zoneMap = L.map('zoneMap').setView(defaultZoneCenter || FALLBACK_ZONE_CENTER, 13);
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '&copy; OpenStreetMap contributors',
-			maxZoom: 19,
-		}).addTo(zoneMap);
+		createOsmTileLayer().addTo(zoneMap);
 
 		zoneMap.on('click', (e) =>
 		{
@@ -1510,10 +1537,7 @@ function onHomeyReady(Homey)
 		// adjustViewport is false so this never recenters the map the user just zoomed.
 		trackMap.on('zoomend', () => renderTracks(trackUsers, false, false));
 		trackMap.on('dragend zoomend', pinTrackViewport);
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '&copy; OpenStreetMap contributors',
-			maxZoom: 19,
-		}).addTo(trackMap);
+		createOsmTileLayer().addTo(trackMap);
 		updateTrackScale();
 
 		trackMap.on('click', () =>

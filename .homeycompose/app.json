@@ -155,6 +155,11 @@
 			"path": "/tracks",
 			"public": false
 		},
+		"getMapTile": {
+			"method": "GET",
+			"path": "/map-tiles/:zoom/:tileX/:tileY",
+			"public": false
+		},
 		"deleteJourney": {
 			"method": "POST",
 			"path": "/tracks/delete-journey",
