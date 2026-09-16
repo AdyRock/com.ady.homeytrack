@@ -96,6 +96,10 @@
 			"method": "GET",
 			"path": "/"
 		},
+		"getMapTile": {
+			"method": "GET",
+			"path": "/tiles/:zoom/:tileX/:tileY"
+		},
 		"setVisibility": {
 			"method": "POST",
 			"path": "/visibility"
