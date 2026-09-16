@@ -1,3 +1,5 @@
 O Homey Tracks transforma a Homey em um localizador familiar inteligente usando o OwnTracks no seu celular para enviar atualizações de localização em tempo real.
+
+**Blocos do mapa:** Ao visualizar um mapa, o Homey Tracks solicita os blocos de mapa necessários ao serviço de blocos comunitário da OpenStreetMap Foundation. Essas solicitações revelam a área aproximada do mapa visualizada e informações normais de rede, como o endereço IP da conexão Homey e o identificador da aplicação Homey Tracks. O Homey Tracks não envia nomes, trajetos armazenados, nomes de zonas, avatares ou relatórios brutos de localização do OwnTracks para o OpenStreetMap. Consulte a [Política de Privacidade da OSMF](https://osmfoundation.org/wiki/Privacy_Policy).
 Ele ajuda você a saber onde estão seus entes queridos, automatizar rotinas domésticas com base em chegadas e saídas e acompanhar melhor os deslocamentos diários.
 Perfeito para chegadas mais inteligentes, automação baseada em presença e uma casa mais conectada.

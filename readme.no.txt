@@ -1,3 +1,5 @@
 Homey Tracks gjør Homey til en smart familielokalisering ved å bruke OwnTracks på mobiltelefonen til å rapportere posisjonsoppdateringer i sanntid.
+
+**Kartfliser:** Når du viser et kart, ber Homey Tracks om de nødvendige kartflisene fra OpenStreetMap Foundations fellesskapsdrevne flistjeneste. Disse forespørslene oppgir det omtrentlige kartområdet som vises, og vanlig nettverksinformasjon, for eksempel IP-adressen til Homey-tilkoblingen og Homey Tracks-programidentifikatoren. Homey Tracks sender ikke navn, lagrede reiser, sonenavn, avatarer eller rå OwnTracks-posisjonsrapporter til OpenStreetMap. Se [OSMFs personvernregler](https://osmfoundation.org/wiki/Privacy_Policy).
 Den hjelper deg med å se hvor dine nærmeste er, automatisere hjemmerutiner basert på ankomst og avreise og få bedre oversikt over daglige bevegelser.
 Perfekt for smartere ankomster, automatisering basert på tilstedeværelse og en mer sammenkoblet husholdning.
