@@ -1091,8 +1091,10 @@ function onHomeyReady(Homey)
 	let activeJourneyUserId = null;
 	let selectedJourneys = [];
 	let journeyGapMinutes = 30;
+	let journeySort = { column: 'start', direction: 'desc' };
 	let accuracyCircle = null;
 	const collapsedHistoryUserIds = new Set();
+	const collapsedHistoryJourneyKeys = new Set();
 	const hiddenTrackUserIds = new Set();
 	let trackPointStyle = 'teardrop';
 
@@ -1130,6 +1132,48 @@ function onHomeyReady(Homey)
 		return selectedJourneys.some((selection) => selection.userId === userId && selection.start === start && selection.end === end);
 	}
 
+	function getJourneySortValue(journey, column)
+	{
+		if (column === 'destination')
+		{
+			const destination = journey.points[journey.points.length - 1];
+			return zoneAt(destination.lat, destination.lon);
+		}
+		if (column === 'duration') return journey.travelEnd - journey.travelStart;
+		if (column === 'speed')
+		{
+			const durationHours = (journey.travelEnd - journey.travelStart) / 3600000;
+			return durationHours > 0 ? calculateJourneyDistanceMeters(journey.travelPoints) / 1000 / durationHours : 0;
+		}
+		return journey.travelStart;
+	}
+
+	function sortJourneys(journeys)
+	{
+		const multiplier = journeySort.direction === 'asc' ? 1 : -1;
+		return journeys.slice().sort((first, second) =>
+		{
+			const firstValue = getJourneySortValue(first, journeySort.column);
+			const secondValue = getJourneySortValue(second, journeySort.column);
+			const comparison = typeof firstValue === 'string'
+				? firstValue.localeCompare(secondValue)
+				: firstValue - secondValue;
+			return comparison * multiplier || second.travelStart - first.travelStart;
+		});
+	}
+
+	function updateJourneySortHeaders()
+	{
+		document.querySelectorAll('[data-journey-sort]').forEach((button) =>
+		{
+			const active = button.dataset.journeySort === journeySort.column;
+			button.classList.toggle('active', active);
+			button.parentElement.setAttribute('aria-sort', active
+				? (journeySort.direction === 'asc' ? 'ascending' : 'descending')
+				: 'none');
+		});
+	}
+
 	/** Selections are always for one user, so picking another user's journey starts a new set. */
 	function toggleJourneySelection(selection)
 	{
@@ -1154,7 +1198,7 @@ function onHomeyReady(Homey)
 		return selectedTrackUserIds === null || selectedTrackUserIds.has(user.id);
 	}
 
-	function getDisplayedTrack(user)
+	function getSelectedTrack(user)
 	{
 		if (hiddenTrackUserIds.has(user.id)) return [];
 		const track = filterTrackByDate(user.track);
@@ -1162,6 +1206,19 @@ function onHomeyReady(Homey)
 		const ranges = selectedJourneys.filter((selection) => selection.userId === user.id);
 		if (!ranges.length) return [];
 		return track.filter((point) => ranges.some((range) => point.timestamp >= range.start && point.timestamp <= range.end));
+	}
+
+	function getJourneyKey(userId, journey)
+	{
+		return `${userId}/${journey.start}/${journey.end}`;
+	}
+
+	function getDisplayedTrack(user)
+	{
+		const track = getSelectedTrack(user);
+		const collapsedRanges = buildJourneys(track)
+			.filter((journey) => collapsedHistoryJourneyKeys.has(getJourneyKey(user.id, journey)));
+		return track.filter((point) => !collapsedRanges.some((journey) => point.timestamp >= journey.start && point.timestamp <= journey.end));
 	}
 
 	function buildJourneys(track)
@@ -1278,8 +1335,12 @@ function onHomeyReady(Homey)
 
 	function buildTrackPointsTsv(user)
 	{
-		const rows = [['timestamp', 'local_time', 'latitude', 'longitude', 'accuracy_m', 'reported_speed_kmh', 'distance_m', 'implied_speed_kmh']];
 		const points = getDisplayedTrack(user).slice().sort((first, second) => first.timestamp - second.timestamp);
+		const receivedFields = [...new Set(points.flatMap((point) => Object.keys(point.raw || {})))].sort();
+		const rows = [[
+			'timestamp', 'local_time', 'latitude', 'longitude', 'accuracy_m', 'reported_speed_kmh', 'distance_m', 'implied_speed_kmh',
+			...receivedFields.map((field) => `received_${field}`),
+		]];
 		points.forEach((point, index) =>
 		{
 			const previous = points[index - 1];
@@ -1295,6 +1356,13 @@ function onHomeyReady(Homey)
 				Number.isFinite(point.velocity) ? point.velocity : '',
 				distance === null ? '' : distance.toFixed(1),
 				impliedSpeed === null ? '' : impliedSpeed.toFixed(1),
+				...receivedFields.map((field) =>
+				{
+					const value = point.raw && point.raw[field];
+					if (value === undefined || value === null) return '';
+					const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+					return text.replace(/[\t\r\n]+/g, ' ');
+				}),
 			]);
 		});
 		return rows.map((row) => row.join('\t')).join('\n');
@@ -1384,6 +1452,7 @@ function onHomeyReady(Homey)
 			})
 			.filter(Boolean);
 		renderTrackMapTitle();
+		updateJourneySortHeaders();
 
 		if (!journeys.length)
 		{
@@ -1396,7 +1465,7 @@ function onHomeyReady(Homey)
 			return;
 		}
 
-		journeys.forEach((journey) =>
+		sortJourneys(journeys).forEach((journey) =>
 		{
 			const row = document.createElement('tr');
 			row.classList.toggle('active', isJourneySelected(user.id, journey.start, journey.end));
@@ -2059,7 +2128,7 @@ function onHomeyReady(Homey)
 			.filter(isTrackUserShown)
 			.map((user) => ({
 				user,
-				points: getDisplayedTrack(user)
+				points: getSelectedTrack(user)
 					.filter((point) => typeof point.lat === 'number' && typeof point.lon === 'number')
 					.sort((first, second) => (second.timestamp || 0) - (first.timestamp || 0)),
 			}))
@@ -2111,6 +2180,7 @@ function onHomeyReady(Homey)
 				Homey.__('settings.map.historySpeed'),
 				Homey.__('settings.map.historyAccuracy'),
 				Homey.__('settings.map.distance'),
+				Homey.__('settings.map.impliedSpeed'),
 			].forEach((label) =>
 			{
 				const cell = document.createElement('th');
@@ -2118,65 +2188,112 @@ function onHomeyReady(Homey)
 				header.appendChild(cell);
 			});
 			table.appendChild(header);
-			points.forEach((point) =>
+			const journeys = buildJourneys(points).slice().reverse();
+			journeys.forEach((journey) =>
 			{
-				const speed = Number.isFinite(point.velocity)
-					? `${(mapSpeedUnit === 'mph' ? point.velocity * 0.621371 : point.velocity).toFixed(1)} ${mapSpeedUnit === 'mph' ? 'mph' : 'km/h'}`
-					: '-';
-				const distance = calculateDistanceMeters(
-					points[points.indexOf(point) + 1]?.lat,
-					points[points.indexOf(point) + 1]?.lon,
-					point.lat,
-					point.lon
-				);
-				const values = [
-					`${point.lat}, ${point.lon}`,
-					new Date(point.timestamp || Date.now()).toLocaleString(),
-					speed,
-					Number.isFinite(point.accuracy) ? `${point.accuracy} m` : '-',
-					Number.isFinite(distance) ? `${distance.toFixed(1)} m` : '-',
-				];
-				const row = document.createElement('tr');
-				row.className = 'track-history-point';
-				row.tabIndex = 0;
-				const showPointOnMap = () =>
+				const journeyKey = getJourneyKey(user.id, journey);
+				const isJourneyCollapsed = collapsedHistoryJourneyKeys.has(journeyKey);
+				const summaryRow = document.createElement('tr');
+				summaryRow.className = 'track-history-journey';
+				const summary = document.createElement('td');
+				summary.colSpan = 6;
+				const destination = journey.points[journey.points.length - 1];
+				const collapseButton = document.createElement('button');
+				collapseButton.type = 'button';
+				collapseButton.className = 'track-history-journey-toggle';
+				collapseButton.setAttribute('aria-expanded', String(!isJourneyCollapsed));
+				const collapseIcon = document.createElement('span');
+				collapseIcon.className = 'track-history-collapse-icon';
+				collapseIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>';
+				collapseIcon.classList.toggle('expanded', !isJourneyCollapsed);
+				const summaryText = document.createElement('span');
+				summaryText.textContent = `${new Date(journey.travelStart).toLocaleDateString()} | ${zoneAt(destination.lat, destination.lon) || `${destination.lat}, ${destination.lon}`} | ${formatJourneyAverageSpeed(journey)}`;
+				collapseButton.append(collapseIcon, summaryText);
+				collapseButton.addEventListener('click', () =>
 				{
-					if (accuracyCircle)
-					{
-						accuracyCircle.remove();
-					}
-					accuracyCircle = null;
-					if (typeof point.lat !== 'number' || typeof point.lon !== 'number') return;
-					accuracyCircle = L.circle([point.lat, point.lon], {
-						color: '#5BF527',
-						fillColor: '#999',
-						fillOpacity: 0.15,
-						radius: Number(point.rad) || 100,
-					}).addTo(trackMap);
+					if (collapsedHistoryJourneyKeys.has(journeyKey)) collapsedHistoryJourneyKeys.delete(journeyKey);
+					else collapsedHistoryJourneyKeys.add(journeyKey);
+					renderTracks(trackUsers);
+					renderTrackHistory(trackUsers);
+				});
+				summary.appendChild(collapseButton);
+				summaryRow.appendChild(summary);
+				table.appendChild(summaryRow);
 
-					const marker = trackPointMarkers.get(point);
-					if (!marker) return;
-					// Inspecting a specific point holds the view there until a user is centred on.
-					trackViewportPinned = true;
-					lastProgrammaticTrackViewAt = Date.now();
-					trackMap.panTo(marker.getLatLng());
-					marker.openPopup();
-				};
-				row.addEventListener('click', showPointOnMap);
-				row.addEventListener('keydown', (event) =>
+				if (isJourneyCollapsed) return;
+				journey.points.slice().reverse().forEach((point, index, journeyPoints) =>
 				{
-					if (event.key !== 'Enter' && event.key !== ' ') return;
-					event.preventDefault();
-					showPointOnMap();
+					const speed = Number.isFinite(point.velocity)
+						? `${(mapSpeedUnit === 'mph' ? point.velocity * 0.621371 : point.velocity).toFixed(1)} ${mapSpeedUnit === 'mph' ? 'mph' : 'km/h'}`
+						: '-';
+					const previous = journeyPoints[index + 1];
+					const distance = previous ? calculateDistanceMeters(previous.lat, previous.lon, point.lat, point.lon) : null;
+					const durationHours = previous ? (point.timestamp - previous.timestamp) / 3600000 : 0;
+					const impliedSpeedKmh = Number.isFinite(distance) && durationHours > 0 ? distance / 1000 / durationHours : null;
+					const impliedSpeed = impliedSpeedKmh === null
+						? '-'
+						: `${(mapSpeedUnit === 'mph' ? impliedSpeedKmh * 0.621371 : impliedSpeedKmh).toFixed(1)} ${mapSpeedUnit === 'mph' ? 'mph' : 'km/h'}`;
+					const values = [
+						`${point.lat}, ${point.lon}`,
+						new Date(point.timestamp || Date.now()).toLocaleTimeString(),
+						speed,
+						Number.isFinite(point.accuracy) ? `${point.accuracy} m` : '-',
+						Number.isFinite(distance) ? `${distance.toFixed(1)} m` : '-',
+						impliedSpeed,
+					];
+					const row = document.createElement('tr');
+					row.className = 'track-history-point';
+					row.tabIndex = 0;
+					const showPointOnMap = () =>
+					{
+						if (accuracyCircle)
+						{
+							accuracyCircle.remove();
+						}
+						accuracyCircle = null;
+						if (typeof point.lat !== 'number' || typeof point.lon !== 'number') return;
+						accuracyCircle = L.circle([point.lat, point.lon], {
+							color: '#5BF527',
+							fillColor: '#999',
+							fillOpacity: 0.15,
+							radius: Number(point.rad) || 100,
+						}).addTo(trackMap);
+
+						const marker = trackPointMarkers.get(point);
+						// Inspecting a specific point holds the view there until a user is centred on.
+						trackViewportPinned = true;
+						lastProgrammaticTrackViewAt = Date.now();
+						if (marker)
+						{
+							trackMap.panTo(marker.getLatLng());
+							marker.openPopup();
+							return;
+						}
+
+						// Closely-spaced points are deliberately omitted from the map to keep it readable,
+						// but every logged row must still be inspectable.
+						const popupContent = document.createElement('div');
+						popupContent.textContent = `${user.name}\n${point.lat}, ${point.lon}\n${new Date(point.timestamp || Date.now()).toLocaleString()}`;
+						popupContent.style.whiteSpace = 'pre-line';
+						trackMap.panTo([point.lat, point.lon]);
+						L.popup().setLatLng([point.lat, point.lon]).setContent(popupContent).openOn(trackMap);
+					};
+					row.addEventListener('click', showPointOnMap);
+					row.addEventListener('keydown', (event) =>
+					{
+						if (event.key !== 'Enter' && event.key !== ' ') return;
+						event.preventDefault();
+						showPointOnMap();
+					});
+					values.forEach((value) =>
+					{
+						const cell = document.createElement('td');
+						cell.textContent = value;
+						row.appendChild(cell);
+					});
+					table.appendChild(row);
+					trackHistoryRows.set(point, row);
 				});
-				values.forEach((value) =>
-				{
-					const cell = document.createElement('td');
-					cell.textContent = value;
-					row.appendChild(cell);
-				});
-				table.appendChild(row);
-				trackHistoryRows.set(point, row);
 			});
 			group.append(heading, table);
 			historyList.appendChild(group);
@@ -2478,6 +2595,19 @@ function onHomeyReady(Homey)
 		renderJourneys();
 		renderTracks(trackUsers);
 		renderTrackHistory(trackUsers);
+	});
+
+	document.querySelectorAll('[data-journey-sort]').forEach((button) =>
+	{
+		button.addEventListener('click', () =>
+		{
+			const column = button.dataset.journeySort;
+			journeySort = {
+				column,
+				direction: journeySort.column === column && journeySort.direction === 'desc' ? 'asc' : 'desc',
+			};
+			renderJourneys();
+		});
 	});
 
 	document.getElementById('copyTrackPoints').addEventListener('click', (event) =>

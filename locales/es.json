@@ -204,6 +204,7 @@
 			"historyTime": "Hora",
 			"historySpeed": "Velocidad",
 			"historyAccuracy": "Precisión",
+			"impliedSpeed": "Velocidad estimada",
 			"myJourneys": "Mis trayectos",
 			"showAllJourneys": "Mostrar todos los trayectos",
 			"journeysTitle": "Trayectos de [[user]]",

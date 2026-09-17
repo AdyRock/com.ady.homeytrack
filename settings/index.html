@@ -513,10 +513,10 @@
 					<div class="journey-table-wrap">
 						<table class="journey-table">
 							<thead><tr>
-								<th data-i18n="settings.map.journeyStart">Start time</th>
-								<th data-i18n="settings.map.journeyDestination">Destination</th>
-								<th data-i18n="settings.map.journeyDuration">Duration</th>
-								<th data-i18n="settings.map.journeyAverageSpeed">Average speed</th>
+								<th id="journeySortStart" aria-sort="descending"><button type="button" class="journey-sort-button" data-journey-sort="start" data-i18n="settings.map.journeyStart">Start time</button></th>
+								<th id="journeySortDestination" aria-sort="none"><button type="button" class="journey-sort-button" data-journey-sort="destination" data-i18n="settings.map.journeyDestination">Destination</button></th>
+								<th id="journeySortDuration" aria-sort="none"><button type="button" class="journey-sort-button" data-journey-sort="duration" data-i18n="settings.map.journeyDuration">Duration</button></th>
+								<th id="journeySortSpeed" aria-sort="none"><button type="button" class="journey-sort-button" data-journey-sort="speed" data-i18n="settings.map.journeyAverageSpeed">Average speed</button></th>
 								<th aria-hidden="true"></th>
 							</tr></thead>
 							<tbody id="journeyTableBody"></tbody>

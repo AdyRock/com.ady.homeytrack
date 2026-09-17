@@ -10,7 +10,7 @@ module.exports = {
 	 */
 	async events({ homey, body, params })
 	{
-		homey.app.handleOwnTracksHttp(body, { user: params.userId });
+		await homey.app.handleOwnTracksHttp(body, { user: params.userId });
 		// OwnTracks expects a JSON array in the response; returning every known user's
 		// card (name/avatar) and last location lets all family members' apps show each
 		// other on the map. An object like `{ ok: true }` fails to parse on the device

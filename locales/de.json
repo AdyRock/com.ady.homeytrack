@@ -204,6 +204,7 @@
 			"historyTime": "Zeit",
 			"historySpeed": "Geschwindigkeit",
 			"historyAccuracy": "Genauigkeit",
+			"impliedSpeed": "Abgeleitete Geschwindigkeit",
 			"myJourneys": "Meine Fahrten",
 			"showAllJourneys": "Alle Fahrten anzeigen",
 			"journeysTitle": "Fahrten von [[user]]",

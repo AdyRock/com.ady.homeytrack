@@ -204,6 +204,7 @@
 			"historyTime": "Время",
 			"historySpeed": "Скорость",
 			"historyAccuracy": "Точность",
+			"impliedSpeed": "Расчётная скорость",
 			"myJourneys": "Мои поездки",
 			"showAllJourneys": "Показать все поездки",
 			"journeysTitle": "Поездки: [[user]]",

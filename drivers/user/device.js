@@ -587,6 +587,7 @@ module.exports = class UserDevice extends Homey.Device
 			accuracy: location.accuracy,
 			velocity: location.velocity,
 			timestamp: location.timestamp || Date.now(),
+			raw: location.raw,
 		});
 		// The map joins the points in stored order, so a late fix inserted at the end would
 		// otherwise draw a line back to where the user was at the time.

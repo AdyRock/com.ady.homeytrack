@@ -204,6 +204,7 @@
 			"historyTime": "Tid",
 			"historySpeed": "Hastighet",
 			"historyAccuracy": "Nøyaktighet",
+			"impliedSpeed": "Beregnet hastighet",
 			"myJourneys": "Mine reiser",
 			"showAllJourneys": "Vis alle reiser",
 			"journeysTitle": "Reiser for [[user]]",

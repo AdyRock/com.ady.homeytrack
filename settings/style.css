@@ -332,6 +332,32 @@ button.journey-close-button {
 	border-bottom: 1px solid #eee;
 }
 
+button.journey-sort-button {
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	color: inherit !important;
+	font: inherit !important;
+	font-weight: inherit !important;
+	text-align: inherit !important;
+}
+
+.journey-sort-button::after {
+	content: '↕';
+	margin-left: 4px;
+	color: #777;
+}
+
+.journey-sort-button.active::after {
+	content: '↑';
+}
+
+th[aria-sort="descending"] .journey-sort-button::after {
+	content: '↓';
+}
+
 .journey-table td:not(:first-child) {
 	white-space: nowrap;
 }
@@ -469,7 +495,7 @@ button.track-date-shortcut {
 	width: 100%;
 	position: sticky;
 	top: 0;
-	z-index: 1;
+	z-index: 3;
 	background: #fff;
 	border: none;
 	border-bottom: 1px solid #eee;
@@ -520,8 +546,39 @@ button.track-date-shortcut {
 }
 
 .track-history-table th {
+	position: sticky;
+	top: 28px;
+	z-index: 2;
+	background: #fff;
 	color: #666;
 	font-weight: normal;
+}
+
+.track-history-journey td {
+	position: sticky;
+	top: 52px;
+	z-index: 1;
+	padding: 5px 8px 5px 0;
+	background: #f2f7fa;
+	border-top: 1px solid #d7e3e8;
+	border-bottom: 1px solid #d7e3e8;
+	font-weight: bold;
+}
+
+button.track-history-journey-toggle {
+	display: flex !important;
+	align-items: center;
+	gap: 6px;
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	color: inherit !important;
+	font: inherit !important;
+	font-weight: inherit !important;
+	text-align: left;
 }
 
 .track-history-table td:first-child {

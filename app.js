@@ -65,6 +65,8 @@ module.exports = class MyApp extends Homey.App
 		this.personEnteredZoneCard = this.homey.flow.getTriggerCard('person_entered_zone');
 		this.personLeftZoneCard = this.homey.flow.getTriggerCard('person_left_zone');
 		this.lastLocations = new Map();
+		this.locationUpdateQueues = new Map();
+		this.processedLocationIds = new Map();
 		this.mqttWaypointSyncSignatures = new Map();
 		this.mqttActiveTopics = new Set();
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
@@ -247,13 +249,13 @@ module.exports = class MyApp extends Homey.App
 	 * @param {object} body The parsed JSON body posted by OwnTracks.
 	 * @param {{ user?: string, device?: string }} [context] Optional user/device hints (e.g. the userId path parameter).
 	 */
-	handleOwnTracksHttp(body, context)
+	async handleOwnTracksHttp(body, context)
 	{
 		if (!this.connector || this.connector.constructor.name !== 'HttpConnector')
 		{
 			throw new Error('The app is not configured for HTTP connections');
 		}
-		this.connector.ingest(body, context);
+		await this.connector.ingest(body, context);
 	}
 
 	/**
@@ -875,9 +877,35 @@ module.exports = class MyApp extends Homey.App
 
 	_onLocation(location)
 	{
-		this.lastLocations.set(`${location.user}/${location.device}`, location);
-		this._log(`Location update from ${location.user}/${location.device}: ${location.lat}, ${location.lon} at ${new Date(location.timestamp || Date.now()).toISOString()} (tid=${location.trackerId || 'none'}, topic=${location.topic || 'none'})`);
-		this._updateUserDevice(location).catch((err) => this._logError('Failed to update user device', err));
+		const key = `${location.user}/${location.device}`;
+		const previous = this.locationUpdateQueues.get(key) || Promise.resolve();
+		const update = previous
+			.catch(() => undefined)
+			.then(async () =>
+			{
+				if (this._isDuplicateLocation(key, location))
+				{
+					this._log(`Ignored duplicate location report from ${key} (id=${location.messageId})`);
+					return;
+				}
+				this.lastLocations.set(key, location);
+				this._log(`Location update from ${key}: ${location.lat}, ${location.lon} at ${new Date(location.timestamp).toISOString()} (tid=${location.trackerId || 'none'}, topic=${location.topic || 'none'}, id=${location.messageId || 'none'}, trigger=${location.trigger || 'none'}, source=${location.source || 'none'}, created_at=${location.createdAt || 'none'})`);
+				await this._updateUserDevice(location);
+			})
+			.catch((err) => this._logError('Failed to update user device', err));
+		this.locationUpdateQueues.set(key, update);
+		return update;
+	}
+
+	_isDuplicateLocation(key, location)
+	{
+		const identifier = location.messageId || `${location.timestamp}/${location.lat}/${location.lon}`;
+		const identifiers = this.processedLocationIds.get(key) || [];
+		if (identifiers.includes(identifier)) return true;
+		identifiers.push(identifier);
+		if (identifiers.length > 100) identifiers.shift();
+		this.processedLocationIds.set(key, identifiers);
+		return false;
 	}
 
 	async triggerPersonZoneEvent(type, deviceName, zone)
