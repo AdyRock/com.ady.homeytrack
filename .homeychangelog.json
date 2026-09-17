@@ -124,5 +124,18 @@
 		"zh": "更改了获取地图瓦片的方法以符合 API。",
 		"ja": "API に準拠するように地図タイルを取得する方法を変更しました。",
 		"ko": "API를 준수하도록 지도 타일을 가져오는 방법이 변경되었습니다."
+	},
+	"1.0.12": {
+		"en": "Improvement map tile caching mechanism.",
+		"nl": "Verbeterd cachemechanisme voor kaarttegels.",
+		"fr": "Amélioration du mécanisme de mise en cache des tuiles de la carte.",
+		"de": "Verbesserter Cache-Mechanismus für Kartenkacheln.",
+		"es": "Mejora del mecanismo de caché de mosaicos de mapas.",
+		"it": "Miglioramento del meccanismo di caching delle tessere della mappa.",
+		"pt": "Melhoria do mecanismo de cache de blocos de mapa.",
+		"ru": "Улучшен механизм кэширования картографических плиток.",
+		"zh": "改进了地图瓦片缓存机制。",
+		"ja": "地図タイルのキャッシュ機構を改善しました。",
+		"ko": "지도 타일 캐싱 메커니즘 개선."
 	}
 }
