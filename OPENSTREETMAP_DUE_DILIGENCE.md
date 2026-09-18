@@ -1,15 +1,15 @@
 # OpenStreetMap Tile Service Due-Diligence Review
 
-**Application:** Homey Tracks (`com.ady.homeytrack`)
+**Application:** ZoneTracks (`com.ady.zonetracks`)
 **Application version reviewed:** 1.0.11
-**Repository:** <https://github.com/AdyRock/com.ady.homeytrack>
-**Commit reviewed:** [`1b626d1ee68d18b177d4e5aa8f0aea6952c763d9`](https://github.com/AdyRock/com.ady.homeytrack/tree/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9)
+**Repository:** <https://github.com/AdyRock/com.ady.zonetracks>
+**Commit reviewed:** [`1b626d1ee68d18b177d4e5aa8f0aea6952c763d9`](https://github.com/AdyRock/com.ady.zonetracks/tree/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9)
 **Review date:** 16 September 2026
 **Reviewer:** Repository review assisted by OpenAI Codex; conclusions should not be treated as legal advice.
 
 ## 1. Purpose and scope
 
-This document records a technical due-diligence review of Homey Tracks' use of the OpenStreetMap Foundation (OSMF) Standard raster tile service at `tile.openstreetmap.org`.
+This document records a technical due-diligence review of ZoneTracks' use of the OpenStreetMap Foundation (OSMF) Standard raster tile service at `tile.openstreetmap.org`.
 
 The review covers:
 
@@ -25,11 +25,11 @@ This is a source-code review of the stated commit. It is not a legal opinion, pe
 
 ## 2. Executive conclusion
 
-At the reviewed commit, Homey Tracks is **substantially aligned with the mandatory technical requirements of the OSMF Tile Usage Policy** and demonstrates a reasonable, low-volume use of the community tile service.
+At the reviewed commit, ZoneTracks is **substantially aligned with the mandatory technical requirements of the OSMF Tile Usage Policy** and demonstrates a reasonable, low-volume use of the community tile service.
 
 The previously identified caching weaknesses have been addressed. The app now uses a persistent 256-tile cache, a minimum seven-day lifetime, `ETag` and `Last-Modified` metadata, and conditional requests for expired entries. Interactive maps and generated static images display OpenStreetMap attribution, requests use the canonical HTTPS endpoint and an identifiable application-specific User-Agent, and no bulk download or offline-map feature was found.
 
-No code path was found that sends a person's name, raw GPS report, complete track, zone name, device identifier, avatar, or other application record to OSMF. OSM receives only ordinary tile requests containing zoom/X/Y tile coordinates, together with normal network metadata such as the Homey connection's IP address and the Homey Tracks User-Agent. Tile coordinates necessarily reveal the approximate area of the map being displayed; this is the remaining privacy consideration described in section 6.
+No code path was found that sends a person's name, raw GPS report, complete track, zone name, device identifier, avatar, or other application record to OSMF. OSM receives only ordinary tile requests containing zoom/X/Y tile coordinates, together with normal network metadata such as the Homey connection's IP address and the ZoneTracks User-Agent. Tile coordinates necessarily reveal the approximate area of the map being displayed; this is the remaining privacy consideration described in section 6.
 
 There are two non-blocking recommendations:
 
@@ -42,12 +42,12 @@ Neither item is evidence of abusive tile use in the reviewed version. The second
 
 The main implementation evidence is:
 
-- [`lib/mapImage.js`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/lib/mapImage.js): upstream tile URL, User-Agent, cache, conditional requests, generated-map rendering, and static attribution;
-- [`widgets/map/public/index.html`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/widgets/map/public/index.html): dashboard map tile requests and visible attribution;
-- [`settings/settings.js`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/settings/settings.js): settings and track maps, visible attribution, and initial map location;
-- [`api.js`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/api.js) and [`widgets/map/api.js`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/widgets/map/api.js): private Homey tile endpoints and input validation;
-- [`app.js`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/app.js): persistent cache initialisation; and
-- [`app.json`](https://github.com/AdyRock/com.ady.homeytrack/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/app.json): API visibility, contact email, support URL, and app metadata.
+- [`lib/mapImage.js`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/lib/mapImage.js): upstream tile URL, User-Agent, cache, conditional requests, generated-map rendering, and static attribution;
+- [`widgets/map/public/index.html`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/widgets/map/public/index.html): dashboard map tile requests and visible attribution;
+- [`settings/settings.js`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/settings/settings.js): settings and track maps, visible attribution, and initial map location;
+- [`api.js`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/api.js) and [`widgets/map/api.js`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/widgets/map/api.js): private Homey tile endpoints and input validation;
+- [`app.js`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/app.js): persistent cache initialisation; and
+- [`app.json`](https://github.com/AdyRock/com.ady.zonetracks/blob/1b626d1ee68d18b177d4e5aa8f0aea6952c763d9/app.json): API visibility, contact email, support URL, and app metadata.
 
 The external requirements checked were:
 
@@ -64,7 +64,7 @@ These sources were accessed on 16 September 2026.
 | OSMF requirement or recommendation | Status | Evidence and assessment |
 | --- | --- | --- |
 | Use the canonical HTTPS raster URL | **Pass** | `TILE_URL_TEMPLATE` is exactly `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. |
-| Send a distinct, stable User-Agent | **Pass** | The upstream client sends `HomeyTracks/1.0 (Homey app; https://github.com/AdyRock/com.ady.homeytrack)`, which identifies the app and provides a contact route. It does not use a generic Node or library identity. |
+| Send a distinct, stable User-Agent | **Pass** | The upstream client sends `ZoneTracks/1.0 (Homey app; https://github.com/AdyRock/com.ady.zonetracks)`, which identifies the app and provides a contact route. It does not use a generic Node or library identity. |
 | Send a Referer for web-page traffic | **Not applicable / documented interpretation** | The browser does not contact OSMF. Tiles are requested by the installed Homey app's server-side client, which is identified by its User-Agent. OSMF states that native apps commonly have no Referer and that this is acceptable. The Homey UI is not acting as a conventional public website directly embedding OSM tiles. |
 | Visible attribution on interactive maps | **Pass** | Both Leaflet tile-layer implementations display `© OpenStreetMap contributors`, with `OpenStreetMap` linked to the OSM copyright/licence page. |
 | Attribution on generated static images | **Pass** | Generated PNG maps visibly include `© OpenStreetMap`. OSMF's attribution guideline accepts this historical form. |
@@ -75,7 +75,7 @@ These sources were accessed on 16 September 2026.
 | Keep a sufficient cache to avoid unnecessary repeat downloads | **Pass for the observed usage model** | The persistent limit is 256 compressed tiles. This is substantially better than the former 64-entry memory-only cache and is proportionate to 600×600 generated images and small interactive Homey maps. |
 | Do not send cache-bypass headers | **Pass** | No default `Cache-Control: no-cache`, `Pragma: no-cache`, or equivalent bypass was found in the tile client. |
 | No bulk download, scraping, or offline prefetch | **Pass** | Interactive maps request only tiles Leaflet needs for the displayed viewport. Static maps request only tiles required to render the requested image. No regional pre-seeding, multi-zoom download, tile archive, or offline-map feature was found. |
-| Identified caching proxy | **Pass** | OSM-facing requests use a clear, contactable Homey Tracks User-Agent and the proxy cache applies the minimum seven-day rule. The app's tile API routes are private to the Homey UI. |
+| Identified caching proxy | **Pass** | OSM-facing requests use a clear, contactable ZoneTracks User-Agent and the proxy cache applies the minimum seven-day rule. The app's tile API routes are private to the Homey UI. |
 | Avoid submitting personal or confidential data | **Pass with residual privacy consideration** | No names, exact GPS payloads, tracks, zones, account data, or identifiers are included in OSM requests. Requested tile coordinates disclose the approximate displayed area, as is inherent in any slippy-map tile request. See section 6. |
 | Avoid hard-coding the provider URL | **Advisory item open** | The URL remains a source constant. OSMF marks switchability as recommended, not mandatory. |
 | Provide a contact route | **Pass** | The User-Agent links to the public repository; `app.json` also contains a maintainer email and GitHub Issues support URL. |
@@ -111,18 +111,18 @@ An upstream request contains the following relevant information:
 
 - the standard tile path `/{zoom}/{x}/{y}.png`;
 - the source network IP address visible to OSMF;
-- the Homey Tracks User-Agent; and
+- the ZoneTracks User-Agent; and
 - ordinary HTTP/TLS metadata.
 
 The OSMF Privacy Policy expressly states that its services automatically receive network information including IP address, application/browser information, date/time, referring page where applicable, and pages accessed. It also specifically refers to IP addresses and request details associated with tile requests and explains that tiles are delivered through a global cache network.
 
-Homey Tracks does **not** add a user name, family-member identity, Homey ID, OwnTracks ID, zone name, latitude/longitude query parameter, GPS report, or track history to the request. However, the tile X/Y/Z path allows the requested geographic area to be inferred. At zoom 16 or 17, the inferred area may be relatively small. Repeated requested areas could therefore reveal where the map is being viewed.
+ZoneTracks does **not** add a user name, family-member identity, Homey ID, OwnTracks ID, zone name, latitude/longitude query parameter, GPS report, or track history to the request. However, the tile X/Y/Z path allows the requested geographic area to be inferred. At zoom 16 or 17, the inferred area may be relatively small. Repeated requested areas could therefore reveal where the map is being viewed.
 
 ### Interpretation
 
 The OSMF Tile Usage Policy says not to submit personal or confidential data. Ordinary tile coordinates are also essential to the service and are explicitly contemplated by OSMF's privacy policy as request details. On that basis, the reviewed implementation's ordinary, identified tile requests are not treated in this assessment as prohibited submission of personal data.
 
-Nevertheless, because Homey Tracks handles private family-location information, transparency is prudent. A user should know that displaying a map causes an external map provider to receive the requested tile areas and normal network metadata. The proxy reduces disclosure because it does not expose application records or user names, but it cannot hide the geographic tile area from the provider that must return the map.
+Nevertheless, because ZoneTracks handles private family-location information, transparency is prudent. A user should know that displaying a map causes an external map provider to receive the requested tile areas and normal network metadata. The proxy reduces disclosure because it does not expose application records or user names, but it cannot hide the geographic tile area from the provider that must return the map.
 
 For users requiring stronger location confidentiality, the technical alternatives are a tile service selected under suitable contractual privacy terms, self-hosted tiles, or an option to disable external base-map tiles. All providers must receive the requested area unless the necessary tiles are already stored locally.
 

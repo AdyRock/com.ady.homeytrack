@@ -474,7 +474,7 @@ module.exports = class UserDevice extends Homey.Device
 		const homeyId = await this.homey.cloud.getHomeyId();
 
 		await this.setSettings({
-			httpEndpoint: `https://homey-${homeyId}.connect.athom.com/api/app/com.ady.homeytrack/events/${this.getUserId()}`,
+			httpEndpoint: `https://homey-${homeyId}.connect.athom.com/api/app/com.ady.zonetracks/events/${this.getUserId()}`,
 		});
 	}
 

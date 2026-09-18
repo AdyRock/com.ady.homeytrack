@@ -8,8 +8,6 @@ if (process.env.DEBUG === '1')
 
 const Homey = require('homey');
 const { randomUUID } = require('crypto');
-const fs = require('fs');
-const v8 = require('v8');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');
 const { buildJourneys, clearTileMemoryCache, initializeTileCache } = require('./lib/mapImage');
 
@@ -37,7 +35,7 @@ const SETTINGS_BACKUP_KEYS = [
 const MAX_LOG_BUFFER_BYTES = 20 * 1024;
 const PERSISTED_LOGS_KEY = 'persistentLogs';
 const LOG_PERSIST_DELAY_MS = 1000;
-const WIDGET_MAX_JOURNEYS = 12;
+const WIDGET_MAX_JOURNEYS = 6;
 const WIDGET_MAX_JOURNEY_POINTS = 80;
 // How long a shared zone is protected from being auto-disabled after it was first sent to a
 // phone, so a waypoints export the phone had already prepared can't undo the new zone.
@@ -65,9 +63,11 @@ module.exports = class MyApp extends Homey.App
 		this.logBuffer = this._loadPersistedLogs();
 		this.logPersistTimer = null;
 		this.logPersistPromise = Promise.resolve();
-		this._logMemorySnapshot('Startup before app settings initialization');
+		if (this.persistedLogsNeedCleanup) this._persistLogs();
 
 		this.connector = null;
+		this.reconnectPromise = null;
+		this.reconnectRequested = false;
 		this.personEnteredZoneCard = this.homey.flow.getTriggerCard('person_entered_zone');
 		this.personLeftZoneCard = this.homey.flow.getTriggerCard('person_left_zone');
 		this.lastLocations = new Map();
@@ -78,7 +78,6 @@ module.exports = class MyApp extends Homey.App
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
 		this.memoryWarningPromise = null;
 		initializeTileCache(this.homey.settings);
-		this._migrateWaypointModel();
 
 		// Default "logsEnabled" to false on first run, so its state is explicit and predictable
 		// rather than relying on an unset setting happening to be falsy.
@@ -86,7 +85,6 @@ module.exports = class MyApp extends Homey.App
 		{
 			this.homey.settings.set('logsEnabled', false);
 		}
-		this._logMemorySnapshot('Startup after app settings initialization');
 
 		// Safety net: a bad connector config (e.g. an invalid MQTT port) must never be able to
 		// crash the whole app process via an uncaught exception or unhandled rejection.
@@ -97,8 +95,17 @@ module.exports = class MyApp extends Homey.App
 			this._onMemoryWarning();
 		});
 
-		await this._reconnect();
-		this._logMemorySnapshot('Startup after connector initialization');
+		this.homey.setTimeout(async () =>
+		{
+			try
+			{
+				await this._reconnect();
+			}
+			catch (err)
+			{
+				this._logError('Failed to initialize connector on startup', err);
+			}
+		}, 10000);
 
 		this.homey.settings.on('set', (key) =>
 		{
@@ -134,7 +141,7 @@ module.exports = class MyApp extends Homey.App
 
 	_onMemoryWarning()
 	{
-		this._logError(`Memory warning received (${this._formatMemoryMetrics()})`);
+		this._logError('Memory warning received');
 		if (this.memoryWarningPromise)
 		{
 			this._log('Memory warning handling is already in progress');
@@ -154,7 +161,7 @@ module.exports = class MyApp extends Homey.App
 		const releasedTiles = clearTileMemoryCache();
 		const devices = this.homey.drivers.getDriver('user').getDevices();
 		devices.forEach((device) => device.pauseMapImageRefreshes());
-		this._logError(`Memory warning resolved: released ${releasedTiles} in-memory map tile(s) and paused automatic map refreshes without deleting cached tiles or track history (${this._formatMemoryMetrics()})`);
+		this._logError(`Memory warning resolved: released ${releasedTiles} in-memory map tile(s) and paused automatic map refreshes without deleting cached tiles or track history`);
 	}
 
 	/**
@@ -204,7 +211,15 @@ module.exports = class MyApp extends Homey.App
 	{
 		const stored = this.homey.settings.get(PERSISTED_LOGS_KEY);
 		if (!Array.isArray(stored)) return [];
-		return stored.filter((entry) => typeof entry === 'string');
+		const entries = stored.filter((entry) => typeof entry === 'string');
+		const cleaned = entries
+			.filter((entry) => !entry.includes('SYSTEM: Startup before app settings initialization:')
+				&& !entry.includes('SYSTEM: Startup after app settings initialization:')
+				&& !entry.includes('SYSTEM: Startup after connector initialization:'))
+			.map((entry) => entry.replace(/ \((?:RSS|V8 heap).*\)$/, ''));
+		this.persistedLogsNeedCleanup = cleaned.length !== entries.length
+			|| cleaned.some((entry, index) => entry !== entries[index]);
+		return cleaned;
 	}
 
 	_scheduleLogPersistence(immediately = false)
@@ -232,17 +247,6 @@ module.exports = class MyApp extends Homey.App
 			.then(() => this.homey.settings.set(PERSISTED_LOGS_KEY, snapshot))
 			.catch((err) => this.error('Failed to persist app logs', err));
 		return this.logPersistPromise;
-	}
-
-	_formatMemoryMetrics()
-	{
-		const heap = v8.getHeapStatistics();
-		return `V8 heap ${(heap.used_heap_size / (1024 * 1024)).toFixed(1)} MB, external ${(heap.external_memory / (1024 * 1024)).toFixed(1)} MB`;
-	}
-
-	_logMemorySnapshot(stage)
-	{
-		this._appendLogEntry('system', [`${stage}: ${this._formatMemoryMetrics()}`], true);
 	}
 
 	/**
@@ -284,7 +288,7 @@ module.exports = class MyApp extends Homey.App
 		await transporter.sendMail({
 			from: Homey.env.MAIL_USER,
 			to: Homey.env.MAIL_RECIPIENT,
-			subject: 'Homey Tracks - App Logs',
+			subject: 'ZoneTracks - App Logs',
 			text: this.getLogsText() || '(no log messages)',
 		});
 	}
@@ -419,7 +423,7 @@ module.exports = class MyApp extends Homey.App
 		const exclusions = this._getSharedExclusions();
 		const devices = this.homey.drivers.getDriver('user').getDevices();
 		return {
-			format: 'homey-tracks-settings',
+			format: 'zonetracks-settings',
 			version: 1,
 			settings: Object.fromEntries(SETTINGS_BACKUP_KEYS.map((key) => [key, this.homey.settings.get(key)])),
 			avatars: devices.map((device) => ({
@@ -450,11 +454,12 @@ module.exports = class MyApp extends Homey.App
 	/** Restores a settings document created by createSettingsBackup(). */
 	async restoreSettingsBackup(backup)
 	{
-		if (!backup || backup.format !== 'homey-tracks-settings' || backup.version !== 1
+		const supportedFormats = ['zonetracks-settings', 'homey-tracks-settings'];
+		if (!backup || !supportedFormats.includes(backup.format) || backup.version !== 1
 			|| !backup.settings || !backup.zones || !Array.isArray(backup.zones.shared)
 			|| !Array.isArray(backup.zones.users) || !Array.isArray(backup.avatars))
 		{
-			throw new Error('Invalid Homey Tracks settings backup');
+			throw new Error('Invalid ZoneTracks settings backup');
 		}
 
 		const restoredSettings = {};
@@ -589,47 +594,6 @@ module.exports = class MyApp extends Homey.App
 			lastLocation: device.getStoreValue('lastLocation') || null,
 			track: device.getTrackHistory(),
 		}));
-	}
-
-	/** Returns only aggregate diagnostic data; no location or image content is exposed. */
-	getMemoryStats()
-	{
-		const heap = v8.getHeapStatistics();
-		let processMemory = null;
-		try
-		{
-			processMemory = process.memoryUsage();
-		}
-		catch (err)
-		{
-			// Homey's app sandbox can block uv_resident_set_memory; V8 statistics still work.
-		}
-		const devices = this.homey.drivers.getDriver('user').getDevices().map((device) =>
-		{
-			const archive = device.getStoreValue('trackArchive');
-			return {
-				name: device.getName(),
-				imageHandles: Number(Boolean(device.mapImage)) + (device.journeyImages || []).length,
-				activeTrackPoints: Array.isArray(device.getStoreValue('track')) ? device.getStoreValue('track').length : 0,
-				archiveBytes: typeof archive === 'string' ? Buffer.byteLength(archive, 'utf8') : 0,
-			};
-		});
-		return {
-			process: processMemory ? {
-				rssMb: Math.round(processMemory.rss / (1024 * 1024) * 10) / 10,
-				externalMb: Math.round(processMemory.external / (1024 * 1024) * 10) / 10,
-				arrayBuffersMb: Math.round(processMemory.arrayBuffers / (1024 * 1024) * 10) / 10,
-			} : null,
-			heap: {
-				usedMb: Math.round(heap.used_heap_size / (1024 * 1024) * 10) / 10,
-				totalMb: Math.round(heap.total_heap_size / (1024 * 1024) * 10) / 10,
-				limitMb: Math.round(heap.heap_size_limit / (1024 * 1024) * 10) / 10,
-				externalMb: Math.round(heap.external_memory / (1024 * 1024) * 10) / 10,
-			},
-			imageHandles: devices.reduce((total, device) => total + device.imageHandles, 0),
-			locationQueues: this.locationUpdateQueues.size,
-			devices,
-		};
 	}
 
 	/**
@@ -882,6 +846,26 @@ module.exports = class MyApp extends Homey.App
 
 	async _reconnect()
 	{
+		this.reconnectRequested = true;
+		if (this.reconnectPromise) return this.reconnectPromise;
+
+		this.reconnectPromise = (async () =>
+		{
+			do
+			{
+				this.reconnectRequested = false;
+				await this._replaceConnector();
+			} while (this.reconnectRequested);
+		})().finally(() =>
+		{
+			this.reconnectPromise = null;
+		});
+
+		return this.reconnectPromise;
+	}
+
+	async _replaceConnector()
+	{
 		if (this.connector)
 		{
 			this.connector.removeAllListeners();
@@ -1007,24 +991,6 @@ module.exports = class MyApp extends Homey.App
 	{
 		const card = type === 'entered' ? this.personEnteredZoneCard : this.personLeftZoneCard;
 		await card.trigger({ user: deviceName, zone }, {});
-	}
-
-	_migrateWaypointModel()
-	{
-		const version = this.homey.settings.get('waypointModelVersion');
-		if (version !== 1 && version !== 2)
-		{
-			const legacyWaypoints = this.homey.settings.get('ownTracksWaypoints') || [];
-			this.homey.settings.set('sharedWaypoints', legacyWaypoints.map((waypoint) => this._normalizeWaypoint(waypoint)));
-			this.homey.settings.set('privateWaypoints', {});
-			this.homey.settings.set('sharedWaypointExclusions', {});
-			this.homey.settings.set('waypointReconciliationReady', {});
-		}
-
-		if (version === 2) return;
-
-		this.homey.settings.set('waypointDeliveredIds', {});
-		this.homey.settings.set('waypointModelVersion', 2);
 	}
 
 	_normalizeWaypoint(waypoint, id = null)

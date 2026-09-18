@@ -1,5 +1,5 @@
 {
-	"id": "com.ady.homeytrack",
+	"id": "com.ady.zonetracks",
 	"version": "1.0.12",
 	"compatibility": ">=12.4.0",
 	"sdk": 3,
@@ -8,17 +8,17 @@
 		"local"
 	],
 	"name": {
-		"en": "Homey Tracks",
-		"no": "Homey Tracks",
-		"nl": "Homey Tracks",
-		"de": "Homey Tracks",
-		"fr": "Homey Tracks",
-		"es": "Homey Tracks",
-		"pt": "Homey Tracks",
-		"it": "Homey Tracks",
-		"pl": "Homey Tracks",
-		"ru": "Homey Tracks",
-		"ko": "Homey Tracks"
+		"en": "ZoneTracks",
+		"no": "ZoneTracks",
+		"nl": "ZoneTracks",
+		"de": "ZoneTracks",
+		"fr": "ZoneTracks",
+		"es": "ZoneTracks",
+		"pt": "ZoneTracks",
+		"it": "ZoneTracks",
+		"pl": "ZoneTracks",
+		"ru": "ZoneTracks",
+		"ko": "ZoneTracks"
 	},
 	"description": {
 		"en": "Keep track of the family with the OwnTracks app",
@@ -37,7 +37,7 @@
 		"tools"
 	],
 	"homeyCommunityTopicId": 158877,
-	"support": "https://github.com/AdyRock/com.ady.homeytrack/issues",
+	"support": "https://github.com/AdyRock/com.ady.zonetracks/issues",
 	"brandColor": "#0091ff",
 	"permissions": [],
 	"contributing": {
@@ -163,11 +163,6 @@
 		"getTileStats": {
 			"method": "GET",
 			"path": "/map-tiles/stats",
-			"public": false
-		},
-		"getMemoryStats": {
-			"method": "GET",
-			"path": "/memory/stats",
 			"public": false
 		},
 		"deleteJourney": {

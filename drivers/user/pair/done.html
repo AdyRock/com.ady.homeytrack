@@ -149,7 +149,7 @@
 			}
 
 			const homeyId = await emitToDriver('getHomeyId', null);
-			httpEndpointValue.textContent = `https://homey-${homeyId}.connect.athom.com/api/app/com.ady.homeytrack/events/${userId}`;
+			httpEndpointValue.textContent = `https://homey-${homeyId}.connect.athom.com/api/app/com.ady.zonetracks/events/${userId}`;
 			httpInstructions.hidden = false;
 		}
 
