@@ -103,12 +103,20 @@ module.exports = class UserDevice extends Homey.Device
 		const image = await this.homey.images.createImage();
 		image.setStream(async (stream) =>
 		{
-			const buffer = await render();
-			stream.contentType = 'image/png';
-			stream.contentLength = buffer.length;
-			stream.filename = `${this.getData().id}.png`;
-			stream.write(buffer);
-			stream.end();
+			let buffer;
+			try
+			{
+				buffer = await render();
+				stream.contentType = 'image/png';
+				stream.contentLength = buffer.length;
+				stream.filename = `${this.getData().id}.png`;
+				stream.write(buffer);
+				stream.end();
+			}
+			finally
+			{
+				buffer = null;
+			}
 		});
 
 		return image;

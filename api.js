@@ -1,6 +1,6 @@
 'use strict';
 
-const { fetchTileBuffer, getTileStats } = require('./lib/mapImage');
+const { clearTileCache, fetchTileBuffer, getTileStats } = require('./lib/mapImage');
 
 module.exports = {
 
@@ -66,6 +66,43 @@ module.exports = {
 	async getTileStats()
 	{
 		return getTileStats();
+	},
+
+	/**
+	 * Returns process memory categories and active resource types for diagnosing retained memory.
+	 */
+	async getMemoryStats()
+	{
+		let memory = null;
+		let memoryError = null;
+		try
+		{
+			memory = process.memoryUsage();
+		} catch (err)
+		{
+			memoryError = err.message;
+		}
+		const activeHandles = typeof process._getActiveHandles === 'function'
+			? process._getActiveHandles() : [];
+		const activeRequests = typeof process._getActiveRequests === 'function'
+			? process._getActiveRequests() : [];
+		return {
+			memory,
+			memoryError,
+			memoryMiB: memory && Object.fromEntries(Object.entries(memory)
+				.map(([key, value]) => [key, Number((value / (1024 * 1024)).toFixed(2))])),
+			activeHandleTypes: activeHandles.map((handle) => handle.constructor && handle.constructor.name),
+			activeRequestTypes: activeRequests.map((request) => request.constructor && request.constructor.name),
+			tileCache: getTileStats(),
+		};
+	},
+
+	/**
+	 * Clears both the in-memory and persisted map-tile caches.
+	 */
+	async clearTileCache()
+	{
+		return clearTileCache();
 	},
 
 	async deleteJourney({ homey, body })
