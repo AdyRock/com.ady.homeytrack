@@ -10,7 +10,7 @@ const Homey = require('homey');
 const nodemailer = require('nodemailer');
 const { randomUUID } = require('crypto');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');
-const { buildJourneys, initializeTileCache } = require('./lib/mapImage');
+const { buildJourneys, clearTileCaches, initializeTileCache } = require('./lib/mapImage');
 
 const SETTINGS_KEYS = [
 	'connectionMethod',
@@ -117,28 +117,26 @@ module.exports = class MyApp extends Homey.App
 
 	_onMemoryWarning()
 	{
-		this._logError('Memory warning received; reducing stored track buffers');
 		if (this.memoryWarningPromise)
 		{
 			this._log('Memory warning handling is already in progress');
 			return;
 		}
 
-		this.memoryWarningPromise = this._reduceTrackBuffers()
-			.catch((err) => this._logError('Failed to reduce track buffers after memory warning', err))
+		this.memoryWarningPromise = this._reduceMemoryUse()
+			.catch((err) => this._logError('Failed to reduce memory use after warning', err))
 			.finally(() =>
 			{
 				this.memoryWarningPromise = null;
 			});
 	}
 
-	async _reduceTrackBuffers()
+	async _reduceMemoryUse()
 	{
+		const releasedTiles = clearTileCaches();
 		const configuredMaxPoints = Number(this.homey.settings.get('trackMaxPoints')) || DEFAULT_TRACK_MAX_POINTS;
 		const previousMaxPoints = Math.max(1, Math.floor(configuredMaxPoints));
-		const reducedMaxPoints = previousMaxPoints <= MIN_TRACK_MAX_POINTS
-			? previousMaxPoints
-			: Math.max(MIN_TRACK_MAX_POINTS, Math.floor(previousMaxPoints / 2));
+		const reducedMaxPoints = Math.max(MIN_TRACK_MAX_POINTS, Math.floor(previousMaxPoints / 2));
 
 		if (reducedMaxPoints !== previousMaxPoints)
 		{
@@ -150,7 +148,7 @@ module.exports = class MyApp extends Homey.App
 			.map((device) => device.trimTrackToMaxPoints(reducedMaxPoints)));
 		const removedPoints = removedCounts.reduce((total, count) => total + count, 0);
 		this.homey.api.realtime('tracks_updated', null);
-		this._log(`Memory warning resolved: track limit ${previousMaxPoints} -> ${reducedMaxPoints}; trimmed ${removedPoints} point(s) across ${devices.length} user(s)`);
+		this._logError(`Memory warning resolved: released ${releasedTiles} cached map tile(s), track limit ${previousMaxPoints} -> ${reducedMaxPoints}, removed ${removedPoints} point(s) across ${devices.length} user(s)`);
 	}
 
 	/**
@@ -533,7 +531,7 @@ module.exports = class MyApp extends Homey.App
 			battery: device.getCapabilityValue('measure_battery'),
 			zone: device.getCapabilityValue('zone'),
 			lastLocation: device.getStoreValue('lastLocation') || null,
-			track: device.getStoreValue('track') || [],
+			track: device.getTrackHistory(),
 		}));
 	}
 
@@ -631,10 +629,10 @@ module.exports = class MyApp extends Homey.App
 			throw new Error('User not found');
 		}
 
-		const track = device.getStoreValue('track') || [];
+		const track = device.getTrackHistory();
 		const retainedTrack = track.filter((point) => !Number.isFinite(point.timestamp)
 			|| point.timestamp < rangeStart || point.timestamp > rangeEnd);
-		await device.setStoreValue('track', retainedTrack);
+		await device.replaceTrackHistory(retainedTrack);
 		this.homey.api.realtime('tracks_updated', null);
 		return { ok: true, deleted: track.length - retainedTrack.length };
 	}
@@ -655,7 +653,7 @@ module.exports = class MyApp extends Homey.App
 			throw new Error('User not found');
 		}
 
-		const track = device.getStoreValue('track') || [];
+		const track = device.getTrackHistory();
 		const pointIndex = track.findIndex((point) => point.timestamp === pointTimestamp
 			&& point.lat === pointLat && point.lon === pointLon);
 		if (pointIndex < 0)
@@ -665,7 +663,7 @@ module.exports = class MyApp extends Homey.App
 
 		const retainedTrack = [...track];
 		retainedTrack.splice(pointIndex, 1);
-		await device.setStoreValue('track', retainedTrack);
+		await device.replaceTrackHistory(retainedTrack);
 		this.homey.api.realtime('tracks_updated', null);
 		return { ok: true };
 	}

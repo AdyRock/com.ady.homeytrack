@@ -5,11 +5,13 @@ const { distanceMeters } = require('../../lib/geo');
 const { filterLocation } = require('../../lib/filterLocation');
 const { confirmZoneChange } = require('../../lib/confirmZones');
 const { renderUserMapImage, renderJourneyMapImage, buildJourneys } = require('../../lib/mapImage');
+const { readTrack, splitTrack } = require('../../lib/trackStorage');
 
 const TRACK_MIN_DISTANCE_METERS = 50;
 const TRACK_MAX_POINTS = 1000;
 const SPEED_STALE_MS = 60 * 1000;
 const LOCATION_REQUEST_DELAY_MS = 30 * 1000;
+const MAP_REFRESH_DELAY_MS = 15 * 1000;
 const KMH_TO_MPH = 0.621371;
 const JOURNEY_IMAGE_COUNT = 5;
 
@@ -21,6 +23,7 @@ module.exports = class UserDevice extends Homey.Device
 		this.log(`User device initialized: ${this.getName()} (${this.getData().id})`);
 		this.speedStaleTimer = null;
 		this.locationRequestTimer = null;
+		this.mapRefreshTimer = null;
 		this.latestVelocityKmh = null;
 		this.pendingLocation = null;
 		this.pendingZoneChange = null;
@@ -40,6 +43,7 @@ module.exports = class UserDevice extends Homey.Device
 		await this._initializeZonesFromLastCoordinates();
 
 		this._loadTrackingSettings();
+		await this.replaceTrackHistory(this.getTrackHistory());
 		this.onAppSettingsChanged = () => this._loadTrackingSettings();
 		this.homey.settings.on('set', this.onAppSettingsChanged);
 		await this._setupImages().catch(this.error);
@@ -56,6 +60,10 @@ module.exports = class UserDevice extends Homey.Device
 		if (this.locationRequestTimer)
 		{
 			clearTimeout(this.locationRequestTimer);
+		}
+		if (this.mapRefreshTimer)
+		{
+			clearTimeout(this.mapRefreshTimer);
 		}
 		if (this.onAppSettingsChanged)
 		{
@@ -100,7 +108,7 @@ module.exports = class UserDevice extends Homey.Device
 	{
 		this.mapImage = await this._createImage(() => renderUserMapImage({
 			location: this.getStoreValue('lastLocation'),
-			track: this.getStoreValue('track') || [],
+			track: this.getTrackHistory(),
 			journeyGapMinutes: Number(this.homey.settings.get('journeyGapMinutes')) || 30,
 			zone: this.getCapabilityValue('zone'),
 			speed: this.getCapabilityValue('speed'),
@@ -134,7 +142,7 @@ module.exports = class UserDevice extends Homey.Device
 	{
 		const gapMinutes = Number(this.homey.settings.get('journeyGapMinutes')) || 30;
 		// Oldest first, so reading down the list follows the user forwards in time.
-		return buildJourneys(this.getStoreValue('track') || [], gapMinutes * 60 * 1000)
+		return buildJourneys(this.getTrackHistory(), gapMinutes * 60 * 1000)
 			.slice(0, JOURNEY_IMAGE_COUNT)
 			.reverse();
 	}
@@ -209,14 +217,19 @@ module.exports = class UserDevice extends Homey.Device
 
 	_refreshMapImage()
 	{
-		if (this.mapImage)
+		if (this.mapRefreshTimer) return;
+		this.mapRefreshTimer = setTimeout(() =>
 		{
-			this.mapImage.update().catch(this.error);
-		}
-		if (this.journeyImages && this.journeyImages.length)
-		{
-			this._syncJourneyImages().catch(this.error);
-		}
+			this.mapRefreshTimer = null;
+			if (this.mapImage)
+			{
+				this.mapImage.update().catch(this.error);
+			}
+			if (this.journeyImages && this.journeyImages.length)
+			{
+				this._syncJourneyImages().catch(this.error);
+			}
+		}, MAP_REFRESH_DELAY_MS);
 	}
 
 	_scheduleLocationRequest(velocity)
@@ -529,7 +542,7 @@ module.exports = class UserDevice extends Homey.Device
 
 	async trimTrackToMaxPoints(maxPoints = this.trackMaxPoints)
 	{
-		const track = this.getStoreValue('track') || [];
+		const track = this.getTrackHistory();
 		const removedPoints = Math.max(0, track.length - maxPoints);
 		if (removedPoints > 0)
 		{
@@ -543,10 +556,25 @@ module.exports = class UserDevice extends Homey.Device
 				})
 				.slice(-maxPoints)
 				.map(({ point }) => point);
-			await this.setStoreValue('track', retainedTrack);
+			await this.replaceTrackHistory(retainedTrack, maxPoints);
 			this.homey.api.realtime('tracks_updated', null);
 		}
 		return removedPoints;
+	}
+
+	getTrackHistory()
+	{
+		return readTrack(this.getStoreValue('track'), this.getStoreValue('trackArchive'));
+	}
+
+	async replaceTrackHistory(track, maxPoints = this.trackMaxPoints)
+	{
+		const gapMinutes = Number(this.homey.settings.get('journeyGapMinutes')) || 30;
+		const stored = splitTrack(track, gapMinutes * 60 * 1000, maxPoints || TRACK_MAX_POINTS);
+		// Archive first: an interrupted write can temporarily duplicate points, which readTrack
+		// removes, rather than losing the previous active journey.
+		await this.setStoreValue('trackArchive', stored.archive);
+		await this.setStoreValue('track', stored.active);
 	}
 
 	/**
@@ -563,7 +591,7 @@ module.exports = class UserDevice extends Homey.Device
 			return;
 		}
 
-		const track = this.getStoreValue('track') || [];
+		const track = this.getTrackHistory();
 		// OwnTracks flushes fixes that were queued while offline, so a report isn't always
 		// newer than the last one recorded.
 		const last = track.reduce(
@@ -587,7 +615,6 @@ module.exports = class UserDevice extends Homey.Device
 			accuracy: location.accuracy,
 			velocity: location.velocity,
 			timestamp: location.timestamp || Date.now(),
-			raw: location.raw,
 		});
 		// The map joins the points in stored order, so a late fix inserted at the end would
 		// otherwise draw a line back to where the user was at the time.
@@ -597,7 +624,7 @@ module.exports = class UserDevice extends Homey.Device
 			track.shift();
 		}
 
-		await this.setStoreValue('track', track);
+		await this.replaceTrackHistory(track);
 	}
 
 	/**

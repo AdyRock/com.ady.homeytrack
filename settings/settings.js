@@ -2166,11 +2166,19 @@ function onHomeyReady(Homey)
 			heading.addEventListener('click', () =>
 			{
 				const nowCollapsed = !collapsedHistoryUserIds.has(user.id);
-				if (nowCollapsed) collapsedHistoryUserIds.add(user.id);
-				else collapsedHistoryUserIds.delete(user.id);
-				collapseIcon.classList.toggle('expanded', !nowCollapsed);
-				table.classList.toggle('hidden', nowCollapsed);
-				heading.setAttribute('aria-expanded', String(!nowCollapsed));
+				if (nowCollapsed)
+				{
+					collapsedHistoryUserIds.add(user.id);
+					buildJourneys(getSelectedTrack(user)).forEach((journey) =>
+					{
+						collapsedHistoryJourneyKeys.add(getJourneyKey(user.id, journey));
+					});
+				} else
+				{
+					collapsedHistoryUserIds.delete(user.id);
+				}
+				renderTracks(trackUsers);
+				renderTrackHistory(trackUsers);
 			});
 
 			const header = document.createElement('tr');
