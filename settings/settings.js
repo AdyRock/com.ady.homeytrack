@@ -118,10 +118,14 @@ function onHomeyReady(Homey)
 		}
 		if (button.dataset.tab === 'map')
 		{
+			// Keep the map hidden behind a "locating" placeholder rather than briefly showing the
+			// London fallback centre while Homey's location is still being resolved.
+			if (!trackMap) document.getElementById('trackMapLoading').classList.remove('hidden');
 			getDefaultZoneCenter().then((center) =>
 			{
 				if (button.dataset.tab !== 'map' || tabPanels.map.classList.contains('hidden')) return;
 				ensureTrackMap(center);
+				document.getElementById('trackMapLoading').classList.add('hidden');
 				setTimeout(() => trackMap.invalidateSize(), 100);
 				loadTracks();
 				loadTrackWaypoints();
@@ -867,7 +871,9 @@ function onHomeyReady(Homey)
 			navigator.geolocation.getCurrentPosition(
 				(position) => resolve([position.coords.latitude, position.coords.longitude]),
 				() => resolve(null),
-				{ timeout: 5000, maximumAge: 300000 },
+				// The map now waits behind a "locating" placeholder instead of flashing the London
+				// fallback, so it's worth giving a slow/prompted geolocation answer more time.
+				{ timeout: 15000, maximumAge: 300000 },
 			);
 		});
 	}
@@ -889,8 +895,9 @@ function onHomeyReady(Homey)
 		});
 	}
 
-	// A new zone starts wherever the user is; the most recently reported user position is the
-	// fallback when the browser won't share a location, and only then a fixed view.
+	// A new zone starts wherever the user is; the most recently reported user position (or
+	// Homey's own configured location) is the fallback when the browser won't share a location,
+	// and only then a fixed view.
 	function getDefaultZoneCenter()
 	{
 		if (defaultZoneCenter) return Promise.resolve(defaultZoneCenter);

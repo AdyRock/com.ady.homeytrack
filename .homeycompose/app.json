@@ -1,6 +1,6 @@
 {
 	"id": "com.ady.zonetracks",
-	"version": "1.0.12",
+	"version": "1.1.1",
 	"compatibility": ">=12.4.0",
 	"sdk": 3,
 	"runtime": "nodejs",
@@ -39,7 +39,9 @@
 	"homeyCommunityTopicId": 158877,
 	"support": "https://github.com/AdyRock/com.ady.zonetracks/issues",
 	"brandColor": "#0091ff",
-	"permissions": [],
+	"permissions": [
+		"homey:manager:geolocation"
+	],
 	"contributing": {
 		"donate": {
 			"paypal": {

@@ -180,6 +180,7 @@
 		},
 		"map": {
 			"intro": "Live positions and recent tracks",
+			"locating": "Locating…",
 			"noUsers": "No users paired yet.",
 			"filter": "Filter",
 			"filterTitle": "Map filters",

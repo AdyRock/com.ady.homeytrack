@@ -179,8 +179,7 @@
 			"selectCopyUser": "Selecione pelo menos um usuário"
 		},
 		"map": {
-			"intro": "Posições em tempo real e trajetórias recentes",
-			"noUsers": "Ainda não há usuários emparelhados.",
+			"intro": "Posições em tempo real e trajetórias recentes",			"locating": "Localizando…",			"noUsers": "Ainda não há usuários emparelhados.",
 			"filter": "Filtrar",
 			"filterTitle": "Filtros do mapa",
 			"filterHint": "Selecione os usuários e as datas a serem exibidos no mapa.",

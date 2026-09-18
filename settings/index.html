@@ -308,7 +308,12 @@
 			<p class="track-history-title" data-i18n="settings.map.historyTitle">Logged coordinates</p>
 			<div id="trackHistoryList" class="track-history-list"></div>
 		</div>
-		<div id="trackMap" class="track-map"></div>
+		<div id="trackMapContainer" class="track-map-container">
+			<div id="trackMap" class="track-map"></div>
+			<div id="trackMapLoading" class="track-map-loading hidden">
+				<p data-i18n="settings.map.locating">Locating…</p>
+			</div>
+		</div>
 		<div id="trackContextMenu" class="track-context-menu hidden">
 			<div class="track-context-menu-header">
 				<button type="button" id="closeTrackContextMenu" class="track-context-icon-button" title="Close menu"

@@ -328,8 +328,8 @@ module.exports = class MyApp extends Homey.App
 
 	/**
 	 * The most recently reported position of any paired user, used by the settings page to
-	 * centre the map when adding a zone. Homey's own geolocation would need an extra app
-	 * permission, which stops an installed app until the user re-approves it.
+	 * centre the map when adding a zone. Falls back to Homey's own configured location (the
+	 * `homey:manager:geolocation` permission) when there's no user position yet.
 	 * @returns {{ lat: number, lon: number }|null}
 	 */
 	getDefaultMapLocation()
@@ -340,7 +340,7 @@ module.exports = class MyApp extends Homey.App
 			devices = this.homey.drivers.getDriver('user').getDevices();
 		} catch (err)
 		{
-			return null;
+			devices = [];
 		}
 
 		let newest = null;
@@ -359,7 +359,20 @@ module.exports = class MyApp extends Homey.App
 		}
 
 		const stored = this.homey.settings.get('lastMapLocation');
-		return stored && Number.isFinite(stored.lat) && Number.isFinite(stored.lon) ? stored : null;
+		if (stored && Number.isFinite(stored.lat) && Number.isFinite(stored.lon)) return stored;
+
+		try
+		{
+			const lat = this.homey.geolocation.getLatitude();
+			const lon = this.homey.geolocation.getLongitude();
+			// Unset/manual mode reports 0,0 rather than throwing, which isn't a usable position.
+			if (Number.isFinite(lat) && Number.isFinite(lon) && (lat !== 0 || lon !== 0)) return { lat, lon };
+		} catch (err)
+		{
+			// Permission not yet granted (e.g. pre-update install) - fall through to null.
+		}
+
+		return null;
 	}
 
 	/**

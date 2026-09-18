@@ -180,6 +180,7 @@
 		},
 		"map": {
 			"intro": "Live posities en recente routes",
+			"locating": "Locatie bepalen…",
 			"noUsers": "Nog geen gebruikers gekoppeld.",
 			"filter": "Filter",
 			"filterTitle": "Kaartfilters",

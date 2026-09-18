@@ -179,8 +179,7 @@
 			"selectCopyUser": "Wählen Sie mindestens einen Benutzer"
 		},
 		"map": {
-			"intro": "Live-Positionen und aktuelle Fahrspuren",
-			"noUsers": "Noch keine Benutzer gekoppelt.",
+			"intro": "Live-Positionen und aktuelle Fahrspuren",			"locating": "Standort wird ermittelt…",			"noUsers": "Noch keine Benutzer gekoppelt.",
 			"filter": "Filter",
 			"filterTitle": "Kartenfilter",
 			"filterHint": "Wählen Sie die Benutzer und Datumsangaben für die Karte aus.",

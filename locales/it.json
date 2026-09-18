@@ -180,6 +180,7 @@
 		},
 		"map": {
 			"intro": "Posizioni live e tracce recenti",
+			"locating": "Localizzazione…",
 			"noUsers": "Nessun utente associato ancora.",
 			"filter": "Filtra",
 			"filterTitle": "Filtri mappa",

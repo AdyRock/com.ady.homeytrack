@@ -180,6 +180,7 @@
 		},
 		"map": {
 			"intro": "Posiciones en vivo y trazados recientes",
+			"locating": "Localizando…",
 			"noUsers": "Todavía no hay usuarios emparejados.",
 			"filter": "Filtrar",
 			"filterTitle": "Filtros del mapa",

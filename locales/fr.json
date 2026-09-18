@@ -179,8 +179,7 @@
 			"selectCopyUser": "Sélectionnez au moins un utilisateur"
 		},
 		"map": {
-			"intro": "Positions en direct et traces récentes",
-			"noUsers": "Aucun utilisateur associé pour le moment.",
+			"intro": "Positions en direct et traces récentes",			"locating": "Localisation en cours…",			"noUsers": "Aucun utilisateur associé pour le moment.",
 			"filter": "Filtrer",
 			"filterTitle": "Filtres de la carte",
 			"filterHint": "Sélectionnez les utilisateurs et les dates à afficher sur la carte.",

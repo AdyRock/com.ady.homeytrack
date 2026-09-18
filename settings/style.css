@@ -164,10 +164,37 @@ body {
 	margin-bottom: 0;
 }
 
-.track-map {
+.track-map-container {
+	position: relative;
 	flex: 1;
 	min-height: 200px;
+	display: flex;
+}
+
+.track-map {
+	position: absolute;
+	inset: 0;
 	border-radius: 6px;
+}
+
+.track-map-loading {
+	position: absolute;
+	inset: 0;
+	z-index: 500;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #eee;
+	border-radius: 6px;
+}
+
+.track-map-loading.hidden {
+	display: none;
+}
+
+.track-map-loading p {
+	margin: 0 !important;
+	color: #666;
 }
 
 .track-map-actions {
@@ -649,7 +676,7 @@ button.track-zone-edit-button {
 	display: flex;
 }
 
-#tabPanelMap.history-expanded .track-map {
+#tabPanelMap.history-expanded .track-map-container {
 	flex: 1;
 	min-height: 120px;
 }

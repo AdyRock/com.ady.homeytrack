@@ -180,6 +180,7 @@
 		},
 		"map": {
 			"intro": "Pozycje na żywo i ostatnie trasy",
+			"locating": "Ustalanie lokalizacji…",
 			"noUsers": "Brak sparowanych użytkowników.",
 			"filter": "Filtruj",
 			"filterTitle": "Filtry mapy",

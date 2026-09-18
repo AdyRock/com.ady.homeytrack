@@ -137,5 +137,18 @@
 		"zh": "改进了地图瓦片缓存机制。",
 		"ja": "地図タイルのキャッシュ機構を改善しました。",
 		"ko": "지도 타일 캐싱 메커니즘 개선."
+	},
+	"1.1.1": {
+		"en": "Renamed the app to ZoneTracks. Reduced memory usage. Fixed possible issue with leaving and enetering zones when the app restarts.",
+		"nl": "De app is hernoemd naar ZoneTracks. Verminderd geheugenverbruik. Mogelijk probleem opgelost bij het verlaten en betreden van zones wanneer de app opnieuw wordt gestart.",
+		"fr": "Renommé l'application en ZoneTracks. Réduction de l'utilisation de la mémoire. Correction d'un problème possible lors de la sortie et de l'entrée des zones lorsque l'application redémarre.",
+		"de": "Die App wurde in ZoneTracks umbenannt. Reduzierter Speicherverbrauch. Möglicher Fehler beim Verlassen und Betreten von Zonen beim Neustart der App behoben.",
+		"es": "Renombrada la aplicación a ZoneTracks. Reducción del uso de memoria. Se solucionó un posible problema al salir y entrar en zonas cuando la aplicación se reinicia.",
+		"it": "Rinominata l'app in ZoneTracks. Ridotto l'uso della memoria. Risolto un possibile problema con l'uscita e l'ingresso nelle zone quando l'app si riavvia.",
+		"pt": "Renomeado o aplicativo para ZoneTracks. Reduzido o uso de memória. Corrigido possível problema ao sair e entrar em zonas quando o aplicativo reinicia.",
+		"ru": "Переименовано приложение в ZoneTracks. Снижено использование памяти. Исправлена возможная проблема с выходом и входом в зоны при перезапуске приложения.",
+		"zh": "将应用程序重命名为 ZoneTracks。减少内存使用。修复了应用程序重新启动时离开和进入区域的可能问题。",
+		"ja": "アプリを ZoneTracks に名前変更。メモリ使用量を削減。アプリ再起動時にゾーンを離れたり入ったりする可能性のある問題を修正しました。",
+		"ko": "앱 이름을 ZoneTracks로 변경했습니다. 메모리 사용량을 줄였습니다. 앱이 재시작될 때 영역을 떠나고 들어가는 문제를 수정했습니다."
 	}
 }

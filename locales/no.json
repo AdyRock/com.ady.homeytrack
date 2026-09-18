@@ -180,6 +180,7 @@
 		},
 		"map": {
 			"intro": "Sanntidsposisjoner og nylige spor",
+			"locating": "Finner posisjon…",
 			"noUsers": "Ingen brukere er koblet ennå.",
 			"filter": "Filter",
 			"filterTitle": "Kartfiltre",
