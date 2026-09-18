@@ -237,7 +237,7 @@
 			"contextHelpBody": "Åpne menyen\nHøyreklikk på kartet med en mus, eller trykk og hold på en berøringsskjerm, for å åpne kartmenyen. Den første kommandoen bytter registrerte punkter mellom klassiske prikker og dråpeformede retningsmarkører.\n\nIkoner per bruker\n**Øye** betyr at brukeren er synlig. Velg det for å skjule brukerens avatar, posisjon og spor. **Overstreket øye** betyr at brukeren er skjult; velg det for å vise brukeren igjen.\n\n**Rute** betyr at brukerens registrerte spor er synlig. Velg den for å skjule bare sporet og fortsatt vise den nyeste posisjonen. **Overstreket rute** betyr at sporet er skjult; velg den for å vise sporet igjen. Denne kontrollen er deaktivert når brukeren er skjult.\n\n**Mål** sentrerer kartet på brukerens faktiske nyeste posisjon. Det er deaktivert når brukeren er skjult eller ikke har noen rapportert posisjon."
 		},
 		"logs": {
-			"intro": "De siste ~20 KB med loggmeddelelser, nyeste nederst (ikke lagret når appen startes på nytt). Feil blir alltid fanget opp.",
+			"intro": "De siste ~20 KB med loggmeddelelser, nyeste nederst. Logger beholdes når appen startes på nytt, og feil blir alltid fanget opp.",
 			"enable": "Aktiver loggmeddelelser (i tillegg til feil)",
 			"clear": "Tøm logg",
 			"email": "Send logg til utvikler",

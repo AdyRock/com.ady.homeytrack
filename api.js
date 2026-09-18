@@ -68,6 +68,12 @@ module.exports = {
 		return getTileStats();
 	},
 
+	/** Returns lightweight app-side memory diagnostics. */
+	async getMemoryStats({ homey })
+	{
+		return homey.app.getMemoryStats();
+	},
+
 	async deleteJourney({ homey, body })
 	{
 		return homey.app.deleteJourney(body.userId, body.start, body.end);

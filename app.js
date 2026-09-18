@@ -7,10 +7,11 @@ if (process.env.DEBUG === '1')
 }
 
 const Homey = require('homey');
-const nodemailer = require('nodemailer');
 const { randomUUID } = require('crypto');
+const fs = require('fs');
+const v8 = require('v8');
 const { createConnector, CONNECTION_METHOD_HTTP } = require('./lib/connectors');
-const { buildJourneys, clearTileCaches, initializeTileCache } = require('./lib/mapImage');
+const { buildJourneys, clearTileMemoryCache, initializeTileCache } = require('./lib/mapImage');
 
 const SETTINGS_KEYS = [
 	'connectionMethod',
@@ -34,8 +35,8 @@ const SETTINGS_BACKUP_KEYS = [
 ];
 
 const MAX_LOG_BUFFER_BYTES = 20 * 1024;
-const DEFAULT_TRACK_MAX_POINTS = 1000;
-const MIN_TRACK_MAX_POINTS = 100;
+const PERSISTED_LOGS_KEY = 'persistentLogs';
+const LOG_PERSIST_DELAY_MS = 1000;
 const WIDGET_MAX_JOURNEYS = 12;
 const WIDGET_MAX_JOURNEY_POINTS = 80;
 // How long a shared zone is protected from being auto-disabled after it was first sent to a
@@ -61,6 +62,11 @@ module.exports = class MyApp extends Homey.App
 	 */
 	async onInit()
 	{
+		this.logBuffer = this._loadPersistedLogs();
+		this.logPersistTimer = null;
+		this.logPersistPromise = Promise.resolve();
+		this._logMemorySnapshot('Startup before app settings initialization');
+
 		this.connector = null;
 		this.personEnteredZoneCard = this.homey.flow.getTriggerCard('person_entered_zone');
 		this.personLeftZoneCard = this.homey.flow.getTriggerCard('person_left_zone');
@@ -70,7 +76,6 @@ module.exports = class MyApp extends Homey.App
 		this.mqttWaypointSyncSignatures = new Map();
 		this.mqttActiveTopics = new Set();
 		this.connectionStatus = { connected: false, connecting: true, method: null, error: null };
-		this.logBuffer = [];
 		this.memoryWarningPromise = null;
 		initializeTileCache(this.homey.settings);
 		this._migrateWaypointModel();
@@ -81,6 +86,7 @@ module.exports = class MyApp extends Homey.App
 		{
 			this.homey.settings.set('logsEnabled', false);
 		}
+		this._logMemorySnapshot('Startup after app settings initialization');
 
 		// Safety net: a bad connector config (e.g. an invalid MQTT port) must never be able to
 		// crash the whole app process via an uncaught exception or unhandled rejection.
@@ -92,6 +98,7 @@ module.exports = class MyApp extends Homey.App
 		});
 
 		await this._reconnect();
+		this._logMemorySnapshot('Startup after connector initialization');
 
 		this.homey.settings.on('set', (key) =>
 		{
@@ -115,8 +122,19 @@ module.exports = class MyApp extends Homey.App
 		this._log(`MyApp has been initialized (log messages ${this.homey.settings.get('logsEnabled') ? 'enabled' : 'disabled'})`);
 	}
 
+	async onUninit()
+	{
+		if (this.logPersistTimer)
+		{
+			clearTimeout(this.logPersistTimer);
+			this.logPersistTimer = null;
+		}
+		await this._persistLogs();
+	}
+
 	_onMemoryWarning()
 	{
+		this._logError(`Memory warning received (${this._formatMemoryMetrics()})`);
 		if (this.memoryWarningPromise)
 		{
 			this._log('Memory warning handling is already in progress');
@@ -133,22 +151,10 @@ module.exports = class MyApp extends Homey.App
 
 	async _reduceMemoryUse()
 	{
-		const releasedTiles = clearTileCaches();
-		const configuredMaxPoints = Number(this.homey.settings.get('trackMaxPoints')) || DEFAULT_TRACK_MAX_POINTS;
-		const previousMaxPoints = Math.max(1, Math.floor(configuredMaxPoints));
-		const reducedMaxPoints = Math.max(MIN_TRACK_MAX_POINTS, Math.floor(previousMaxPoints / 2));
-
-		if (reducedMaxPoints !== previousMaxPoints)
-		{
-			await this.homey.settings.set('trackMaxPoints', reducedMaxPoints);
-		}
-
+		const releasedTiles = clearTileMemoryCache();
 		const devices = this.homey.drivers.getDriver('user').getDevices();
-		const removedCounts = await Promise.all(devices
-			.map((device) => device.trimTrackToMaxPoints(reducedMaxPoints)));
-		const removedPoints = removedCounts.reduce((total, count) => total + count, 0);
-		this.homey.api.realtime('tracks_updated', null);
-		this._logError(`Memory warning resolved: released ${releasedTiles} cached map tile(s), track limit ${previousMaxPoints} -> ${reducedMaxPoints}, removed ${removedPoints} point(s) across ${devices.length} user(s)`);
+		devices.forEach((device) => device.pauseMapImageRefreshes());
+		this._logError(`Memory warning resolved: released ${releasedTiles} in-memory map tile(s) and paused automatic map refreshes without deleting cached tiles or track history (${this._formatMemoryMetrics()})`);
 	}
 
 	/**
@@ -171,11 +177,11 @@ module.exports = class MyApp extends Homey.App
 	 */
 	_logError(...args)
 	{
-		this._appendLogEntry('error', args);
+		this._appendLogEntry('error', args, true);
 		this.error(...args);
 	}
 
-	_appendLogEntry(level, args)
+	_appendLogEntry(level, args, persistImmediately = false)
 	{
 		const message = args.map((arg) =>
 		{
@@ -190,7 +196,53 @@ module.exports = class MyApp extends Homey.App
 			this.logBuffer.shift();
 		}
 
+		this._scheduleLogPersistence(persistImmediately);
 		this.homey.api.realtime('log_updated', this.getLogsText());
+	}
+
+	_loadPersistedLogs()
+	{
+		const stored = this.homey.settings.get(PERSISTED_LOGS_KEY);
+		if (!Array.isArray(stored)) return [];
+		return stored.filter((entry) => typeof entry === 'string');
+	}
+
+	_scheduleLogPersistence(immediately = false)
+	{
+		if (this.logPersistTimer && !immediately) return;
+		if (this.logPersistTimer)
+		{
+			clearTimeout(this.logPersistTimer);
+			this.logPersistTimer = null;
+		}
+
+		const persist = () =>
+		{
+			this.logPersistTimer = null;
+			this._persistLogs();
+		};
+		if (immediately) persist();
+		else this.logPersistTimer = setTimeout(persist, LOG_PERSIST_DELAY_MS);
+	}
+
+	_persistLogs()
+	{
+		const snapshot = [...this.logBuffer];
+		this.logPersistPromise = this.logPersistPromise
+			.then(() => this.homey.settings.set(PERSISTED_LOGS_KEY, snapshot))
+			.catch((err) => this.error('Failed to persist app logs', err));
+		return this.logPersistPromise;
+	}
+
+	_formatMemoryMetrics()
+	{
+		const heap = v8.getHeapStatistics();
+		return `V8 heap ${(heap.used_heap_size / (1024 * 1024)).toFixed(1)} MB, external ${(heap.external_memory / (1024 * 1024)).toFixed(1)} MB`;
+	}
+
+	_logMemorySnapshot(stage)
+	{
+		this._appendLogEntry('system', [`${stage}: ${this._formatMemoryMetrics()}`], true);
 	}
 
 	/**
@@ -207,6 +259,7 @@ module.exports = class MyApp extends Homey.App
 	clearLogs()
 	{
 		this.logBuffer = [];
+		this._scheduleLogPersistence(true);
 		this.homey.api.realtime('log_updated', this.getLogsText());
 	}
 
@@ -215,6 +268,9 @@ module.exports = class MyApp extends Homey.App
 	 */
 	async emailLogs()
 	{
+		// Emailing logs is exceptional; loading Nodemailer at startup costs roughly 17 MB RSS.
+		// eslint-disable-next-line global-require
+		const nodemailer = require('nodemailer');
 		const transporter = nodemailer.createTransport({
 			host: Homey.env.MAIL_HOST,
 			port: 465,
@@ -533,6 +589,47 @@ module.exports = class MyApp extends Homey.App
 			lastLocation: device.getStoreValue('lastLocation') || null,
 			track: device.getTrackHistory(),
 		}));
+	}
+
+	/** Returns only aggregate diagnostic data; no location or image content is exposed. */
+	getMemoryStats()
+	{
+		const heap = v8.getHeapStatistics();
+		let processMemory = null;
+		try
+		{
+			processMemory = process.memoryUsage();
+		}
+		catch (err)
+		{
+			// Homey's app sandbox can block uv_resident_set_memory; V8 statistics still work.
+		}
+		const devices = this.homey.drivers.getDriver('user').getDevices().map((device) =>
+		{
+			const archive = device.getStoreValue('trackArchive');
+			return {
+				name: device.getName(),
+				imageHandles: Number(Boolean(device.mapImage)) + (device.journeyImages || []).length,
+				activeTrackPoints: Array.isArray(device.getStoreValue('track')) ? device.getStoreValue('track').length : 0,
+				archiveBytes: typeof archive === 'string' ? Buffer.byteLength(archive, 'utf8') : 0,
+			};
+		});
+		return {
+			process: processMemory ? {
+				rssMb: Math.round(processMemory.rss / (1024 * 1024) * 10) / 10,
+				externalMb: Math.round(processMemory.external / (1024 * 1024) * 10) / 10,
+				arrayBuffersMb: Math.round(processMemory.arrayBuffers / (1024 * 1024) * 10) / 10,
+			} : null,
+			heap: {
+				usedMb: Math.round(heap.used_heap_size / (1024 * 1024) * 10) / 10,
+				totalMb: Math.round(heap.total_heap_size / (1024 * 1024) * 10) / 10,
+				limitMb: Math.round(heap.heap_size_limit / (1024 * 1024) * 10) / 10,
+				externalMb: Math.round(heap.external_memory / (1024 * 1024) * 10) / 10,
+			},
+			imageHandles: devices.reduce((total, device) => total + device.imageHandles, 0),
+			locationQueues: this.locationUpdateQueues.size,
+			devices,
+		};
 	}
 
 	/**

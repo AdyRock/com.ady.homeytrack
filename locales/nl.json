@@ -152,7 +152,7 @@
 			"editModalTitle": "Zone bewerken (waypoint)",
 			"name": "Naam",
 			"namePlaceholder": "bijv. Home",
-			"mapHint": "Klik op de kaart om de locatie van de zone (waypoint) in te stellen:",
+			"mapHint": "Klik op de kaart om de locatie van de zone in te stellen:",
 			"latitude": "Breedtegraad",
 			"longitude": "Lengtegraad",
 			"radius": "Straal (meter)",
@@ -237,7 +237,7 @@
 			"contextHelpBody": "Het menu openen\nKlik met de rechtermuisknop op de kaart of houd de kaart ingedrukt op een touchscreen om het kaartmenu te openen. Met de eerste opdracht wissel je geregistreerde punten tussen klassieke stippen en druppelvormige richtingsmarkeringen.\n\nPictogrammen per gebruiker\n**Oog** betekent dat de gebruiker zichtbaar is. Selecteer het om de avatar, locatie en track te verbergen. **Doorgestreept oog** betekent dat de gebruiker verborgen is; selecteer het om de gebruiker weer te tonen.\n\n**Route** betekent dat de geregistreerde track zichtbaar is. Selecteer deze om alleen de track te verbergen en de nieuwste locatie zichtbaar te houden. **Doorgestreepte route** betekent dat de track verborgen is; selecteer deze om de track weer te tonen. Deze bediening is uitgeschakeld wanneer de gebruiker verborgen is.\n\n**Doel** centreert de kaart op de werkelijke nieuwste locatie van de gebruiker. Het is uitgeschakeld wanneer de gebruiker verborgen is of geen gemelde locatie heeft."
 		},
 		"logs": {
-			"intro": "De laatste ~20 KB aan gelogde berichten, nieuwste onderaan (niet bewaard bij opnieuw opstarten van de app). Fouten worden altijd vastgelegd.",
+			"intro": "De laatste ~20 KB aan gelogde berichten, nieuwste onderaan. Logs blijven bewaard wanneer de app opnieuw wordt gestart en fouten worden altijd vastgelegd.",
 			"enable": "Logberichten inschakelen (naast fouten)",
 			"clear": "Log wissen",
 			"email": "Log naar ontwikkelaar verzenden",

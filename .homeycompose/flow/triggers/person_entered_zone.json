@@ -1,7 +1,7 @@
 {
 	"id": "person_entered_zone",
 	"title": {
-		"en": "A person entered a zone (waypoint)",
+		"en": "A person entered a zone",
 		"no": "En person kom inn i en sone (waypoint)",
 		"nl": "Iemand is een zone binnengegaan (waypoint)",
 		"de": "Eine Person hat eine Zone betreten (Waypoint)",
@@ -14,7 +14,7 @@
 		"ko": "사람이 구역(웨이포인트)에 들어갔습니다"
 	},
 	"titleFormatted": {
-		"en": "A person entered a zone (waypoint)",
+		"en": "A person entered a zone",
 		"no": "En person kom inn i en sone (waypoint)",
 		"nl": "Iemand is een zone binnengegaan (waypoint)",
 		"de": "Eine Person hat eine Zone betreten (Waypoint)",
@@ -51,10 +51,10 @@
 			"name": "zone",
 			"type": "string",
 			"title": {
-				"en": "zone (waypoint)",
+				"en": "zone",
 				"no": "sone (waypoint)",
-				"nl": "zone (waypoint)",
-				"de": "Zone (Waypoint)",
+				"nl": "zone",
+				"de": "zone",
 				"fr": "zone (point de repère)",
 				"es": "zona (waypoint)",
 				"pt": "zona (waypoint)",

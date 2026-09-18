@@ -1,7 +1,7 @@
 {
 	"id": "person_left_zone",
 	"title": {
-		"en": "A person left a zone (waypoint)",
+		"en": "A person left a zone",
 		"no": "En person forlot en sone (waypoint)",
 		"nl": "Iemand heeft een zone verlaten (waypoint)",
 		"de": "Eine Person hat eine Zone verlassen (Waypoint)",
@@ -14,7 +14,7 @@
 		"ko": "사람이 구역(웨이포인트)에서 나갔습니다"
 	},
 	"titleFormatted": {
-		"en": "A person left a zone (waypoint)",
+		"en": "A person left a zone",
 		"no": "En person forlot en sone (waypoint)",
 		"nl": "Iemand heeft een zone verlaten (waypoint)",
 		"de": "Eine Person hat eine Zone verlassen (Waypoint)",
@@ -51,10 +51,10 @@
 			"name": "zone",
 			"type": "string",
 			"title": {
-				"en": "zone (waypoint)",
+				"en": "zone",
 				"no": "sone (waypoint)",
-				"nl": "zone (waypoint)",
-				"de": "Zone (Waypoint)",
+				"nl": "zone",
+				"de": "zone",
 				"fr": "zone (point de repère)",
 				"es": "zona (waypoint)",
 				"pt": "zona (waypoint)",

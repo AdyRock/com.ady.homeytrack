@@ -165,6 +165,11 @@
 			"path": "/map-tiles/stats",
 			"public": false
 		},
+		"getMemoryStats": {
+			"method": "GET",
+			"path": "/memory/stats",
+			"public": false
+		},
 		"deleteJourney": {
 			"method": "POST",
 			"path": "/tracks/delete-journey",

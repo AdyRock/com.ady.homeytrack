@@ -127,6 +127,10 @@ function onHomeyReady(Homey)
 				loadTrackWaypoints();
 			});
 		}
+		if (button.dataset.tab === 'logs')
+		{
+			loadLogs(40);
+		}
 	}
 
 	tabButtons.forEach((button) =>
@@ -523,11 +527,27 @@ function onHomeyReady(Homey)
 		logsView.scrollTop = logsView.scrollHeight;
 	}
 
-	Homey.api('GET', '/logs', null, (err, result) =>
+	let logsLoadGeneration = 0;
+	function loadLogs(attemptsLeft, generation = ++logsLoadGeneration)
 	{
-		if (err) return renderLogs(String(err.message || err));
-		renderLogs(result.text);
-	});
+		Homey.api('GET', '/logs', null, (err, result) =>
+		{
+			if (generation !== logsLoadGeneration) return;
+			if (err || !result || typeof result.text !== 'string')
+			{
+				if (attemptsLeft > 0)
+				{
+					setTimeout(() => loadLogs(attemptsLeft - 1, generation), 1500);
+					return;
+				}
+				renderLogs(String(err && (err.message || err) || Homey.__('settings.logs.noMessages')));
+				return;
+			}
+			renderLogs(result.text);
+		});
+	}
+
+	loadLogs(40);
 
 	// The app pushes this event whenever a new message is logged.
 	Homey.on('log_updated', (text) => renderLogs(text));

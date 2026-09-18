@@ -34,10 +34,10 @@
 	"capabilitiesOptions": {
 		"zone": {
 			"title": {
-				"en": "Zone (waypoint)",
+				"en": "zone",
 				"no": "Sone (waypoint)",
-				"nl": "Zone (waypoint)",
-				"de": "Zone (Waypoint)",
+				"nl": "zone",
+				"de": "zone",
 				"fr": "Zone (point de repère)",
 				"es": "Zona (waypoint)",
 				"pt": "Zona (waypoint)",

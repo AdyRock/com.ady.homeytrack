@@ -12,11 +12,21 @@ const TRACK_MAX_POINTS = 1000;
 const SPEED_STALE_MS = 60 * 1000;
 const LOCATION_REQUEST_DELAY_MS = 30 * 1000;
 const MAP_REFRESH_DELAY_MS = 15 * 1000;
+const MAP_REFRESH_MEMORY_PAUSE_MS = 5 * 60 * 1000;
 const KMH_TO_MPH = 0.621371;
-const JOURNEY_IMAGE_COUNT = 5;
+const JOURNEY_IMAGE_COUNT = 2;
+// Broker reconnects/app restarts can replay a whole backlog of queued or retained location
+// reports at once, each looking like a real transition relative to the reset in-memory
+// debounce state. Treat every zone change seen in this window after (re)start as a resync.
+const ZONE_SYNC_GRACE_MS = 2 * 60 * 1000;
 
 module.exports = class UserDevice extends Homey.Device
 {
+
+	// A class field so it's set the instant the device object is constructed, NOT just once
+	// onInit runs - MQTT location reports can reach _considerZoneChange (via the app/driver's
+	// device list) before this device's own onInit has had a chance to execute.
+	zoneSyncGraceUntil = Date.now() + ZONE_SYNC_GRACE_MS;
 
 	async onInit()
 	{
@@ -24,9 +34,13 @@ module.exports = class UserDevice extends Homey.Device
 		this.speedStaleTimer = null;
 		this.locationRequestTimer = null;
 		this.mapRefreshTimer = null;
+		this.mapRefreshPausedUntil = 0;
 		this.latestVelocityKmh = null;
 		this.pendingLocation = null;
 		this.pendingZoneChange = null;
+		// Zone changes seen before this time just resync to the current zone, they must never
+		// re-fire entered/left flows for transitions that happened/queued while the app was down.
+		this.zoneSyncGraceUntil = Date.now() + ZONE_SYNC_GRACE_MS;
 
 		if (!this.hasCapability('speed'))
 		{
@@ -151,7 +165,7 @@ module.exports = class UserDevice extends Homey.Device
 	 * Slot N always shows the Nth oldest of the recent journeys, so every title has to be
 	 * rewritten once a new journey starts (or an old one is trimmed off the track).
 	 */
-	async _syncJourneyImages()
+	async _syncJourneyImages(refreshNewest = true)
 	{
 		const journeys = this._listJourneys().map((journey) => ({ journey, zones: this._journeyZoneLabel(journey) }));
 		const signature = journeys.map((entry) => `${entry.journey.start}:${entry.zones}`).join('|');
@@ -168,7 +182,7 @@ module.exports = class UserDevice extends Homey.Device
 			}
 			// Only the newest journey gains points; re-pulling the older, unchanged ones would just
 			// cost tile fetches.
-			if (shifted || index === journeys.length - 1)
+			if (shifted || (refreshNewest && index === journeys.length - 1))
 			{
 				await this.journeyImages[index].update().catch(this.error);
 			}
@@ -217,6 +231,7 @@ module.exports = class UserDevice extends Homey.Device
 
 	_refreshMapImage()
 	{
+		if (Date.now() < this.mapRefreshPausedUntil) return;
 		if (this.mapRefreshTimer) return;
 		this.mapRefreshTimer = setTimeout(() =>
 		{
@@ -227,9 +242,19 @@ module.exports = class UserDevice extends Homey.Device
 			}
 			if (this.journeyImages && this.journeyImages.length)
 			{
-				this._syncJourneyImages().catch(this.error);
+				this._syncJourneyImages(false).catch(this.error);
 			}
 		}, MAP_REFRESH_DELAY_MS);
+	}
+
+	pauseMapImageRefreshes()
+	{
+		this.mapRefreshPausedUntil = Date.now() + MAP_REFRESH_MEMORY_PAUSE_MS;
+		if (this.mapRefreshTimer)
+		{
+			clearTimeout(this.mapRefreshTimer);
+			this.mapRefreshTimer = null;
+		}
 	}
 
 	_scheduleLocationRequest(velocity)
@@ -319,6 +344,15 @@ module.exports = class UserDevice extends Homey.Device
 
 	async _considerZoneChange(regions)
 	{
+		if (Date.now() < this.zoneSyncGraceUntil)
+		{
+			// Resync to whatever the phone reports right now, without treating it as a real
+			// transition - otherwise a restart replays queued/retained reports as real flows.
+			this.pendingZoneChange = null;
+			await this._applyZones(regions, { silent: true });
+			return;
+		}
+
 		const decision = confirmZoneChange(this._getCurrentZones(), regions, this.pendingZoneChange);
 		this.pendingZoneChange = decision.pendingChange;
 		if (decision.shouldApply)
@@ -330,7 +364,7 @@ module.exports = class UserDevice extends Homey.Device
 		}
 	}
 
-	async _applyZones(regions)
+	async _applyZones(regions, { silent = false } = {})
 	{
 		const zone = regions.length ? regions.join(', ') : 'Unknown';
 		const isHome = regions.some((region) => this._getPresenceZones().includes(region.toLowerCase()));
@@ -340,6 +374,15 @@ module.exports = class UserDevice extends Homey.Device
 
 		await this.setCapabilityValue('zone', zone).catch(this.error);
 		await this.setCapabilityValue('alarm_presence', isHome).catch(this.error);
+
+		if (silent)
+		{
+			if (previousZones.join(',') !== regions.join(','))
+			{
+				this.log(`Resynced zone to ${zone} on startup without triggering flows`);
+			}
+			return;
+		}
 
 		const enteredZones = regions.filter((current) => !previousZoneSet.has(current.toLowerCase()));
 		const leftZones = previousZones.filter((previous) => !currentZoneSet.has(previous.toLowerCase()));
