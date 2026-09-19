@@ -150,5 +150,18 @@
 		"zh": "将应用程序重命名为 ZoneTracks。减少内存使用。修复了应用程序重新启动时离开和进入区域的可能问题。",
 		"ja": "アプリを ZoneTracks に名前変更。メモリ使用量を削減。アプリ再起動時にゾーンを離れたり入ったりする可能性のある問題を修正しました。",
 		"ko": "앱 이름을 ZoneTracks로 변경했습니다. 메모리 사용량을 줄였습니다. 앱이 재시작될 때 영역을 떠나고 들어가는 문제를 수정했습니다."
+	},
+	"1.1.2": {
+		"en": "Fixed minor bugs and improved performance.",
+		"nl": "Kleine bugs opgelost en prestaties verbeterd.",
+		"fr": "Correction de petits bugs et amélioration des performances.",
+		"de": "Kleine Fehler behoben und Leistung verbessert.",
+		"es": "Corrección de errores menores y mejora del rendimiento.",
+		"it": "Correzione di piccoli bug e miglioramento delle prestazioni.",
+		"pt": "Correção de pequenos bugs e melhoria do desempenho.",
+		"ru": "Исправлены мелкие ошибки и улучшена производительность.",
+		"zh": "修复了小错误并提高了性能。",
+		"ja": "小さなバグを修正し、パフォーマンスを向上させました。",
+		"ko": "사소한 버그를 수정하고 성능을 향상시켰습니다."
 	}
 }
